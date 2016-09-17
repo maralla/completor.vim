@@ -3,14 +3,15 @@
 from completor import Completor
 
 type_map = {
-    'Struct' : 's', 'Module' : 'M', 'Function' : 'f',
-    'Crate' : 'C', 'Let' : 'v', 'StructField' : 'm',
-    'Impl' : 'i', 'Enum' : 'e', 'EnumVariant' : 'E',
-    'Type' : 't', 'FnArg' : 'v', 'Trait' : 'T'
+    'Struct': 's', 'Module': 'M', 'Function': 'f',
+    'Crate': 'C', 'Let': 'v', 'StructField': 'm',
+    'Impl': 'i', 'Enum': 'e', 'EnumVariant': 'E',
+    'Type': 't', 'FnArg': 'v', 'Trait': 'T'
 }
 
+
 class Racer(Completor):
-    __filetype__ = 'rust'
+    filetype = 'rust'
 
     name = 'racer'
 
@@ -34,6 +35,6 @@ class Racer(Completor):
                 'kind': kind,
                 'word': name,
                 'menu': spec,
-                'dup': 1
+                'dup': 0
             })
         return completions

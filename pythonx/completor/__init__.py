@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 
 import importlib
+import re
 import vim
+
+current_completer = None
 
 
 class Meta(type):
     def __init__(cls, name, bases, attrs):
         if name not in ('Completor', 'Base'):
-            Completor._registry[cls.__filetype__] = cls()
+            Completor._registry[cls.filetype] = cls()
 
         return super(Meta, cls).__init__(name, bases, attrs)
 
@@ -21,9 +24,21 @@ class Unusable(object):
 
 class Completor(Base):
     _registry = {}
+    _commons = None
 
-    __filetype__ = Unusable()
+    filetype = Unusable()
     name = Unusable()
+    pattern = None
+    common = False
+
+    def __init__(self):
+        self.input_data = ''
+
+    def commons(cls):
+        if cls._commons is None:
+            cls._commons = tuple(c for c in cls._registry.values()
+                                 if c.common)
+        return cls._commons
 
     @property
     def tempname(self):
@@ -37,10 +52,23 @@ class Completor(Base):
     def cursor(self):
         return vim.current.window.cursor
 
+    def match(self, input_data):
+        self.input_data = input_data
+
+        if self.pattern is None:
+            return True
+
+        return bool(re.search(self.pattern, input_data, re.X))
+
 _completor = Completor()
 
 
-def load_completer(ft):
+def load_completer(ft, input_data):
+    commons = _completor.commons()
+    for c in commons:
+        if c.match(input_data):
+            return c
+
     if not ft:
         return None
 

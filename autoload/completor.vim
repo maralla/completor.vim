@@ -23,7 +23,7 @@ function! s:handle(ch)
 
 Py << EOF
 import completor, vim
-completer = completor.load_completer(vim.current.buffer.options['ft'])
+completer = completor.current_completer
 result = completer.parse(vim.eval('msg')) if completer else []
 EOF
 
@@ -42,15 +42,29 @@ endfunction
 
 
 function! s:execute(cmd)
-  let job = job_start(a:cmd, {"close_cb": {c->s:handle(c)}, "in_io": 'null', "err_io": 'out'})
+  if exists('s:job') && job_status(s:job) == 'run'
+    call job_stop(s:job)
+    let s:completions = []
+  endif
+
+  let s:job = job_start(a:cmd, {"close_cb": {c->s:handle(c)}, "in_io": 'null', "err_io": 'out'})
 endfunction
 
 
 function! s:complete()
+  let s:completions = []
+  let inputted = matchstr(getline('.'), '.*\%'.col('.').'c')
+
 Py << EOF
 import completor, vim
-completer = completor.load_completer(vim.current.buffer.options['ft'])
-cmd = completer.format_cmd() if completer else ''
+
+inputted = vim.eval('inputted')
+completer = completor.load_completer(vim.current.buffer.options['ft'], inputted)
+if completer:
+  completor.current_completer = completer
+  cmd = completer.format_cmd()
+else:
+  cmd = ''
 EOF
 
   let cmd = Pyeval('cmd')
@@ -73,6 +87,7 @@ function! completor#enable()
     return
   endif
 
+  Py import completers.common
   call s:set_events()
 endfunction
 
