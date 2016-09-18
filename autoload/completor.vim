@@ -60,11 +60,8 @@ Py << EOF
 import completor, vim
 inputted = vim.eval('inputted')
 completer = completor.load_completer(vim.current.buffer.options['ft'], inputted)
-if completer:
-  completor.current_completer = completer
-  cmd = completer.format_cmd()
-else:
-  cmd = ''
+completor.current_completer = completer
+cmd = completer.format_cmd() if completer else ''
 EOF
 
   let cmd = Pyeval('cmd')
@@ -74,10 +71,22 @@ EOF
 endfunction
 
 
+function! s:on_text_change()
+  if exists('s:timer')
+    let info = timer_info(s:timer)
+    if !empty(info)
+      call timer_stop(s:timer)
+    endif
+  endif
+
+  let s:timer = timer_start(16, {t->s:complete()})
+endfunction
+
+
 function! s:set_events()
   augroup completor
     autocmd!
-    autocmd TextChangedI * call s:complete()
+    autocmd TextChangedI * call s:on_text_change()
   augroup END
 endfunction
 
