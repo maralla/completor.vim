@@ -53,11 +53,11 @@ endfunction
 
 function! s:complete()
   let s:completions = []
-  let inputted = matchstr(getline('.'), '.*\%'.col('.').'c')
+  let end = col('.') - 2
+  let inputted = end >= 0 ? getline('.')[:end] : ''
 
 Py << EOF
 import completor, vim
-
 inputted = vim.eval('inputted')
 completer = completor.load_completer(vim.current.buffer.options['ft'], inputted)
 if completer:

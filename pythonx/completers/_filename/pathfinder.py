@@ -31,7 +31,7 @@ def find(input_data):
     entries = entries.difference(mid)
     low = [(len(set(basename).intersection(e)), e) for e in entries]
     low.sort(key=lambda x: x[0], reverse=True)
-    return high + mid + [e for _, e in low]
+    return high + mid + [e for l, e in low if l > 0]
 
 
 def main():
