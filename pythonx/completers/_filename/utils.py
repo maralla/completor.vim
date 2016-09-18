@@ -13,7 +13,7 @@ PATH_PATTERN = r"""
     # Tail part
     (?:
     # any alphanumeric, symbol or space literal
-    [/a-zA-Z0-9(){}$+_~.\x80-\xff-\[\]]|
+    [/a-zA-Z0-9(){}$ +_~.'"\x80-\xff-\[\]]|
 
     # skip any special symbols
     [^\x20-\x7E]|
