@@ -96,6 +96,10 @@ function! completor#enable()
     return
   endif
 
+  if get(g:, 'completor_auto_close_doc', 1)
+    autocmd! CompleteDone * if pumvisible() == 0 | pclose | endif
+  endif
+
   Py import completers.common
   call s:set_events()
 endfunction

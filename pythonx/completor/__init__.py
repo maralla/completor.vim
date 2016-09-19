@@ -53,8 +53,6 @@ class Completor(Base):
         return vim.current.window.cursor
 
     def match(self, input_data):
-        self.input_data = input_data
-
         if self.pattern is None:
             return True
 
@@ -63,7 +61,7 @@ class Completor(Base):
 _completor = Completor()
 
 
-def load_completer(ft, input_data):
+def _load(ft, input_data):
     commons = _completor.commons()
     for c in commons:
         if c.match(input_data):
@@ -77,4 +75,11 @@ def load_completer(ft, input_data):
             importlib.import_module("completers.{}".format(ft))
         except ImportError:
             return None
-    return _completor._registry[ft]
+    return _completor._registry.get(ft)
+
+
+def load_completer(ft, input_data):
+    completer = _load(ft, input_data)
+    if completer is not None:
+        completer.input_data = input_data
+    return completer

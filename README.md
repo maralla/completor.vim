@@ -13,10 +13,8 @@ Builtin Completers
 ------------------
 
 * filename
-* rust
-
-To use rust completion [racer](https://github.com/phildawes/racer#installation)
-should be installed.
+* Rust. [racer](https://github.com/phildawes/racer#installation) should be installed.
+* Python. [jedi](https://github.com/davidhalter/jedi#installation) should be installed.
 
 Install
 -------
