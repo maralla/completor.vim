@@ -10,19 +10,14 @@ DIRNAME = os.path.dirname(__file__)
 
 class Jedi(Completor):
     filetype = 'python'
+    daemon = True
 
     def format_cmd(self):
-        line, col = self.cursor
-        return ['python', os.path.join(DIRNAME, 'python_jedi.py'),
-                '-l', str(line), '-c', str(col), '-n', self.filename,
-                '-d', self.input_data,
-                self.tempname]
+        return ['python', os.path.join(DIRNAME, 'python_jedi.py')]
 
-    def parse(self, items):
-        res = []
-        for item in items:
-            try:
-                res.append(json.loads(item))
-            except Exception:
-                res.append({'word': item})
-        return res
+    def parse(self, data):
+        try:
+            data = json.loads(data)
+        except Exception:
+            data = [{'word': data}]
+        return data

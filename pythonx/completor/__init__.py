@@ -30,6 +30,7 @@ class Completor(Base):
     name = Unusable()
     pattern = None
     common = False
+    daemon = False
 
     def __init__(self):
         self.input_data = ''
