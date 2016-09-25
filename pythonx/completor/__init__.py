@@ -31,6 +31,7 @@ class Completor(Base):
     pattern = None
     common = False
     daemon = False
+    sync = False
 
     def __init__(self):
         self.input_data = ''
@@ -59,6 +60,9 @@ class Completor(Base):
 
         return bool(re.search(self.pattern, input_data, re.X))
 
+    def format_cmd(self):
+        return ''
+
 _completor = Completor()
 
 
@@ -80,7 +84,6 @@ def _load(ft, input_data):
 
 
 def load_completer(ft, input_data):
-    completer = _load(ft, input_data)
-    if completer is not None:
-        completer.input_data = input_data
+    completer = _load(ft, input_data) or _completor._registry['buffer']
+    completer.input_data = input_data
     return completer
