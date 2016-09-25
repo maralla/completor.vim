@@ -4,6 +4,28 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 let s:completions = []
+let s:daemon = {}
+
+function s:daemon.respawn(cmd)
+  if self.status() == 'run'
+    call job_stop(self.job)
+  endif
+
+  let self.job = job_start(a:cmd, {"out_cb": {c,m->s:trigger(m)}, "err_io": 'out', "mode": 'nl'})
+endfunction
+
+function s:daemon.write(data)
+  let ch = job_getchannel(self.job)
+  call ch_sendraw(ch, a:data."\n")
+endfunction
+
+function s:daemon.status()
+  if !exists('self.job')
+    return 'none'
+  endif
+
+  return job_status(self.job)
+endfunction
 
 
 function! completor#omnifunc(findstart, base)
@@ -15,16 +37,11 @@ function! completor#omnifunc(findstart, base)
 endfunction
 
 
-function! s:handle(ch)
-  let msg = []
-  while ch_status(a:ch) == 'buffered'
-    call add(msg, ch_read(a:ch))
-  endwhile
-
+function! s:trigger(msg)
 Py << EOF
 import completor, vim
 completer = completor.current_completer
-result = completer.parse(vim.eval('msg')) if completer else []
+result = completer.parse(vim.eval('a:msg')) if completer else []
 EOF
 
   let s:completions = Pyeval('result')
@@ -41,32 +58,54 @@ EOF
 endfunction
 
 
-function! s:execute(cmd)
+function! s:handle(ch)
+  let msg = []
+  while ch_status(a:ch) == 'buffered'
+    call add(msg, ch_read(a:ch))
+  endwhile
+  call s:trigger(msg)
+endfunction
+
+
+function! s:reset()
+  let s:completions = []
   if exists('s:job') && job_status(s:job) == 'run'
     call job_stop(s:job)
-    let s:completions = []
   endif
-
-  let s:job = job_start(a:cmd, {"close_cb": {c->s:handle(c)}, "in_io": 'null', "err_io": 'out'})
 endfunction
 
 
 function! s:complete()
-  let s:completions = []
+  call s:reset()
+
   let end = col('.') - 2
   let inputted = end >= 0 ? getline('.')[:end] : ''
+  let ft = &filetype
 
 Py << EOF
 import completor, vim
 inputted = vim.eval('inputted')
-completer = completor.load_completer(vim.current.buffer.options['ft'], inputted)
+completer = completor.load_completer(vim.eval('ft'), inputted)
 completor.current_completer = completer
-cmd = completer.format_cmd() if completer else ''
+cmd, daemon = '', False
+if completer:
+  cmd = completer.format_cmd()
+  daemon = completer.daemon
 EOF
 
   let cmd = Pyeval('cmd')
   if !empty(cmd)
-    call s:execute(cmd)
+    if Pyeval('daemon')
+      if s:daemon.status() != 'run'
+        call s:daemon.respawn(cmd)
+      endif
+      let filename = expand('%:p')
+      let tempname = completor#utils#tempname()
+      let req = {"line": line('.') - 1, "col": col('.') - 1, "filename": filename, "input": inputted, "path": tempname}
+      call s:daemon.write(json_encode(req))
+    else
+      let s:job = job_start(cmd, {"close_cb": {c->s:handle(c)}, "in_io": 'null', "err_io": 'out'})
+    endif
   endif
 endfunction
 
