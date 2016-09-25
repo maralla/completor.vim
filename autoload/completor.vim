@@ -87,14 +87,15 @@ import completor, vim
 inputted = vim.eval('inputted')
 completer = completor.load_completer(vim.eval('ft'), inputted)
 completor.current_completer = completer
-cmd, daemon = '', False
-if completer:
-  cmd = completer.format_cmd()
-  daemon = completer.daemon
+cmd = completer.format_cmd()
+daemon = completer.daemon
+sync = completer.sync
 EOF
 
   let cmd = Pyeval('cmd')
-  if !empty(cmd)
+  if Pyeval('sync')
+    call s:trigger(inputted)
+  elseif !empty(cmd)
     if Pyeval('daemon')
       if s:daemon.status() != 'run'
         call s:daemon.respawn(cmd)
