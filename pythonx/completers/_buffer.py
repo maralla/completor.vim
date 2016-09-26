@@ -11,12 +11,25 @@ word = re.compile('\w+$')
 
 
 def gen_tokens(base):
+    current = vim.current.buffer
+    line, _ = vim.current.window.cursor
+
+    pat = re.compile('{}\w+'.format(base), re.M | re.I)
+
     for buffer in vim.buffers:
-        if not buffer.valid:
+        if not buffer.valid or \
+                (buffer.number != current.number and len(buffer) > 10000):
             continue
 
-        data = '\n'.join(buffer[:])
-        for match in re.finditer('{}\w+'.format(base), data, re.M | re.I):
+        if buffer.number == current.number:
+            start = line - 1000
+            end = line + 1000
+            if start < 0:
+                start = 0
+            data = '\n'.join(buffer[start:end])
+        else:
+            data = '\n'.join(buffer[:])
+        for match in pat.finditer(data):
             yield match.group()
 
 
