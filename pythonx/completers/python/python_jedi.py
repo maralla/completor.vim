@@ -61,7 +61,7 @@ def run():
 
         input_data = args['input'].strip()
         if not input_data or not re.search('(\w|\.)+$', input_data):
-            return
+            continue
 
         try:
             with open(args['path']) as f:

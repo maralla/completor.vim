@@ -2,13 +2,6 @@
 
 from completor import Completor
 
-type_map = {
-    'Struct': 's', 'Module': 'M', 'Function': 'f',
-    'Crate': 'C', 'Let': 'v', 'StructField': 'm',
-    'Impl': 'i', 'Enum': 'e', 'EnumVariant': 'E',
-    'Type': 't', 'FnArg': 'v', 'Trait': 'T'
-}
-
 
 class Racer(Completor):
     filetype = 'rust'
@@ -28,11 +21,9 @@ class Racer(Completor):
 
             parts = item.split(',')
             name = parts[0][6:]
-            kind = type_map.get(parts[4], '')
             spec = ', '.join(parts[5:])
 
             completions.append({
-                'kind': kind,
                 'word': name,
                 'menu': spec,
                 'dup': 0
