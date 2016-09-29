@@ -102,7 +102,7 @@ EOF
       endif
       let filename = expand('%:p')
       let tempname = completor#utils#tempname()
-      let req = {"line": line('.') - 1, "col": col('.') - 1, "filename": filename, "input": inputted, "path": tempname}
+      let req = {"line": line('.') - 1, "col": col('.') - 1, "filename": filename, "path": tempname}
       call s:daemon.write(json_encode(req))
     else
       let s:job = job_start(cmd, {"close_cb": {c->s:handle(c)}, "in_io": 'null', "err_io": 'out'})

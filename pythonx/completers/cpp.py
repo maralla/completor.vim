@@ -23,6 +23,8 @@ class Clang(Completor):
             start, end = match.span()
             sign, _ = match.groups()
             col = start + (2 if sign in ('->', '::') else 1)
+        elif not word_patten.search(self.input_data):
+            return []
 
         args = [
             self.get_binary('completor_clang_binary') or 'clang',
