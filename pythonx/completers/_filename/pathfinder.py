@@ -28,10 +28,7 @@ def find(input_data):
     high = [e for e in entries if e.startswith(basename)]
     entries = entries.difference(high)
     mid = [e for e in entries if basename in e]
-    entries = entries.difference(mid)
-    low = [(len(set(basename).intersection(e)), e) for e in entries]
-    low.sort(key=lambda x: x[0], reverse=True)
-    return high + mid + [e for l, e in low if l > 0]
+    return high + mid
 
 
 def main():

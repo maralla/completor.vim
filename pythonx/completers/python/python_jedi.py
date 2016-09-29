@@ -6,7 +6,6 @@ import argparse
 import json
 import logging
 import os.path
-import re
 import sys
 
 log_file = os.path.join(os.path.dirname(os.path.dirname(__file__)),
@@ -45,7 +44,6 @@ def run():
         "line": <int>,
         "col": <int>,
         "filename": <string>,
-        "input": <string>,
         "path": <string>
     }
     """
@@ -57,10 +55,6 @@ def run():
             args = json.loads(data)
         except Exception as e:
             logging.exception(e)
-            continue
-
-        input_data = args['input'].strip()
-        if not input_data or not re.search('(\w|\.)+$', input_data):
             continue
 
         try:
