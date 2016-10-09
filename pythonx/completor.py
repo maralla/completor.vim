@@ -48,10 +48,11 @@ class Completor(Base):
 
     filetype = Unusable()
     name = Unusable()
-    pattern = None
+
     common = False
     daemon = False
     sync = False
+    trigger = None
 
     _type_map = {
         'c': 'cpp'
@@ -95,10 +96,12 @@ class Completor(Base):
         return vim.eval('get(g:, "{}", "")'.format(key))
 
     def match(self, input_data):
-        if self.pattern is None:
+        if self.trigger is None:
             return True
+        if isinstance(self.trigger, str):
+            self.trigger = re.compile(self.trigger, re.X)
 
-        return bool(re.search(self.pattern, input_data, re.X))
+        return bool(self.trigger.search(input_data))
 
     def format_cmd(self):
         return ''
@@ -133,6 +136,8 @@ def _load(ft, input_data):
 
 
 def load_completer(ft, input_data):
-    completer = _load(ft, input_data) or _completor._registry['buffer']
-    completer.input_data = input_data
-    return completer
+    c = _load(ft, input_data)
+    if c is None or not (c.common or c.match(input_data)):
+        c = _completor._registry['buffer']
+    c.input_data = input_data
+    return c

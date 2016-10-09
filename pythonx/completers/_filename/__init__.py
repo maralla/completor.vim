@@ -13,7 +13,7 @@ class Filename(Completor):
 
     common = True
     name = 'python'
-    pattern = PATH_PATTERN
+    trigger = PATH_PATTERN
 
     def format_cmd(self):
         return ['python', os.path.join(DIRNAME, 'pathfinder.py'),

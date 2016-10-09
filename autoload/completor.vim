@@ -6,12 +6,13 @@ set cpo&vim
 let s:completions = []
 let s:daemon = {}
 
-function s:daemon.respawn(cmd)
-  if self.status() == 'run'
+function s:daemon.respawn(cmd, name)
+  if self.status(a:name) == 'run'
     call job_stop(self.job)
   endif
 
   let self.job = job_start(a:cmd, {"out_cb": {c,m->s:trigger(m)}, "err_io": 'out', "mode": 'nl'})
+  let self.ft = a:name
 endfunction
 
 function s:daemon.write(data)
@@ -19,12 +20,20 @@ function s:daemon.write(data)
   call ch_sendraw(ch, a:data."\n")
 endfunction
 
-function s:daemon.status()
+function s:daemon.status(name)
   if !exists('self.job')
     return 'none'
   endif
 
-  return job_status(self.job)
+  let s = job_status(self.job)
+  if exists('self.ft') && self.ft != a:name
+    if s == 'run'
+      call job_stop(self.job)
+    endif
+    return 'none'
+  endif
+
+  return s
 endfunction
 
 
@@ -85,20 +94,24 @@ function! s:complete()
 Py << EOF
 import completor, vim
 inputted = vim.eval('inputted')
-completer = completor.load_completer(vim.eval('ft'), inputted)
-completor.current_completer = completer
-cmd = completer.format_cmd()
-daemon = completer.daemon
-sync = completer.sync
+c = completor.load_completer(vim.eval('ft'), inputted)
+info = [c.format_cmd(), c.filetype, c.daemon, c.sync] if c else []
+completor.current_completer = c
 EOF
 
-  let cmd = Pyeval('cmd')
-  if Pyeval('sync')
+  let info = Pyeval('info')
+  if empty(info)
+    return
+  endif
+
+  let [cmd, name, daemon, is_sync] = info
+
+  if is_sync
     call s:trigger(inputted)
   elseif !empty(cmd)
-    if Pyeval('daemon')
-      if s:daemon.status() != 'run'
-        call s:daemon.respawn(cmd)
+    if daemon
+      if s:daemon.status(name) != 'run'
+        call s:daemon.respawn(cmd, name)
       endif
       let filename = expand('%:p')
       let tempname = completor#utils#tempname()
