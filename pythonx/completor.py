@@ -5,7 +5,7 @@ import os
 import re
 import vim
 
-current_completer = None
+current = None
 
 
 def _find(file):
@@ -140,3 +140,7 @@ def load_completer(ft, input_data):
         c = _completor._registry['buffer']
     c.input_data = input_data
     return c
+
+
+def get(filetype):
+    return _completor._registry.get(filetype)

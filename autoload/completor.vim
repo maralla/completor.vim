@@ -6,12 +6,16 @@ set cpo&vim
 let s:completions = []
 let s:daemon = {}
 
-function s:daemon.respawn(cmd, name)
+function s:daemon.respawn(cmd, name, inputted)
   if self.status(a:name) == 'run'
     call job_stop(self.job)
   endif
 
-  let self.job = job_start(a:cmd, {"out_cb": {c,m->s:trigger(m)}, "err_io": 'out', "mode": 'nl'})
+  let self.job = job_start(a:cmd, {
+        \   "out_cb": {c,m->s:trigger(m, a:inputted)},
+        \   "err_io": 'out',
+        \   "mode": 'nl'
+        \ })
   let self.ft = a:name
 endfunction
 
@@ -46,17 +50,9 @@ function! completor#omnifunc(findstart, base)
 endfunction
 
 
-function! s:trigger(msg)
-Py << EOF
-import completor, vim
-completer = completor.current_completer
-result = completer.parse(vim.eval('a:msg')) if completer else []
-EOF
-
-  let s:completions = Pyeval('result')
-  if empty(s:completions)
-    return
-  endif
+function! s:trigger(msg, inputted)
+  let s:completions = completor#utils#get_completions(a:msg, a:inputted)
+  if empty(s:completions) | return | endif
 
   setlocal omnifunc=completor#omnifunc
   setlocal completeopt-=longest
@@ -69,12 +65,12 @@ EOF
 endfunction
 
 
-function! s:handle(ch)
+function! s:handle(ch, inputted)
   let msg = []
   while ch_status(a:ch) == 'buffered'
     call add(msg, ch_read(a:ch))
   endwhile
-  call s:trigger(msg)
+  call s:trigger(msg, a:inputted)
 endfunction
 
 
@@ -86,46 +82,43 @@ function! s:reset()
 endfunction
 
 
+function! s:process_daemon(cmd, name, inputted)
+  if s:daemon.status(a:name) != 'run'
+    call s:daemon.respawn(a:cmd, a:name, a:inputted)
+  endif
+  let filename = expand('%:p')
+  let content = join(getline(1, '$'), "\n")
+  let req = {
+        \   "line": line('.') - 1,
+        \   "col": col('.') - 1,
+        \   "filename": filename,
+        \   "content": content
+        \ }
+  call s:daemon.write(json_encode(req))
+endfunction
+
+
 function! s:complete()
   call s:reset()
 
   let end = col('.') - 2
   let inputted = end >= 0 ? getline('.')[:end] : ''
-  let ft = &filetype
 
-Py << EOF
-import completor, vim
-inputted = vim.eval('inputted')
-c = completor.load_completer(vim.eval('ft'), inputted)
-info = [c.format_cmd(), c.filetype, c.daemon, c.sync] if c else []
-completor.current_completer = c
-EOF
-
-  let info = Pyeval('info')
-  if empty(info)
-    return
-  endif
-
+  let info = completor#utils#get_completer(&filetype, inputted)
+  if empty(info) | return | endif
   let [cmd, name, daemon, is_sync] = info
 
   if is_sync
-    call s:trigger(inputted)
+    call s:trigger(inputted, inputted)
   elseif !empty(cmd)
     if daemon
-      if s:daemon.status(name) != 'run'
-        call s:daemon.respawn(cmd, name)
-      endif
-      let filename = expand('%:p')
-      let content = join(getline(1, '$'), "\n")
-      let req = {
-            \   "line": line('.') - 1,
-            \   "col": col('.') - 1,
-            \   "filename": filename,
-            \   "content": content
-            \ }
-      call s:daemon.write(json_encode(req))
+      call s:process_daemon(cmd, name, inputted)
     else
-      let s:job = job_start(cmd, {"close_cb": {c->s:handle(c)}, "in_io": 'null', "err_io": 'out'})
+      let s:job = job_start(cmd, {
+            \   "close_cb": {c->s:handle(c, inputted)},
+            \   "in_io": 'null',
+            \   "err_io": 'out'
+            \ })
     endif
   endif
 endfunction
