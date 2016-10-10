@@ -15,6 +15,7 @@ Builtin Completers
 * filename
 * Rust. [racer](https://github.com/phildawes/racer#installation) should be installed.
 * Python. [jedi](https://github.com/davidhalter/jedi#installation) should be installed.
+* Javascript. Use [tern](http://ternjs.net) for completion.
 * c/c++. Use clang for completions. `clang` should be installed.
 
 Install
