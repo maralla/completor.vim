@@ -11,7 +11,6 @@ trigger = re.compile('(\.|->|#|::)\s*(\w*)$')
 class Clang(Completor):
     filetype = 'cpp'
 
-    name = 'clang'
     args_file = '.clang_completer'
 
     def format_cmd(self):

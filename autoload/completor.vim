@@ -54,16 +54,18 @@ result = completer.parse(vim.eval('a:msg')) if completer else []
 EOF
 
   let s:completions = Pyeval('result')
-  setlocal omnifunc=completor#omnifunc
-  if !empty(s:completions)
-    setlocal completeopt-=longest
-    setlocal completeopt+=menuone
-    setlocal completeopt-=menu
-    if &completeopt !~# 'noinsert\|noselect'
-      setlocal completeopt+=noselect
-    endif
-    call feedkeys("\<C-x>\<C-o>", 'n')
+  if empty(s:completions)
+    return
   endif
+
+  setlocal omnifunc=completor#omnifunc
+  setlocal completeopt-=longest
+  setlocal completeopt+=menuone
+  setlocal completeopt-=menu
+  if &completeopt !~# 'noinsert\|noselect'
+    setlocal completeopt+=noselect
+  endif
+  call feedkeys("\<C-x>\<C-o>", 'n')
 endfunction
 
 

@@ -12,7 +12,6 @@ class Filename(Completor):
     filetype = 'filename'
 
     common = True
-    name = 'python'
     trigger = PATH_PATTERN
 
     def format_cmd(self):

@@ -47,7 +47,6 @@ class Completor(Base):
     _commons = None
 
     filetype = Unusable()
-    name = Unusable()
 
     common = False
     daemon = False
@@ -107,7 +106,7 @@ class Completor(Base):
         return ''
 
     def parse_config(self, file):
-        key = "{}-{}-{}".format(self.filetype, self.name, file)
+        key = "{}-{}".format(self.filetype, file)
         if key not in self._arg_cache:
             path = _find(file)
             self._arg_cache[key] = [] if path is None else _read_args(path)

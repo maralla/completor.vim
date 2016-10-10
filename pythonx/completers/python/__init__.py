@@ -21,7 +21,6 @@ class Jedi(Completor):
 
     def parse(self, data):
         try:
-            data = json.loads(data)
+            return json.loads(data)
         except Exception:
-            data = [{'word': data}]
-        return data
+            return []

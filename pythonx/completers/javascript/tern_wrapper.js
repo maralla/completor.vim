@@ -1,12 +1,7 @@
 const tern = require('tern');
 const readline = require('readline');
-const fs = require('fs');
 
-const log_file = fs.createWriteStream('js.log', {flags: 'w'});
-
-function log(msg) {
-  log_file.write(msg + '\n');
-}
+const server = new tern.Server({ async: true });
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -15,7 +10,14 @@ const rl = readline.createInterface({
   terminal: false
 });
 
-var server = new tern.Server({ async: true });
+rl.on('line', (line) => {
+  try {
+    var input = JSON.parse(line);
+    get_completions(input.filename, input.line, input.col, input.content);
+  } catch (e) {
+    return;
+  }
+});
 
 function get_completions(filename, line, col, data) {
   var query = {
@@ -52,16 +54,3 @@ function get_completions(filename, line, col, data) {
     console.log(JSON.stringify(info));
   });
 }
-
-function run() {
-  rl.on('line', (line) => {
-    try {
-      var input = JSON.parse(line);
-      get_completions(input.filename, input.line, input.col, input.content);
-    } catch (e) {
-      return;
-    }
-  });
-}
-
-run();

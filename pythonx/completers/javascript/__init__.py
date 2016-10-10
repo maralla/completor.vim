@@ -17,7 +17,6 @@ class Tern(Completor):
 
     def parse(self, data):
         try:
-            res = json.loads(data)
+            return json.loads(data)
         except Exception:
-            res = {'word': data}
-        return res
+            return []

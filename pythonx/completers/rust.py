@@ -6,12 +6,9 @@ from completor import Completor
 class Racer(Completor):
     filetype = 'rust'
 
-    name = 'racer'
-
     def format_cmd(self):
         line, col = self.cursor
-        return "{} complete {} {} {} {}".format(self.name, line, col,
-                                                self.filename, self.tempname)
+        return ['racer', 'complete', line, col, self.filename, self.tempname]
 
     def parse(self, items):
         completions = []
