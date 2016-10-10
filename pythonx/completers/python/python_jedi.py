@@ -20,10 +20,10 @@ def write(msg):
     sys.stdout.flush()
 
 
-def get_completions(src, args):
+def get_completions(args):
     import jedi
-    script = jedi.Script(source=src, line=args['line'] + 1, column=args['col'],
-                         path=args['filename'])
+    script = jedi.Script(source=args['content'], line=args['line'] + 1,
+                         column=args['col'], path=args['filename'])
 
     data = []
     for c in script.completions():
@@ -44,7 +44,7 @@ def run():
         "line": <int>,
         "col": <int>,
         "filename": <string>,
-        "path": <string>
+        "content": <string>,
     }
     """
     while True:
@@ -58,9 +58,7 @@ def run():
             continue
 
         try:
-            with open(args['path']) as f:
-                src = f.read()
-            get_completions(src, args)
+            get_completions(args)
         except Exception as e:
             logging.exception(e)
 
