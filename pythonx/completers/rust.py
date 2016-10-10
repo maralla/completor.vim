@@ -8,7 +8,8 @@ class Racer(Completor):
 
     def format_cmd(self):
         line, col = self.cursor
-        return ['racer', 'complete', line, col, self.filename, self.tempname]
+        return ['racer', 'complete', str(line), str(col), self.filename,
+                self.tempname]
 
     def parse(self, items):
         completions = []
