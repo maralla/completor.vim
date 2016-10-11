@@ -25,7 +25,7 @@ import completor, vim
 c = completor.current
 result = c.parse(vim.eval('a:msg')) if c else []
 if not result and c.filetype != 'buffer':
-  result = completor.get('buffer').parse(vim.eval('inputted'))
+  result = completor.get('buffer').parse(vim.eval('a:inputted'))
 EOF
   return Pyeval('result')
 endfunction
