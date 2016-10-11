@@ -6,13 +6,13 @@ set cpo&vim
 let s:completions = []
 let s:daemon = {}
 
-function s:daemon.respawn(cmd, name, inputted)
+function s:daemon.respawn(cmd, name, status)
   if self.status(a:name) == 'run'
     call job_stop(self.job)
   endif
 
   let self.job = job_start(a:cmd, {
-        \   "out_cb": {c,m->s:trigger(m, a:inputted)},
+        \   "out_cb": {c,m->s:trigger(m, a:status)},
         \   "err_io": 'out',
         \   "mode": 'nl'
         \ })
@@ -50,8 +50,13 @@ function! completor#omnifunc(findstart, base)
 endfunction
 
 
-function! s:trigger(msg, inputted)
-  let s:completions = completor#utils#get_completions(a:msg, a:inputted)
+function! s:trigger(msg, status)
+  if a:status.nr != bufnr('') || a:status.line != line('.')
+        \ || a:status.col != col('.')
+    let s:completions = []
+  else
+    let s:completions = completor#utils#get_completions(a:msg, a:status.input)
+  endif
   if empty(s:completions) | return | endif
 
   setlocal omnifunc=completor#omnifunc
@@ -65,12 +70,12 @@ function! s:trigger(msg, inputted)
 endfunction
 
 
-function! s:handle(ch, inputted)
+function! s:handle(ch, status)
   let msg = []
   while ch_status(a:ch) == 'buffered'
     call add(msg, ch_read(a:ch))
   endwhile
-  call s:trigger(msg, a:inputted)
+  call s:trigger(msg, a:status)
 endfunction
 
 
@@ -82,9 +87,9 @@ function! s:reset()
 endfunction
 
 
-function! s:process_daemon(cmd, name, inputted)
+function! s:process_daemon(cmd, name, status)
   if s:daemon.status(a:name) != 'run'
-    call s:daemon.respawn(a:cmd, a:name, a:inputted)
+    call s:daemon.respawn(a:cmd, a:name, a:status)
   endif
   let filename = expand('%:p')
   let content = join(getline(1, '$'), "\n")
@@ -108,14 +113,16 @@ function! s:complete()
   if empty(info) | return | endif
   let [cmd, name, daemon, is_sync] = info
 
+  let status = {'input': inputted, 'line': line('.'), 'col': col('.'), 'nr': bufnr('')}
+
   if is_sync
-    call s:trigger(inputted, inputted)
+    call s:trigger(inputted, status)
   elseif !empty(cmd)
     if daemon
-      call s:process_daemon(cmd, name, inputted)
+      call s:process_daemon(cmd, name, status)
     else
       let s:job = job_start(cmd, {
-            \   "close_cb": {c->s:handle(c, inputted)},
+            \   "close_cb": {c->s:handle(c, status)},
             \   "in_io": 'null',
             \   "err_io": 'out'
             \ })
