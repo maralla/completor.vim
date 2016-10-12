@@ -5,6 +5,8 @@ Completor is an asynchronous code completion framework for vim8. New features
 of vim8 are used to implement the fast completion engine with low overhead.
 For using semantic completion, external completion tools should be installed.
 
+![Demo](http://i.imgur.com/f5EoiA6.gif)
+
 Requirements
 ------------
 
