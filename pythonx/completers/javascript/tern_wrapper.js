@@ -15,7 +15,7 @@ rl.on('line', (line) => {
     var input = JSON.parse(line);
     get_completions(input.filename, input.line, input.col, input.content);
   } catch (e) {
-    return;
+    console.log(JSON.stringify([]));
   }
 });
 

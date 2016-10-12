@@ -61,6 +61,7 @@ def run():
             get_completions(args)
         except Exception as e:
             logging.exception(e)
+            write(json.dumps([]))
 
 
 def main():

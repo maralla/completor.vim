@@ -5,14 +5,15 @@ set cpo&vim
 
 let s:completions = []
 let s:daemon = {}
+let s:status = {'pos': [], 'nr': -1, 'input': ''}
 
-function s:daemon.respawn(cmd, name, status)
+function s:daemon.respawn(cmd, name)
   if self.status(a:name) == 'run'
     call job_stop(self.job)
   endif
 
   let self.job = job_start(a:cmd, {
-        \   "out_cb": {c,m->s:trigger(m, a:status)},
+        \   "out_cb": {c,m->s:trigger(m)},
         \   "err_io": 'out',
         \   "mode": 'nl'
         \ })
@@ -50,12 +51,11 @@ function! completor#omnifunc(findstart, base)
 endfunction
 
 
-function! s:trigger(msg, status)
-  if a:status.nr != bufnr('') || a:status.line != line('.')
-        \ || a:status.col != col('.')
+function! s:trigger(msg)
+  if s:status.nr != bufnr('') || s:status.pos != getcurpos()
     let s:completions = []
   else
-    let s:completions = completor#utils#get_completions(a:msg, a:status.input)
+    let s:completions = completor#utils#get_completions(a:msg, s:status.input)
   endif
   if empty(s:completions) | return | endif
 
@@ -70,12 +70,12 @@ function! s:trigger(msg, status)
 endfunction
 
 
-function! s:handle(ch, status)
+function! s:handle(ch)
   let msg = []
   while ch_status(a:ch) == 'buffered'
     call add(msg, ch_read(a:ch))
   endwhile
-  call s:trigger(msg, a:status)
+  call s:trigger(msg)
 endfunction
 
 
@@ -87,9 +87,9 @@ function! s:reset()
 endfunction
 
 
-function! s:process_daemon(cmd, name, status)
+function! s:process_daemon(cmd, name)
   if s:daemon.status(a:name) != 'run'
-    call s:daemon.respawn(a:cmd, a:name, a:status)
+    call s:daemon.respawn(a:cmd, a:name)
   endif
   let filename = expand('%:p')
   let content = join(getline(1, '$'), "\n")
@@ -113,16 +113,16 @@ function! s:complete()
   if empty(info) | return | endif
   let [cmd, name, daemon, is_sync] = info
 
-  let status = {'input': inputted, 'line': line('.'), 'col': col('.'), 'nr': bufnr('')}
+  let s:status = {'input': inputted, 'pos': getcurpos(), 'nr': bufnr('')}
 
   if is_sync
-    call s:trigger(inputted, status)
+    call s:trigger(inputted)
   elseif !empty(cmd)
     if daemon
-      call s:process_daemon(cmd, name, status)
+      call s:process_daemon(cmd, name)
     else
       let s:job = job_start(cmd, {
-            \   "close_cb": {c->s:handle(c, status)},
+            \   "close_cb": {c->s:handle(c)},
             \   "in_io": 'null',
             \   "err_io": 'out'
             \ })
@@ -160,7 +160,6 @@ function! completor#enable()
     autocmd! CompleteDone * if pumvisible() == 0 | pclose | endif
   endif
 
-  Py import completers.common
   call s:set_events()
 endfunction
 

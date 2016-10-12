@@ -63,6 +63,9 @@ class Completor(Base):
         self.input_data = ''
 
     def commons(cls):
+        if 'buffer' not in cls._registry:
+            import completers.common  # noqa
+
         if cls._commons is None:
             cls._commons = tuple(c for c in cls._registry.values()
                                  if c.common)
