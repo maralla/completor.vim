@@ -8,7 +8,8 @@ class Racer(Completor):
 
     def format_cmd(self):
         line, col = self.cursor
-        return ['racer', 'complete', str(line), str(col), self.filename,
+        binary = self.get_option('completor_racer_binary') or 'racer'
+        return [binary, 'complete', str(line), str(col), self.filename,
                 self.tempname]
 
     def parse(self, items):

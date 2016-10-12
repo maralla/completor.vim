@@ -94,7 +94,8 @@ class Completor(Base):
         self._type_map.update(m)
         return self._type_map
 
-    def get_binary(self, key):
+    @staticmethod
+    def get_option(key):
         return vim.eval('get(g:, "{}", "")'.format(key))
 
     def match(self, input_data):

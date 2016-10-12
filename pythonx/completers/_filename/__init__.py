@@ -15,7 +15,8 @@ class Filename(Completor):
     trigger = PATH_PATTERN
 
     def format_cmd(self):
-        return ['python', os.path.join(DIRNAME, 'pathfinder.py'),
+        binary = self.get_option('completor_python_binary') or 'python'
+        return [binary, os.path.join(DIRNAME, 'pathfinder.py'),
                 self.input_data]
 
     def parse(self, items):

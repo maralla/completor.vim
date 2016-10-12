@@ -26,7 +26,7 @@ class Clang(Completor):
             return []
 
         args = [
-            self.get_binary('completor_clang_binary') or 'clang',
+            self.get_option('completor_clang_binary') or 'clang',
             '-fsyntax-only',
             '-I{}'.format(self.current_directory),
         ]
