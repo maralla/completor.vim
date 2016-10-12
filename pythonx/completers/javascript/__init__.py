@@ -13,7 +13,8 @@ class Tern(Completor):
     daemon = True
 
     def format_cmd(self):
-        return ['node', os.path.join(dirname, 'tern_wrapper.js')]
+        binary = self.get_option('completor_node_binary') or 'node'
+        return [binary, os.path.join(dirname, 'tern_wrapper.js')]
 
     def parse(self, data):
         try:
