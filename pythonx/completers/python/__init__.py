@@ -11,10 +11,10 @@ DIRNAME = os.path.dirname(__file__)
 class Jedi(Completor):
     filetype = 'python'
     daemon = True
-    trigger = (r'[_\w\)\]\}\'\"]+\.[_\w]*$|'
-               r'^\s*@[_\w]*$|'
-               r'^\s*from\s+[_\w\.]*(?:\s+import\s+(?:[_\w]*(?:,\s*)?)*)?|'
-               r'^\s*import\s+(?:[_\w\.]*(?:,\s*)?)*')
+    trigger = (r'[\w\)\]\}\'\"]+\.\w*$|'
+               r'^\s*@\w*$|'
+               r'^\s*from\s+[\w\.]*(?:\s+import\s+(?:\w*(?:,\s*)?)*)?|'
+               r'^\s*import\s+(?:[\w\.]*(?:,\s*)?)*')
 
     def format_cmd(self):
         return ['python', os.path.join(DIRNAME, 'python_jedi.py')]
