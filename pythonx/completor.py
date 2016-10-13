@@ -8,17 +8,6 @@ import vim
 current = None
 
 
-def _find(file):
-    cwd = os.getcwd()
-    while True:
-        path = os.path.join(cwd, file)
-        if os.path.exists(path):
-            return path
-        if os.path.dirname(cwd) == cwd:
-            break
-        cwd = os.path.split(cwd)[0]
-
-
 def _read_args(path):
     try:
         with open(path) as f:
@@ -109,10 +98,21 @@ class Completor(Base):
     def format_cmd(self):
         return ''
 
+    @staticmethod
+    def find_config_file(file):
+        cwd = os.getcwd()
+        while True:
+            path = os.path.join(cwd, file)
+            if os.path.exists(path):
+                return path
+            if os.path.dirname(cwd) == cwd:
+                break
+            cwd = os.path.split(cwd)[0]
+
     def parse_config(self, file):
         key = "{}-{}".format(self.filetype, file)
         if key not in self._arg_cache:
-            path = _find(file)
+            path = self.find_config_file(file)
             self._arg_cache[key] = [] if path is None else _read_args(path)
         return self._arg_cache[key]
 
