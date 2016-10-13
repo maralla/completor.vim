@@ -11,10 +11,15 @@ dirname = os.path.dirname(__file__)
 class Tern(Completor):
     filetype = 'javascript'
     daemon = True
+    trigger = r'\w+$|[\w\)\]\}\'\"]+\.\w*$'
 
     def format_cmd(self):
         binary = self.get_option('completor_node_binary') or 'node'
-        return [binary, os.path.join(dirname, 'tern_wrapper.js')]
+        tern_config = self.find_config_file('.tern-project')
+        cmd = [binary, os.path.join(dirname, 'tern_wrapper.js')]
+        if tern_config:
+            cmd.append(os.path.dirname(tern_config))
+        return cmd
 
     def parse(self, data):
         try:
