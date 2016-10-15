@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from completor import Completor
+from completor import Completor, start_column
 
 import vim
 import re
@@ -32,14 +32,17 @@ class Omni(Completor):
     def parse(self, base):
         ft = vim.eval('&ft')
         trigger = self.trigger_cache.get(ft)
-        if not trigger or not trigger.search(base):
+        enc_base = base.encode('unicode-escape').decode('utf-8')
+        if not trigger or not trigger.search(enc_base):
             return []
 
         try:
             start = vim.eval('function(&omnifunc)(1,"")')
             if start < 0:
                 return []
-            res = vim.eval('function(&omnifunc)(0,"{}")'.format(base))
+            codepoint = start_column(ft, base)
+            res = vim.eval('function(&omnifunc)(0,"{}")'.format(
+                base[codepoint:len(base)]))
             if isinstance(res, dict) and 'words' in res:
                 res = res['words']
             if not isinstance(res, list):

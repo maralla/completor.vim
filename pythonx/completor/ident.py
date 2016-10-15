@@ -49,10 +49,12 @@ for k, v in list(REGEX_MAP.items()):
     REGEX_MAP[k] = re.compile(v, re.U)
 
 
-def start_column(ft):
-    line = vim.current.line
-    index = vim.current.window.cursor[1]
-    text = line[:index]
+def start_column(ft, text=None):
+    if text is None:
+        index = vim.current.window.cursor[1]
+        text = vim.current.line[:index]
+    else:
+        index = len(text)
 
     regex = REGEX_MAP.get(ft, REGEX_MAP['default'])
     for i in range(index):
