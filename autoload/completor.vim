@@ -42,10 +42,9 @@ function s:daemon.status(name)
 endfunction
 
 
-function! completor#omnifunc(findstart, base)
+function! completor#completefunc(findstart, base)
   if a:findstart
-    let word = matchstr(getline('.'), '\w*\%'.col('.').'c')
-    return col('.') - 1 - len(word)
+    return Pyeval('completor.start_column(vim.eval("&ft"))')
   endif
   return s:completions
 endfunction
@@ -59,14 +58,14 @@ function! s:trigger(msg)
   endif
   if empty(s:completions) | return | endif
 
-  setlocal omnifunc=completor#omnifunc
+  setlocal completefunc=completor#completefunc
   setlocal completeopt-=longest
   setlocal completeopt+=menuone
   setlocal completeopt-=menu
   if &completeopt !~# 'noinsert\|noselect'
     setlocal completeopt+=noselect
   endif
-  call feedkeys("\<C-x>\<C-o>", 'n')
+  call feedkeys("\<C-x>\<C-u>\<C-p>", 'n')
 endfunction
 
 

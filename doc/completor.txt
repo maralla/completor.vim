@@ -37,11 +37,11 @@ Using vim-plug:
 3. Completers                                           *completor-completers*
 
 
-filename                                                *completor-filename*
+Filename                                                *completor-filename*
         When the input matches a file path pattern the file name will be
         automatically completed.
 
-buffer                                                  *completor-buffer*
+Buffer                                                  *completor-buffer*
         This is the fallback completer. When no semantic completer found the
         buffer completer will be used and will complete based on the current
         buffers.
@@ -54,7 +54,7 @@ Python                                                  *completor-python*
 >
             pip install jedi
 <
-        The python executable can be specifid using:
+        The python executable can be specified using:
 >
             let g:completor_python_binary = '/path/to/python/with/jedi/installed'
 <
@@ -75,7 +75,7 @@ Javascript                                              *completor-javascript*
 >
             make js
 <
-        The node executable path can be specifid using:
+        The node executable path can be specified using:
 >
             let g:completor_node_binary = '/path/to/node'
 <
@@ -94,6 +94,18 @@ c/c++                                                   *completor-cpp*
             -std=c++11
             -I/Users/maralla/Workspace/src/dji-sdk/Onboard-SDK/lib/inc
             -I/Users/maralla/Workspace/src/dji-sdk/Onboard-SDK/sample/Linux/inc
+<
+Other                                                   *completor-other*
+        For other omni completions completor not natively implemented, auto
+        completion can still be used if an omni function is defined for the
+        file type. But an option should be defined to specify the trigger
+        for triggering auto completion. The option name pattern:
+>
+            let g:completor_{filetype}_omni_trigger = '<python regex>'
+<
+        For example to use css omnifunc:
+>
+            let g:completor_css_omni_trigger = '(\w+|@\w*|\w+:\s*\w*)$'
 <
 ==============================================================================
 4. Options                                              *completor-options*

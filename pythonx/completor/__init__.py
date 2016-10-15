@@ -5,6 +5,8 @@ import os
 import re
 import vim
 
+from .ident import start_column  # noqa
+
 current = None
 
 
@@ -126,7 +128,7 @@ def _load(ft, input_data):
             return c
 
     if not ft:
-        return None
+        return
 
     ft = _completor.filetype_map.get(ft, ft)
 
@@ -134,12 +136,19 @@ def _load(ft, input_data):
         try:
             importlib.import_module("completers.{}".format(ft))
         except ImportError:
-            return None
+            return
     return _completor._registry.get(ft)
 
 
 def load_completer(ft, input_data):
+    if not input_data.strip():
+        return
+
     c = _load(ft, input_data)
+    if c is None:
+        omni = get('omni')
+        if omni.has_omnifunc(ft):
+            c = omni
     if c is None or not (c.common or c.match(input_data)):
         c = _completor._registry['buffer']
     c.input_data = input_data
