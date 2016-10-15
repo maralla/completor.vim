@@ -51,7 +51,7 @@ for k, v in list(REGEX_MAP.items()):
 
 def start_column(ft):
     line = vim.current.line
-    index = vim.current.window.cursor[1] + 1
+    index = vim.current.window.cursor[1]
     text = line[:index]
 
     regex = REGEX_MAP.get(ft, REGEX_MAP['default'])
