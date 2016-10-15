@@ -151,6 +151,13 @@ function! s:set_events()
 endfunction
 
 
+function! completor#disable()
+  augroup completor
+    autocmd!
+  augroup END
+endfunction
+
+
 function! completor#enable()
   if &diff
     return

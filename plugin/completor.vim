@@ -40,4 +40,7 @@ augroup completor
 augroup END
 
 
+command! CompletorDisable call completor#disable()
+command! CompletorEnable call completor#enable()
+
 call s:restore_cpo()

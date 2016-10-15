@@ -1,36 +1,75 @@
 # -*- coding: utf-8 -*-
 
+import collections
+import itertools
 import re
 import vim
 
 from completor import Completor
 
-
 LIMIT = 50
 word = re.compile('\w+$')
 
 
-def gen_tokens(base):
-    current = vim.current.buffer
-    line, _ = vim.current.window.cursor
+def test_subseq(src, target):
+    i = 0
+    score = None
+    src, target = src.lower(), target.lower()
+    for index, e in enumerate(target):
+        if e == src[i]:
+            if index == 0:
+                score = -999
+            elif score is None:
+                score = index
+            else:
+                score += index
+            i += 1
+        if i == len(src):
+            return score
 
-    pat = re.compile('{}\w+'.format(base), re.M | re.I)
 
-    for buffer in vim.buffers:
-        if not buffer.valid or \
-                (buffer.number != current.number and len(buffer) > 10000):
-            continue
+class TokenStore(object):
+    pat = re.compile('\w+')
 
-        if buffer.number == current.number:
-            start = line - 1000
-            end = line + 1000
+    def __init__(self):
+        self.cache = {}
+        self.store = collections.deque(maxlen=10000)
+        self.current = set()
+
+    def search(self, base):
+        words = itertools.chain(self.current, self.store)
+        for token in words:
+            score = test_subseq(base, token)
+            if score is None:
+                continue
+            yield token, (score, len(token))
+
+    def store_buffer(self, buffer, base, cur_nr, cur_line):
+        nr = buffer.number
+        if nr == cur_nr:
+            start = cur_line - 1000
+            end = cur_line + 1000
             if start < 0:
                 start = 0
-            data = '\n'.join(buffer[start:end])
-        else:
-            data = '\n'.join(buffer[:])
-        for match in pat.finditer(data):
-            yield match.group()
+            data = ' '.join(itertools.chain(buffer[start:cur_line],
+                                            buffer[cur_line + 1:end]))
+            self.current = set(self.pat.findall(data))
+            self.current.difference_update([base])
+        elif buffer.valid and len(buffer) <= 10000:
+            ftime = vim.eval('getftime(bufname({}))'.format(nr))
+            if nr not in self.cache or ftime > self.cache[nr]['t']:
+                self.cache[nr] = {'t': ftime}
+                data = ' '.join(buffer[:])
+                self.store.extend(set(self.pat.findall(data)))
+
+    def parse_buffers(self, base):
+        nr = vim.current.buffer.number
+        line, _ = vim.current.window.cursor
+
+        for buffer in vim.buffers:
+            self.store_buffer(buffer, base, nr, line)
+
+token_store = TokenStore()
 
 
 class Buffer(Completor):
@@ -45,11 +84,16 @@ class Buffer(Completor):
 
         base = match.group()
 
-        res = set()
+        token_store.parse_buffers(base)
 
-        for token in gen_tokens(base):
-            res.add(token)
+        res = set()
+        for token, factor in token_store.search(base):
+            if token == base:
+                continue
+            res.add((token, factor))
             if len(res) >= LIMIT:
                 break
 
-        return [{'word': token, 'menu': '[ID]'} for token in res]
+        res = list(res)
+        res.sort(key=lambda x: x[1])
+        return [{'word': token, 'menu': '[ID]'} for token, _ in res]
