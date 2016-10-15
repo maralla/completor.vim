@@ -95,6 +95,18 @@ c/c++                                                   *completor-cpp*
             -I/Users/maralla/Workspace/src/dji-sdk/Onboard-SDK/lib/inc
             -I/Users/maralla/Workspace/src/dji-sdk/Onboard-SDK/sample/Linux/inc
 <
+Other                                                   *completor-other*
+        For other omni completions completor not natively implemented, auto
+        completion can be still used if the file type defined an omni
+        function. But an option should be define to specify the trigger for
+        triggering auto completion. The option name pattern:
+>
+            let g:completor_{filetype}_omni_trigger = '<python regex>'
+<
+        For example to use css omnifunc:
+>
+            let g:completor_css_omni_trigger = '(\w+|@\w*|\w+:\s*\w*)$'
+<
 ==============================================================================
 4. Options                                              *completor-options*
 
