@@ -67,7 +67,7 @@ Use clang for completion. Clang should be installed first. To specify clang path
 let g:completor_clang_binary = '/path/to/clang'
 ```
 
-To pass extra clang arguments, you can create a file named *.clang_completer*
+To pass extra clang arguments, you can create a file named *.clang_complete*
 under the project root directory or any parent directories. Every argument
 should be in a single line in the file. This is an example file:
 ```

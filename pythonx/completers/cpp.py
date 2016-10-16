@@ -8,10 +8,21 @@ word_patten = re.compile('\w+$')
 trigger = re.compile('(\.|->|#|::)\s*(\w*)$')
 
 
+def sanitize(menu):
+    if not menu:
+        return menu
+
+    # type
+    menu = menu.replace('[#', '').replace('#]', ' ')
+    # argument
+    menu = menu.replace('<#', '').replace('#>', '')
+    return menu
+
+
 class Clang(Completor):
     filetype = 'cpp'
 
-    args_file = '.clang_completer'
+    args_file = '.clang_complete'
 
     def format_cmd(self):
         row, col = self.cursor
@@ -59,7 +70,7 @@ class Clang(Completor):
             if len(parts) < 2 or not parts[1].startswith(prefix):
                 continue
 
-            data = {'word': parts[1], 'dup': 1}
+            data = {'word': parts[1], 'dup': 1, 'menu': ''}
             if len(parts) > 2:
                 if parts[1] == 'Pattern':
                     subparts = parts[2].split(' ', 1)
@@ -68,5 +79,6 @@ class Clang(Completor):
                         data['menu'] = subparts[1]
                 else:
                     data['menu'] = ':'.join(parts[2:])
+            data['menu'] = sanitize(data['menu'])
             res.append(data)
         return res

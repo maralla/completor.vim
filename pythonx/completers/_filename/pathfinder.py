@@ -4,19 +4,10 @@ from __future__ import print_function
 
 import argparse
 import os
-import re
-import sys
-
-PATH = os.path.dirname(__file__)
-sys.path.insert(0, PATH)
-
-from utils import PATH_PATTERN
 
 
 def find(input_data):
-    match = re.search(PATH_PATTERN, input_data, re.X)
-    path_dir = (os.path.expanduser(os.path.expandvars(match.group()))
-                if match else '')
+    path_dir = os.path.expanduser(os.path.expandvars(input_data))
     if not path_dir:
         return []
 
@@ -34,9 +25,9 @@ def find(input_data):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('input_data')
-    args = parser.parse_args()
 
     try:
+        args = parser.parse_args()
         res = find(args.input_data)
     except Exception:
         res = []
