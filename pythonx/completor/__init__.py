@@ -64,11 +64,11 @@ class Completor(Base):
 
     @property
     def current_directory(self):
-        return vim.eval('expand("%:p:h")')
+        return vim.Function('expand')('%:p:h')
 
     @property
     def tempname(self):
-        return vim.eval('completor#utils#tempname()')
+        return vim.Function('completor#utils#tempname')()
 
     @property
     def filename(self):

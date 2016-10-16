@@ -28,6 +28,15 @@ def test_subseq(src, target):
             return score
 
 
+def getftime(nr):
+    try:
+        bufname = vim.Function('bufname')
+        ftime = vim.Function('getftime')
+        return ftime(bufname(nr))
+    except vim.error:
+        return -1
+
+
 class TokenStore(object):
     pat = re.compile('\w+')
 
@@ -56,7 +65,9 @@ class TokenStore(object):
             self.current = set(self.pat.findall(data))
             self.current.difference_update([base])
         elif buffer.valid and len(buffer) <= 10000:
-            ftime = vim.eval('getftime(bufname({}))'.format(nr))
+            ftime = getftime(nr)
+            if ftime < 0:
+                return
             if nr not in self.cache or ftime > self.cache[nr]['t']:
                 self.cache[nr] = {'t': ftime}
                 data = ' '.join(buffer[:])

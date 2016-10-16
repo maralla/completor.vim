@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from completor import Completor, start_column
+from completor import Completor
 
 import vim
 import re
@@ -37,16 +37,14 @@ class Omni(Completor):
             return []
 
         try:
-            start = vim.eval('function(&omnifunc)(1,"")')
+            func_name = vim.eval('&omnifunc')
+            if not func_name:
+                return []
+
+            omnifunc = vim.Function(func_name)
+            start = omnifunc(1, '')
             if start < 0:
                 return []
-            codepoint = start_column(ft, base)
-            res = vim.eval('function(&omnifunc)(0,"{}")'.format(
-                base[codepoint:len(base)]))
-            if isinstance(res, dict) and 'words' in res:
-                res = res['words']
-            if not isinstance(res, list):
-                return []
-            return [r for r in res if r]
-        except vim.error:
+            return omnifunc(0, base[start:len(base)])
+        except (vim.error, ValueError, KeyboardInterrupt):
             return []
