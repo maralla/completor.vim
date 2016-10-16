@@ -87,7 +87,7 @@ let g:completor_{filetype}_omni_trigger = '<python regex>'
 
 For example to use css omnifunc:
 ```vim
-let g:completor_css_omni_trigger = '(\w+|@\w*|\w+:\s*\w*)$'
+let g:completor_css_omni_trigger = '([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$'
 ```
 
 Install
