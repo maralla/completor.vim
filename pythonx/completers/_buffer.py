@@ -5,7 +5,7 @@ import itertools
 import re
 import vim
 
-from completor import Completor
+from completor import Completor, get
 
 LIMIT = 50
 word = re.compile('\w+$')
@@ -89,17 +89,22 @@ class Buffer(Completor):
     sync = True
 
     def parse(self, base):
+        completions = []
+        ultisnips = get('ultisnips')
+        if ultisnips:
+            completions.extend(ultisnips.parse(base))
+
         match = word.search(base)
         if not match:
-            return []
+            return completions
 
-        base = match.group()
+        ident = match.group()
 
-        token_store.parse_buffers(base)
+        token_store.parse_buffers(ident)
 
         res = set()
-        for token, factor in token_store.search(base):
-            if token == base:
+        for token, factor in token_store.search(ident):
+            if token == ident:
                 continue
             res.add((token, factor))
             if len(res) >= LIMIT:
@@ -107,4 +112,6 @@ class Buffer(Completor):
 
         res = list(res)
         res.sort(key=lambda x: x[1])
-        return [{'word': token, 'menu': '[ID]'} for token, _ in res]
+        completions.extend([{'word': token, 'menu': '[ID]'}
+                            for token, _ in res])
+        return completions
