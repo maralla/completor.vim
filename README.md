@@ -76,6 +76,15 @@ should be in a single line in the file. This is an example file:
 -I/Users/maralla/Workspace/src/dji-sdk/Onboard-SDK/sample/Linux/inc
 ```
 
+#### go
+Use [gocode](https://github.com/nsf/gocode) with [vim-go](https://github.com/fatih/vim-go) to provide omni completions. No additional setting is needed. Only add the following option to your `.vimrc` to trigger completion for Go source code.
+
+```vim
+let g:completor_go_omni_trigger = '(?:\b[^\W\d]\w*|[\]\)])\.(?:[^\W\d]\w*)?'
+```
+
+#### other languages
+
 For other omni completions completor not natively implemented, auto completion
 can still be used if an omni function is defined for the file type. But an option
 should be defined to specify the trigger for triggering auto completion. The
