@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
-# flake8: noqa
 
 import completor
 
-from .filename import Filename
-from .buffer import Buffer
-from .omni import Omni
+from .filename import Filename  # noqa
+from .buffer import Buffer  # noqa
+from .omni import Omni  # noqa
 
 try:
-    from UltiSnips import UltiSnips_Manager
-    from .ultisnips import Ultisnips
+    from UltiSnips import UltiSnips_Manager  # noqa
+    from .ultisnips import Ultisnips  # noqa
 except ImportError:
     pass
+
+
+space = (' ', '\r', '\t', '\n')
 
 
 class Other(completor.Completor):
@@ -19,6 +21,9 @@ class Other(completor.Completor):
     sync = True
 
     def parse(self, base):
+        if base.endswith(space):
+            return []
+
         completions = []
         ultisnips = completor.get('ultisnips')
         if ultisnips:
