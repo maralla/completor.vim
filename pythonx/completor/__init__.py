@@ -54,8 +54,8 @@ class Completor(Base):
         self.input_data = ''
 
     def commons(cls):
-        if 'buffer' not in cls._registry:
-            import completers.common  # noqa
+        if 'other' not in cls._registry:
+            import completers.other  # noqa
 
         if cls._commons is None:
             cls._commons = tuple(c for c in cls._registry.values()
@@ -150,7 +150,7 @@ def load_completer(ft, input_data):
         if omni.has_omnifunc(ft):
             c = omni
     if c is None or not (c.common or c.match(input_data)):
-        c = _completor._registry['buffer']
+        c = get('other')
     c.input_data = input_data
     return c
 

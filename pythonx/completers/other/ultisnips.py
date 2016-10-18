@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from completor import Completor
+from UltiSnips import UltiSnips_Manager
 
 
 class Ultisnips(Completor):
@@ -8,7 +9,6 @@ class Ultisnips(Completor):
     sync = True
 
     def parse(self, base):
-        from UltiSnips import UltiSnips_Manager
         return [
             {
                 'word': snip.trigger,
