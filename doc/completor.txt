@@ -110,6 +110,30 @@ Other                                                   *completor-other*
 ==============================================================================
 4. Options                                              *completor-options*
 
+g:completor_auto_close_doc (0/1)                 *g:completor_auto_close_doc*
+        Completion may trigger a preview window. This option controls whether
+        to auto close the window when the completion finished.
+
+        Default: 1.
+
+g:completor_blacklist (list)                     *g:completor_blacklist*
+        Explicitly ignore completions for file types specified in this list.
+
+        Default: ['tagbar', 'qf', 'netrw', 'unite', 'vimwiki'].
+
+g:completor_whitelist (list)                     *g:completor_whitelist*
+        Explicitly allow completions for file types in this list. If this
+        option is set, only file types in this list can be allowd for
+        completion.
+
+        Default: unset.
+
+g:completor_filesize_limit (in KB)               *g:completor_filesize_limit*
+        If the file size of the current buffer if larger than the
+        filesize_limit completion will be ignored.
+
+        Default: 1024
+
 ==============================================================================
 5. Write a new completer                                *completor-writing*
 

@@ -20,7 +20,11 @@ class Racer(Completor):
 
             parts = item.split(',')
             name = parts[0][6:]
-            spec = ', '.join(parts[5:])
+
+            kind = parts[4].lower()
+            spec = 'mod' if kind == 'module' else ', '.join(parts[5:])
+            if spec.startswith('pub '):
+                spec = spec[4:]
 
             completions.append({
                 'word': name,
