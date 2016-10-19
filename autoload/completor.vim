@@ -50,8 +50,13 @@ function! completor#completefunc(findstart, base)
 endfunction
 
 
+function! s:consistent()
+  return s:status.nr == bufnr('') && s:status.pos == getcurpos()
+endfunction
+
+
 function! s:trigger(msg)
-  if s:status.nr != bufnr('') || s:status.pos != getcurpos()
+  if !s:consistent()
     let s:completions = []
   else
     let s:completions = completor#utils#get_completions(a:msg, s:status.input)
@@ -104,18 +109,14 @@ endfunction
 
 function! s:complete()
   call s:reset()
+  if !s:consistent() | return | endif
 
-  let end = col('.') - 2
-  let inputted = end >= 0 ? getline('.')[:end] : ''
-
-  let info = completor#utils#get_completer(&filetype, inputted)
+  let info = completor#utils#get_completer(&filetype, s:status.input)
   if empty(info) | return | endif
   let [cmd, name, daemon, is_sync] = info
 
-  let s:status = {'input': inputted, 'pos': getcurpos(), 'nr': bufnr('')}
-
   if is_sync
-    call s:trigger(inputted)
+    call s:trigger(s:status.input)
   elseif !empty(cmd)
     if daemon
       call s:process_daemon(cmd, name)
@@ -130,7 +131,22 @@ function! s:complete()
 endfunction
 
 
+function! s:skip()
+  let buftype = getbufvar('', '&buftype')
+  let fsize = getfsize(bufname(''))
+  let skip = empty(&ft) || buftype == 'nofile' || buftype == 'quickfix'
+        \ || fsize == -2 || fsize > g:filesize_limit
+        \ || index(g:blacklist, &ft) != -1
+  if exists('g:completor_whitelist') && type(g:completor_whitelist) == v:t_list
+    let skip = skip || index(g:completor_whitelist, &ft) == -1
+  endif
+  return skip
+endfunction
+
+
 function! s:on_text_change()
+  if s:skip() | return | endif
+
   if exists('s:timer')
     let info = timer_info(s:timer)
     if !empty(info)
@@ -138,6 +154,10 @@ function! s:on_text_change()
     endif
   endif
 
+  let e = col('.') - 2
+  let inputted = e >= 0 ? getline('.')[:e] : ''
+
+  let s:status = {'input': inputted, 'pos': getcurpos(), 'nr': bufnr('')}
   let s:timer = timer_start(16, {t->s:complete()})
 endfunction
 
