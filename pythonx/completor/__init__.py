@@ -92,7 +92,7 @@ class Completor(Base):
     @property
     def disabled(self):
         types = vim.vars.get('completor_disable_{}'.format(self.filetype))
-        if isinstance(types, (int, long)):
+        if isinstance(types, (int, int)):
             return bool(types)
         if isinstance(types, (list, vim.List)):
             return vim.current.buffer.options['ft'] in types
