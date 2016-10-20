@@ -26,10 +26,10 @@ class Other(completor.Completor):
 
         completions = []
         ultisnips = completor.get('ultisnips')
-        if ultisnips:
+        if ultisnips and not ultisnips.disabled:
             completions.extend(ultisnips.parse(base))
 
         buffer = completor.get('buffer')
-        if buffer:
+        if buffer and not buffer.disabled:
             completions.extend(buffer.parse(base))
         return completions

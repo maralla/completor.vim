@@ -89,6 +89,15 @@ class Completor(Base):
     def get_option(key):
         return vim.eval('get(g:, "{}", "")'.format(key))
 
+    @property
+    def disabled(self):
+        types = vim.vars.get('completor_disable_{}'.format(self.filetype))
+        if isinstance(types, (int, long)):
+            return bool(types)
+        if isinstance(types, (list, vim.List)):
+            return vim.current.buffer.options['ft'] in types
+        return False
+
     def match(self, input_data):
         if self.trigger is None:
             return True
@@ -124,7 +133,7 @@ _completor = Completor()
 def _load(ft, input_data):
     commons = _completor.commons()
     for c in commons:
-        if c.match(input_data):
+        if c.match(input_data) and not c.disabled:
             return c
 
     if not ft:
@@ -152,7 +161,7 @@ def load_completer(ft, input_data):
     if c is None or not (c.common or c.match(input_data)):
         c = get('other')
     c.input_data = input_data
-    return c
+    return c if c.common or not c.disabled else None
 
 
 def get(filetype):
