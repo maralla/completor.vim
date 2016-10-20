@@ -110,29 +110,45 @@ Other                                                   *completor-other*
 ==============================================================================
 4. Options                                              *completor-options*
 
-g:completor_auto_close_doc (0/1)                 *g:completor_auto_close_doc*
+*g:completor_auto_close_doc* (0/1)
         Completion may trigger a preview window. This option controls whether
         to auto close the window when the completion finished.
 
         Default: 1.
 
-g:completor_blacklist (list)                     *g:completor_blacklist*
+*g:completor_blacklist* (list)
         Explicitly ignore completions for file types specified in this list.
 
         Default: ['tagbar', 'qf', 'netrw', 'unite', 'vimwiki'].
 
-g:completor_whitelist (list)                     *g:completor_whitelist*
+*g:completor_whitelist* (list)
         Explicitly allow completions for file types in this list. If this
         option is set, only file types in this list can be allowd for
         completion.
 
         Default: unset.
 
-g:completor_filesize_limit (in KB)               *g:completor_filesize_limit*
+*g:completor_filesize_limit* (in KB)
         If the file size of the current buffer if larger than the
         filesize_limit completion will be ignored.
 
         Default: 1024
+
+*g:completor_disable_filename*
+*g:completor_disable_buffer*
+*g:completor_disable_ultisnips*
+        Used to disable filename/buffer/ultisnips completions. To disable for
+        specified file types, assign a list to these variables:
+
+        For example disable filename completion for vim:
+>
+            let g:completor_disable_filename = ['vim']
+<
+        To disable for all file types:
+>
+            let g:completor_disable_{filename/buffer/ultisnips} = 1
+<
+        Default: unset
 
 ==============================================================================
 5. Write a new completer                                *completor-writing*
