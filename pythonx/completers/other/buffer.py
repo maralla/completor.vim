@@ -12,19 +12,19 @@ word = re.compile('\w+$')
 
 
 def test_subseq(src, target):
-    i = 0
-    score = None
+    score = i = 0
     src, target = src.lower(), target.lower()
+    src_len, target_len = len(src), len(target)
     for index, e in enumerate(target):
-        if e == src[i]:
-            if index == 0:
-                score = -999
-            elif score is None:
-                score = index
-            else:
-                score += index
-            i += 1
-        if i == len(src):
+        if src_len - i > target_len - index:
+            return
+        if e != src[i]:
+            continue
+        if index == 0:
+            score = -999
+        score += index
+        i += 1
+        if i == src_len:
             return score
 
 
@@ -35,6 +35,10 @@ def getftime(nr):
         return ftime(bufname(nr))
     except vim.error:
         return -1
+
+
+def filter_words(words):
+    return (w for w in words if len(w) > 3)
 
 
 class TokenStore(object):
@@ -62,7 +66,7 @@ class TokenStore(object):
                 start = 0
             data = ' '.join(itertools.chain(buffer[start:cur_line],
                                             buffer[cur_line + 1:end]))
-            self.current = set(self.pat.findall(data))
+            self.current = set(filter_words(set(self.pat.findall(data))))
             self.current.difference_update([base])
         elif buffer.valid and len(buffer) <= 10000:
             ftime = getftime(nr)
@@ -71,7 +75,10 @@ class TokenStore(object):
             if nr not in self.cache or ftime > self.cache[nr]['t']:
                 self.cache[nr] = {'t': ftime}
                 data = ' '.join(buffer[:])
-                self.store.extend(set(self.pat.findall(data)))
+                words = set(self.store)
+                words.update(filter_words(set(self.pat.findall(data))))
+                self.store.clear()
+                self.store.extend(words)
 
     def parse_buffers(self, base):
         nr = vim.current.buffer.number
