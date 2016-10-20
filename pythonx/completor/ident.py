@@ -38,6 +38,8 @@ REGEX_MAP = {
 
     # Spec: http://doc.perl6.org/language/syntax
     'perl6': r"^[_a-zA-Z](?:\w|[-'](?=[_a-zA-Z]))*$",
+
+    'php': r"^[_a-zA-Z$]\w*$",
 }
 
 for ty in ('scss', 'sass', 'less'):
