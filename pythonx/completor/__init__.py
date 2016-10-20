@@ -4,6 +4,7 @@ import importlib
 import os
 import re
 import vim
+import sys
 
 from .ident import start_column  # noqa
 
@@ -92,7 +93,8 @@ class Completor(Base):
     @property
     def disabled(self):
         types = vim.vars.get('completor_disable_{}'.format(self.filetype))
-        if isinstance(types, (int, long)):
+        integer_types = (int, long) if sys.version_info[0] == 2 else (int,)
+        if isinstance(types, integer_types):
             return bool(types)
         if isinstance(types, (list, vim.List)):
             return vim.current.buffer.options['ft'] in types
