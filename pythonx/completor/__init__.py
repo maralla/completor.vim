@@ -35,11 +35,9 @@ class Unusable(object):
 
 class Completor(Base):
     _registry = {}
-    _commons = None
 
     filetype = Unusable()
 
-    common = False
     daemon = False
     sync = False
     trigger = None
@@ -52,15 +50,6 @@ class Completor(Base):
 
     def __init__(self):
         self.input_data = ''
-
-    def commons(cls):
-        if 'other' not in cls._registry:
-            import completers.other  # noqa
-
-        if cls._commons is None:
-            cls._commons = tuple(c for c in cls._registry.values()
-                                 if c.common)
-        return cls._commons
 
     @property
     def current_directory(self):
@@ -131,10 +120,8 @@ _completor = Completor()
 
 
 def _load(ft, input_data):
-    commons = _completor.commons()
-    for c in commons:
-        if c.match(input_data) and not c.disabled:
-            return c
+    if 'common' not in _completor._registry:
+        import completers.common  # noqa
 
     if not ft:
         return
@@ -158,10 +145,10 @@ def load_completer(ft, input_data):
         omni = get('omni')
         if omni.has_omnifunc(ft):
             c = omni
-    if c is None or not (c.common or c.match(input_data)):
-        c = get('other')
+    if c is None or not c.match(input_data):
+        c = get('common')
     c.input_data = input_data
-    return c if c.common or not c.disabled else None
+    return None if c.disabled else c
 
 
 def get(filetype):

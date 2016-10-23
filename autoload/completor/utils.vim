@@ -24,8 +24,8 @@ Py << EOF
 import completor, vim
 c = completor.current
 result = c.parse(vim.eval('a:msg')) if c else []
-if not result and c.filetype != 'other':
-  result = completor.get('other').parse(vim.eval('a:inputted'))
+if not result and c.filetype != 'common':
+  result = completor.get('common').parse(vim.eval('a:inputted'))
 EOF
   return Pyeval('result')
 endfunction

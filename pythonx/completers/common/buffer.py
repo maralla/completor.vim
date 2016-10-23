@@ -7,25 +7,9 @@ import vim
 
 from completor import Completor
 
-LIMIT = 50
+from .utils import test_subseq, LIMIT
+
 word = re.compile('\w+$')
-
-
-def test_subseq(src, target):
-    score = i = 0
-    src, target = src.lower(), target.lower()
-    src_len, target_len = len(src), len(target)
-    for index, e in enumerate(target):
-        if src_len - i > target_len - index:
-            return
-        if e != src[i]:
-            continue
-        if index == 0:
-            score = -999
-        score += index
-        i += 1
-        if i == src_len:
-            return score
 
 
 def getftime(nr):
