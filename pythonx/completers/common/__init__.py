@@ -16,13 +16,19 @@ except ImportError:
 space = (' ', '\r', '\t', '\n')
 
 
-class Other(completor.Completor):
-    filetype = 'other'
+class Common(completor.Completor):
+    filetype = 'common'
     sync = True
 
     def parse(self, base):
         if base.endswith(space):
             return []
+
+        filename = completor.get('filename')
+        if filename and not filename.disabled:
+            filenames = filename.parse(base)
+            if filenames:
+                return filenames
 
         completions = []
         ultisnips = completor.get('ultisnips')
