@@ -3,13 +3,12 @@
 import importlib
 import os
 import re
-import sys
 import vim
 
 from .ident import start_column  # noqa
+from .compat import integer_types, to_bytes, to_str
 
 current = None
-integer_types = (int, long) if sys.version_info[0] == 2 else (int,)
 
 
 def _read_args(path):
@@ -45,7 +44,7 @@ class Completor(Base):
     trigger = None
 
     _type_map = {
-        'c': 'cpp'
+        b'c': b'cpp'
     }
 
     _arg_cache = {}
@@ -56,6 +55,10 @@ class Completor(Base):
     @property
     def current_directory(self):
         return vim.Function('expand')('%:p:h')
+
+    @property
+    def current_ft(self):
+        return vim.current.buffer.options['ft']
 
     @property
     def tempname(self):
@@ -72,21 +75,21 @@ class Completor(Base):
     # use cached property
     @property
     def filetype_map(self):
-        m = vim.eval('get(g:, "completor_filetype_map", {})')
+        m = self.get_option('completor_filetype_map') or {}
         self._type_map.update(m)
         return self._type_map
 
     @staticmethod
     def get_option(key):
-        return vim.eval('get(g:, "{}", "")'.format(key))
+        return vim.vars.get(key)
 
     @property
     def disabled(self):
-        types = vim.vars.get('completor_disable_{}'.format(self.filetype))
+        types = self.get_option('completor_disable_{}'.format(self.filetype))
         if isinstance(types, integer_types):
             return bool(types)
         if isinstance(types, (list, vim.List)):
-            return vim.current.buffer.options['ft'] in types
+            return self.current_ft in types
         return False
 
     def match(self, input_data):
@@ -121,14 +124,10 @@ class Completor(Base):
 _completor = Completor()
 
 
-def _load(ft, input_data):
+# ft: str
+def _load(ft):
     if 'common' not in _completor._registry:
         import completers.common  # noqa
-
-    if not ft:
-        return
-
-    ft = _completor.filetype_map.get(ft, ft)
 
     if ft not in _completor._registry:
         try:
@@ -138,11 +137,15 @@ def _load(ft, input_data):
     return _completor._registry.get(ft)
 
 
+# ft: str, input_data: str
 def load_completer(ft, input_data):
-    if not input_data.strip():
+    if not ft or not input_data.strip():
         return
 
-    c = _load(ft, input_data)
+    ft = to_bytes(ft)
+    ft = to_str(_completor.filetype_map.get(ft, ft))
+
+    c = _load(ft)
     if c is None:
         omni = get('omni')
         if omni.has_omnifunc(ft):
