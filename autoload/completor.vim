@@ -44,7 +44,7 @@ endfunction
 
 function! completor#completefunc(findstart, base)
   if a:findstart
-    return Pyeval('completor.start_column(vim.eval("&ft"))')
+    return Pyeval('completor.start_column(vim.current.buffer.options["ft"])')
   endif
   return s:completions
 endfunction
