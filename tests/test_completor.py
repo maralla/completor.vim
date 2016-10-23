@@ -8,17 +8,12 @@ class HelloCompleter(Completor):
     filetype = 'hello'
 
 
-class List(object):
-    pass
-
-
 def test_disabled(vim_mod):
-    vim_mod.List = List
-    vim_mod.current.buffer.options = {'ft': 'hello'}
     com = HelloCompleter()
     vim_mod.vars = {'completor_disable_hello': 1}
     assert com.disabled
-    vim_mod.vars = {'completor_disable_hello': ['hello']}
+    vim_mod.vars = {'completor_disable_hello': [b'hello']}
+    com.ft = 'hello'
     assert com.disabled
     vim_mod.vars = {}
     assert not com.disabled
@@ -27,7 +22,6 @@ def test_disabled(vim_mod):
 def test_load(vim_mod, monkeypatch):
     from completor import _completor
     vim_mod.eval = mock.Mock(return_value={})
-    vim_mod.List = List
     vim_mod.vars = {}
 
     with mock.patch.object(_completor, '_type_map',

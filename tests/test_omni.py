@@ -34,14 +34,12 @@ def test_has_omnifunc(vim_mod):
 
 
 def test_parse(vim_mod):
-    vim_mod.current.buffer.options = {
-        'ft': b'css',
-        'omnifunc': b'csscomplete#CompleteCSS',
-    }
+    vim_mod.current.buffer.options = {'omnifunc': b'csscomplete#CompleteCSS'}
     vim_mod.Function = Function
 
     omni = completor.get('omni')
     omni.trigger_cache = {}
+    omni.ft = 'css'
 
     assert omni.parse('text') == []
 
