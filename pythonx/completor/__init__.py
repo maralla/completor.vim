@@ -3,12 +3,13 @@
 import importlib
 import os
 import re
-import vim
 import sys
+import vim
 
 from .ident import start_column  # noqa
 
 current = None
+integer_types = (int, long) if sys.version_info[0] == 2 else (int,)
 
 
 def _read_args(path):
@@ -82,7 +83,6 @@ class Completor(Base):
     @property
     def disabled(self):
         types = vim.vars.get('completor_disable_{}'.format(self.filetype))
-        integer_types = (int, long) if sys.version_info[0] == 2 else (int,)
         if isinstance(types, integer_types):
             return bool(types)
         if isinstance(types, (list, vim.List)):
