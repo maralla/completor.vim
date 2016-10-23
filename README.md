@@ -1,6 +1,8 @@
 Completor
 =========
 
+[![Build Status](https://travis-ci.org/maralla/completor.vim.svg?branch=master)](https://travis-ci.org/maralla/completor.vim)
+
 Completor is an asynchronous code completion framework for vim8. New features
 of vim8 are used to implement the fast completion engine with low overhead.
 For using semantic completion, external completion tools should be installed.
