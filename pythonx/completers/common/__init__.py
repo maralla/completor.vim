@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import completor
+import itertools
 
 from .filename import Filename  # noqa
 from .buffer import Buffer  # noqa
@@ -20,22 +21,22 @@ class Common(completor.Completor):
     filetype = 'common'
     sync = True
 
+    def get_completions(self, completer, base):
+        com = completor.get(completer)
+        if not com:
+            return []
+        com.ft = self.ft
+        if com.disabled:
+            return []
+        return com.parse(base)
+
     def parse(self, base):
         if base.endswith(space):
             return []
 
-        filename = completor.get('filename')
-        if filename and not filename.disabled:
-            filenames = filename.parse(base)
-            if filenames:
-                return filenames
+        filenames = self.get_completions('filename', base)
+        if filenames:
+            return filenames
 
-        completions = []
-        ultisnips = completor.get('ultisnips')
-        if ultisnips and not ultisnips.disabled:
-            completions.extend(ultisnips.parse(base))
-
-        buffer = completor.get('buffer')
-        if buffer and not buffer.disabled:
-            completions.extend(buffer.parse(base))
-        return completions
+        return list(itertools.chain(
+            *[self.get_completions(n, base) for n in ('ultisnips', 'buffer')]))

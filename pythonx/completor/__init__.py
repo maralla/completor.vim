@@ -51,14 +51,11 @@ class Completor(Base):
 
     def __init__(self):
         self.input_data = ''
+        self.ft = ''
 
     @property
     def current_directory(self):
         return vim.Function('expand')('%:p:h')
-
-    @property
-    def current_ft(self):
-        return vim.current.buffer.options['ft']
 
     @property
     def tempname(self):
@@ -89,7 +86,7 @@ class Completor(Base):
         if isinstance(types, integer_types):
             return bool(types)
         if isinstance(types, (list, vim.List)):
-            return self.current_ft in types
+            return to_bytes(self.ft) in types
         return False
 
     def match(self, input_data):
@@ -153,6 +150,7 @@ def load_completer(ft, input_data):
     if c is None or not c.match(input_data):
         c = get('common')
     c.input_data = input_data
+    c.ft = ft
     return None if c.disabled else c
 
 

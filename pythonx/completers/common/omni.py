@@ -22,7 +22,8 @@ class Omni(Completor):
                 return False
 
             try:
-                self.trigger_cache[ft] = re.compile(to_str(option), re.X | re.U)
+                self.trigger_cache[ft] = re.compile(
+                    to_str(option), re.X | re.U)
             except Exception:
                 return False
 
@@ -32,8 +33,7 @@ class Omni(Completor):
             return False
 
     def parse(self, base):
-        ft = to_str(self.current_ft)
-        trigger = self.trigger_cache.get(ft)
+        trigger = self.trigger_cache.get(self.ft)
         enc_base = base.encode('unicode-escape').decode('utf-8')
         if not trigger or not trigger.search(enc_base):
             return []
