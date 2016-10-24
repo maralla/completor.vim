@@ -1,5 +1,5 @@
 js:
-	cd ./pythonx/completers/javascript && npm install tern
+	cd ./pythonx/completers/javascript && npm install
 
 
 .PHONY: js
