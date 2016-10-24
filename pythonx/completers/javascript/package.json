@@ -1,0 +1,7 @@
+{
+  "name": "tern_wrapper",
+  "version": "1.0.0",
+  "dependencies": {
+    "tern": "^0.20.0"
+  }
+}
