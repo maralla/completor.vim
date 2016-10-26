@@ -61,6 +61,8 @@ class Filename(Completor):
         \\.
         )*$""", re.U | re.X)
 
+    ident = r"""[a-zA-Z0-9(){}$ +_~.'"\x80-\xff-\[\]]*"""
+
     def parse(self, base):
         match = self.trigger.search(base)
         if not match:

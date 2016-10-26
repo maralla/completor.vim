@@ -29,3 +29,12 @@ if not result and c.filetype != 'common':
 EOF
   return Pyeval('result')
 endfunction
+
+
+function! completor#utils#get_start_column()
+Py << EOF
+import completor
+column = completor.current.start_column() if completor.current else -1
+EOF
+  return Pyeval('column')
+endfunction

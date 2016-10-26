@@ -5,7 +5,6 @@ import os
 import re
 import vim
 
-from .ident import start_column  # noqa
 from .compat import integer_types, to_bytes, to_str
 
 current = None
@@ -42,6 +41,7 @@ class Completor(Base):
     daemon = False
     sync = False
     trigger = None
+    ident = re.compile(r'[^\W\d]\w*', re.U)
 
     _type_map = {
         b'c': b'cpp'
@@ -93,7 +93,7 @@ class Completor(Base):
         if self.trigger is None:
             return True
         if isinstance(self.trigger, str):
-            self.trigger = re.compile(self.trigger, re.X)
+            self.trigger = re.compile(self.trigger, re.X | re.U)
 
         return bool(self.trigger.search(input_data))
 
@@ -118,14 +118,31 @@ class Completor(Base):
             self._arg_cache[key] = [] if path is None else _read_args(path)
         return self._arg_cache[key]
 
+    def ident_match(self, pat):
+        if not self.input_data:
+            return -1
+
+        _, index = self.cursor
+        for i in range(index):
+            text = self.input_data[i:index]
+            matched = pat.match(text)
+            if matched and matched.end() == len(text):
+                return i
+        return index
+
+    def start_column(self):
+        if not self.ident:
+            return -1
+        if isinstance(self.ident, str):
+            self.ident = re.compile(self.ident, re.U | re.X)
+        return self.ident_match(self.ident)
+
+
 _completor = Completor()
 
 
 # ft: str
 def _load(ft):
-    if 'common' not in _completor._registry:
-        import completers.common  # noqa
-
     if ft not in _completor._registry:
         try:
             importlib.import_module("completers.{}".format(ft))
@@ -142,13 +159,20 @@ def load_completer(ft, input_data):
     ft = to_bytes(ft)
     ft = to_str(_completor.filetype_map.get(ft, ft))
 
-    c = _load(ft)
-    if c is None:
-        omni = get('omni')
-        if omni.has_omnifunc(ft):
-            c = omni
-    if c is None or not c.match(input_data):
-        c = get('common')
+    if 'common' not in _completor._registry:
+        import completers.common  # noqa
+
+    filename = get('filename')
+    if filename.match(input_data) and not filename.disabled:
+        c = filename
+    else:
+        c = _load(ft)
+        if c is None:
+            omni = get('omni')
+            if omni.has_omnifunc(ft):
+                c = omni
+        if c is None or not c.match(input_data):
+            c = get('common')
     c.input_data = input_data
     c.ft = ft
     return None if c.disabled else c

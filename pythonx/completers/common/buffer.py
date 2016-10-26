@@ -9,8 +9,6 @@ from completor import Completor
 
 from .utils import test_subseq, LIMIT
 
-word = re.compile('\w+$', re.U)
-
 
 def getftime(nr):
     try:
@@ -21,12 +19,8 @@ def getftime(nr):
         return -1
 
 
-def filter_words(words):
-    return (w for w in words if len(w) > 3)
-
-
 class TokenStore(object):
-    pat = re.compile('\w+', re.U)
+    pat = re.compile(r'[^\W\d]{3,}\w*', re.U)
 
     def __init__(self):
         self.cache = {}
@@ -50,7 +44,7 @@ class TokenStore(object):
                 start = 0
             data = ' '.join(itertools.chain(buffer[start:cur_line],
                                             buffer[cur_line + 1:end]))
-            self.current = set(filter_words(set(self.pat.findall(data))))
+            self.current = set(self.pat.findall(data))
             self.current.difference_update([base])
         elif buffer.valid and len(buffer) <= 10000:
             ftime = getftime(nr)
@@ -60,7 +54,7 @@ class TokenStore(object):
                 self.cache[nr] = {'t': ftime}
                 data = ' '.join(buffer[:])
                 words = set(self.store)
-                words.update(filter_words(set(self.pat.findall(data))))
+                words.update(set(self.pat.findall(data)))
                 self.store.clear()
                 self.store.extend(words)
 
@@ -76,16 +70,9 @@ token_store = TokenStore()
 
 class Buffer(Completor):
     filetype = 'buffer'
-
     sync = True
 
     def parse(self, base):
-        match = word.search(base)
-        if not match:
-            return []
-
-        base = match.group()
-
         token_store.parse_buffers(base)
 
         res = set()
