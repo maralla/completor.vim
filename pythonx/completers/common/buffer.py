@@ -9,7 +9,7 @@ from completor import Completor
 
 from .utils import test_subseq, LIMIT
 
-word = re.compile('\w+$')
+word = re.compile('\w+$', re.U)
 
 
 def getftime(nr):
@@ -26,7 +26,7 @@ def filter_words(words):
 
 
 class TokenStore(object):
-    pat = re.compile('\w+')
+    pat = re.compile('\w+', re.U)
 
     def __init__(self):
         self.cache = {}

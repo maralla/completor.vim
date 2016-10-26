@@ -3,3 +3,4 @@
 completor.log
 node_modules
 doc/tags
+__pycache__
