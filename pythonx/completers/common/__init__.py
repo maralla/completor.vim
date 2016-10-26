@@ -14,7 +14,7 @@ try:
 except ImportError:
     pass
 
-word = re.compile(r'[^\W\d]{3,}\w*$', re.U)
+word = re.compile(r'[^\W\d]{2,}\w*$', re.U)
 
 
 class Common(completor.Completor):
