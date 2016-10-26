@@ -6,6 +6,8 @@ from completor import Completor
 class Racer(Completor):
     filetype = 'rust'
 
+    trigger = r'(?:\w{3,}\w*|\.\w*|::\w*)$'
+
     def format_cmd(self):
         line, col = self.cursor
         binary = self.get_option('completor_racer_binary') or 'racer'

@@ -6,6 +6,8 @@ from completor.compat import to_str
 import vim
 import re
 
+from .utils import REGEX_MAP
+
 
 class Omni(Completor):
     filetype = 'omni'
@@ -31,6 +33,14 @@ class Omni(Completor):
             return bool(vim.current.buffer.options['omnifunc'])
         except vim.error:
             return False
+
+    def start_column(self):
+        sup = super(Omni, self)
+        pat = REGEX_MAP.get(self.ft) or sup.ident
+        if isinstance(pat, str):
+            pat = re.compile(pat, re.U | re.X)
+        idx = self.ident_match(pat)
+        return idx
 
     def parse(self, base):
         trigger = self.trigger_cache.get(self.ft)

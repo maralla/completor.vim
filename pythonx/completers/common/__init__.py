@@ -2,6 +2,7 @@
 
 import completor
 import itertools
+import re
 
 from .filename import Filename  # noqa
 from .buffer import Buffer  # noqa
@@ -13,8 +14,7 @@ try:
 except ImportError:
     pass
 
-
-space = (' ', '\r', '\t', '\n')
+word = re.compile(r'[^\W\d]{3,}\w*$', re.U)
 
 
 class Common(completor.Completor):
@@ -31,12 +31,10 @@ class Common(completor.Completor):
         return com.parse(base)
 
     def parse(self, base):
-        if base.endswith(space):
+        match = word.search(base)
+        if not match:
             return []
-
-        filenames = self.get_completions('filename', base)
-        if filenames:
-            return filenames
+        base = match.group()
 
         return list(itertools.chain(
             *[self.get_completions(n, base) for n in ('ultisnips', 'buffer')]))

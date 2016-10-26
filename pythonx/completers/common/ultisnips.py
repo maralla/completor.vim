@@ -9,8 +9,12 @@ class Ultisnips(Completor):
     sync = True
 
     def parse(self, base):
-        return [
-            {
-                'word': snip.trigger,
-                'menu': ' '.join(['[snip]', snip.description]),
-            } for snip in UltiSnips_Manager._snips(base, True)]
+        try:
+            snips = UltiSnips_Manager._snips(base, True)
+        except Exception:
+            return []
+
+        return [{
+            'word': snip.trigger,
+            'menu': ' '.join(['[snip]', snip.description]),
+        } for snip in snips]
