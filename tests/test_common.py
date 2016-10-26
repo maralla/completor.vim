@@ -14,16 +14,9 @@ class Buffer(list):
 def test_parse(vim_mod):
     common = completor.get('common')
 
-    vim_mod.vars = {}
-    data = list(set([item['menu'] for item in common.parse('./')]))
-    assert data == ['[F]']
-
-    vim_mod.vars = {'completor_disable_filename': [b'python']}
-    common.ft = 'python'
-    assert not common.parse('./')
-
     vim_mod.current.buffer.number = 1
     vim_mod.current.window.cursor = (1, 2)
+    vim_mod.vars = {}
 
     buffer = Buffer(1)
     with open(__file__) as f:
