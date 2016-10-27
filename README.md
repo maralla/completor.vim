@@ -15,6 +15,24 @@ Requirements
 * vim8,
 * compiled with `python` or `python3`
 
+
+Install
+-------
+
+* vim8 builtin package manager:
+
+```bash
+mkdir -p ~/.vim/pack/completor/start
+cd ~/.vim/pack/completor/start
+git clone https://github.com/maralla/completor.vim.git
+```
+
+* [vim-plug](https://github.com/junegunn/vim-plug)
+
+```vim
+Plug 'maralla/completor.vim'
+```
+
 Completers
 ----------
 
@@ -101,19 +119,30 @@ For example to use css omnifunc:
 let g:completor_css_omni_trigger = '([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$'
 ```
 
-Install
--------
+Tips
+----
 
-* vim8 builtin package manager:
+#### Config tern for javascript completion
 
-```bash
-mkdir -p ~/.vim/pack/completor/start
-cd ~/.vim/pack/completor/start
-git clone https://github.com/maralla/completor.vim.git
+This is simple *.tern-project* file:
+```json
+{
+  "plugins": {
+    "node": {},
+    "es_modules": {}
+  },
+  "libs": [
+    "ecma5",
+    "ecma6"
+  ],
+  "ecmaVersion": 6
+}
 ```
 
-* [vim-plug](https://github.com/junegunn/vim-plug)
+#### Use Tab to select completion
 
 ```vim
-Plug 'maralla/completor.vim'
+inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+inoremap <expr> <cr> pumvisible() ? "\<C-y>\<cr>" : "\<cr>"
 ```
