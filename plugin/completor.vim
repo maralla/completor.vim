@@ -19,13 +19,13 @@ elseif !(has('python') || has('python3')) || !(has('job') && has('timers') && ha
     finish
 endif
 
-
 let g:loaded_completor_plugin = 1
 
+
 let s:default_blacklist = ['tagbar', 'qf', 'netrw', 'unite', 'vimwiki']
-let g:blacklist = get(g:, 'completor_blacklist', []) + s:default_blacklist
+let g:completor_blacklist = extend(get(g:, 'completor_blacklist', []), s:default_blacklist)
 " file size limit in KB
-let g:filesize_limit = get(g:, 'completor_filesize_limit', 1024) * 1024
+let g:completor_filesize_limit = get(g:, 'completor_filesize_limit', 1024) * 1024
 
 if has('python3')
     command! -nargs=1 Py py3 <args>

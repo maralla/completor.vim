@@ -5,7 +5,7 @@ set cpo&vim
 
 let s:completions = []
 let s:daemon = {}
-let s:status = {'pos': [], 'nr': -1, 'input': ''}
+let s:status = {'pos': [], 'nr': -1, 'input': '', 'ft': ''}
 
 function s:daemon.respawn(cmd, name)
   if self.status(a:name) == 'run'
@@ -17,7 +17,7 @@ function s:daemon.respawn(cmd, name)
         \   "err_io": 'out',
         \   "mode": 'nl'
         \ })
-  let self.ft = a:name
+  let self.type = a:name
 endfunction
 
 function s:daemon.write(data)
@@ -31,7 +31,7 @@ function s:daemon.status(name)
   endif
 
   let s = job_status(self.job)
-  if exists('self.ft') && self.ft != a:name
+  if exists('self.type') && self.type != a:name
     if s == 'run'
       call job_stop(self.job)
     endif
@@ -51,7 +51,7 @@ endfunction
 
 
 function! s:consistent()
-  return s:status.nr == bufnr('') && s:status.pos == getcurpos()
+  return s:status.nr == bufnr('') && s:status.pos == getcurpos() && s:status.ft == &ft
 endfunction
 
 
@@ -59,7 +59,7 @@ function! s:trigger(msg)
   if !s:consistent()
     let s:completions = []
   else
-    let s:completions = completor#utils#get_completions(a:msg, s:status.input)
+    let s:completions = completor#utils#get_completions(s:status.ft, a:msg, s:status.input)
   endif
   if empty(s:completions) | return | endif
 
@@ -111,7 +111,7 @@ function! s:complete()
   call s:reset()
   if !s:consistent() | return | endif
 
-  let info = completor#utils#get_completer(&filetype, s:status.input)
+  let info = completor#utils#get_completer(s:status.ft, s:status.input)
   if empty(info) | return | endif
   let [cmd, name, daemon, is_sync] = info
 
@@ -132,11 +132,11 @@ endfunction
 
 
 function! s:skip()
-  let buftype = getbufvar('', '&buftype')
+  let buftype = &buftype
   let fsize = getfsize(bufname(''))
   let skip = empty(&ft) || buftype == 'nofile' || buftype == 'quickfix'
-        \ || fsize == -2 || fsize > g:filesize_limit
-        \ || index(g:blacklist, &ft) != -1
+        \ || fsize == -2 || fsize > g:completor_filesize_limit
+        \ || index(g:completor_blacklist, &ft) != -1
   if exists('g:completor_whitelist') && type(g:completor_whitelist) == v:t_list
     let skip = skip || index(g:completor_whitelist, &ft) == -1
   endif
@@ -157,7 +157,7 @@ function! s:on_text_change()
   let e = col('.') - 2
   let inputted = e >= 0 ? getline('.')[:e] : ''
 
-  let s:status = {'input': inputted, 'pos': getcurpos(), 'nr': bufnr('')}
+  let s:status = {'input': inputted, 'pos': getcurpos(), 'nr': bufnr(''), 'ft': &ft}
   let s:timer = timer_start(16, {t->s:complete()})
 endfunction
 

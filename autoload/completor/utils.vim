@@ -19,13 +19,17 @@ EOF
 endfunction
 
 
-function! completor#utils#get_completions(msg, inputted)
+function! completor#utils#get_completions(ft, msg, inputted)
 Py << EOF
 import completor, vim
+inputted = vim.eval('a:inputted')
 c = completor.current
-result = c.parse(vim.eval('a:msg')) if c else []
-if not result and c.filetype != 'common':
-  result = completor.get('common').parse(vim.eval('a:inputted'))
+result, ft, ty = ((c.parse(vim.eval('a:msg')), c.ft, c.filetype)
+                  if c else ([], vim.eval('a:ft'), ''))
+if not result and ty != 'common':
+  c = completor.get('common', ft, inputted)
+  completor.current = c
+  result = c.parse(inputted)
 EOF
   return Pyeval('result')
 endfunction

@@ -178,5 +178,11 @@ def load_completer(ft, input_data):
     return None if c.disabled else c
 
 
-def get(filetype):
-    return _completor._registry.get(filetype)
+def get(filetype, ft=None, input_data=None):
+    completer = _completor._registry.get(filetype)
+    if completer:
+        if ft is not None:
+            completer.ft = ft
+        if input_data is not None:
+            completer.input_data = input_data
+    return completer
