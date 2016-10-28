@@ -5,9 +5,18 @@ import os
 import re
 import vim
 
-from .compat import integer_types, to_bytes, to_str
+from .compat import integer_types, to_bytes, to_unicode
 
 current = None
+
+
+def _unicode(text):
+    encoding = to_unicode(vim.current.buffer.options['fileencoding'] or
+                          vim.options['encoding'] or 'utf-8', 'utf-8')
+    try:
+        return to_unicode(text, encoding)
+    except Exception:
+        return text
 
 
 def _read_args(path):
@@ -21,7 +30,7 @@ def _read_args(path):
 class Meta(type):
     def __init__(cls, name, bases, attrs):
         if name not in ('Completor', 'Base'):
-            Completor._registry[cls.filetype] = cls()
+            Completor._registry[to_unicode(cls.filetype, 'utf-8')] = cls()
 
         return super(Meta, cls).__init__(name, bases, attrs)
 
@@ -89,6 +98,7 @@ class Completor(Base):
             return to_bytes(self.ft) in types
         return False
 
+    # input_data: unicode
     def match(self, input_data):
         if self.trigger is None:
             return True
@@ -99,6 +109,16 @@ class Completor(Base):
 
     def format_cmd(self):
         return ''
+
+    # base: unicode or list
+    def parse(self, base):
+        return []
+
+    # base: str or unicode or list
+    def get_completions(self, base):
+        if not isinstance(base, (list, vim.List)):
+            base = _unicode(base)
+        return self.parse(base)
 
     @staticmethod
     def find_config_file(file):
@@ -141,7 +161,7 @@ class Completor(Base):
 _completor = Completor()
 
 
-# ft: str
+# ft: unicode
 def _load(ft):
     if ft not in _completor._registry:
         try:
@@ -151,13 +171,13 @@ def _load(ft):
     return _completor._registry.get(ft)
 
 
-# ft: str, input_data: str
+# ft: bytes, input_data: bytes
 def load_completer(ft, input_data):
+    input_data = _unicode(input_data)
+
     if not ft or not input_data.strip():
         return
-
-    ft = to_bytes(ft)
-    ft = to_str(_completor.filetype_map.get(ft, ft))
+    ft = to_unicode(_completor.filetype_map.get(ft, ft), 'utf-8')
 
     if 'common' not in _completor._registry:
         import completers.common  # noqa
@@ -178,11 +198,12 @@ def load_completer(ft, input_data):
     return None if c.disabled else c
 
 
+# filetype: str, ft: bytes, input_data: bytes
 def get(filetype, ft=None, input_data=None):
     completer = _completor._registry.get(filetype)
     if completer:
         if ft is not None:
-            completer.ft = ft
+            completer.ft = _unicode(ft)
         if input_data is not None:
-            completer.input_data = input_data
+            completer.input_data = _unicode(input_data)
     return completer

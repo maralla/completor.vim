@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import completor
+from completor.compat import to_unicode
 
 from completers.common import Common  # noqa
 
@@ -11,7 +12,7 @@ class Buffer(list):
         self.valid = 1
 
 
-def test_parse(vim_mod):
+def test_get_completions(vim_mod):
     common = completor.get('common')
 
     vim_mod.current.buffer.number = 1
@@ -23,14 +24,32 @@ def test_parse(vim_mod):
         buffer[:] = f.read().split('\n')
 
     vim_mod.buffers = [buffer]
-    assert common.parse('urt') == [
+    assert common.get_completions('urt') == [
         {'menu': '[snip] mock snips', 'word': 'ultisnips_trigger'},
         {'menu': '[ID]', 'word': 'current'}
     ]
 
     vim_mod.vars = {'completor_disable_ultisnips': 1}
-    assert common.parse('urt') == [{'menu': '[ID]', 'word': 'current'}]
+    assert common.get_completions('urt') == [
+        {'menu': '[ID]', 'word': 'current'}]
 
     vim_mod.vars = {'completor_disable_buffer': 1}
-    assert common.parse('urt') == [
+    assert common.get_completions('urt') == [
         {'menu': '[snip] mock snips', 'word': 'ultisnips_trigger'}]
+
+
+def test_unicode(vim_mod):
+    buffer = Buffer(1)
+    with open('./tests/test.txt') as f:
+        buffer[:] = f.read().split('\n')
+    vim_mod.buffers = [buffer]
+    vim_mod.current.buffer.number = 1
+    vim_mod.current.window.cursor = (1, 14)
+
+    buf = completor.get('buffer')
+    buf.input_data = to_unicode('hello pielęgn', 'utf-8')
+    assert buf.start_column() == 6
+    assert buf.get_completions(b'piel\xc4\x99gn') == [
+        {'menu': '[ID]', 'word': to_unicode('pielęgniarką', 'utf-8')},
+        {'menu': '[ID]', 'word': to_unicode('pielęgniarkach', 'utf-8')}
+    ]

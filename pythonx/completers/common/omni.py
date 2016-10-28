@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from completor import Completor
-from completor.compat import to_str
+from completor.compat import to_unicode
 
 import vim
 import re
@@ -25,7 +25,7 @@ class Omni(Completor):
 
             try:
                 self.trigger_cache[ft] = re.compile(
-                    to_str(option), re.X | re.U)
+                    to_unicode(option, 'utf-8'), re.X | re.U)
             except Exception:
                 return False
 
@@ -44,8 +44,7 @@ class Omni(Completor):
 
     def parse(self, base):
         trigger = self.trigger_cache.get(self.ft)
-        enc_base = base.encode('unicode-escape').decode('utf-8')
-        if not trigger or not trigger.search(enc_base):
+        if not trigger or not trigger.search(base):
             return []
 
         try:

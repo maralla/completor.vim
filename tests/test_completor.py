@@ -26,22 +26,22 @@ def test_load(vim_mod, monkeypatch):
 
     with mock.patch.object(_completor, '_type_map',
                            {b'python.django': b'python'}):
-        assert load_completer('', '/etc') is None
-        assert load_completer('hello', '') is None
+        assert load_completer(b'', b'/etc') is None
+        assert load_completer(b'hello', b'') is None
         assert get('python') is None
-        c = load_completer('python', 'os.')
+        c = load_completer(b'python', b'os.')
         assert c.input_data == 'os.'
         assert get('python') is c
 
-        c = load_completer('python', '#')
+        c = load_completer(b'python', b'#')
         assert c is get('common')
 
-        c = load_completer('python.django', 'os.')
+        c = load_completer(b'python.django', b'os.')
         assert c is get('python')
 
-        vim_mod.current.buffer.options = {
-            'omnifunc': b'csscomplete#CompleteCSS'}
+        vim_mod.current.buffer.options.update({
+            'omnifunc': b'csscomplete#CompleteCSS'})
         vim_mod.vars = {
             'completor_css_omni_trigger': b'([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$'
         }
-        assert load_completer('css', 'text') is get('omni')
+        assert load_completer(b'css', b'text') is get('omni')

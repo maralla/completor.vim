@@ -6,6 +6,7 @@ import re
 import vim
 
 from completor import Completor
+from completor.compat import to_unicode
 
 from .utils import test_subseq, LIMIT
 
@@ -17,6 +18,15 @@ def getftime(nr):
         return ftime(bufname(nr))
     except vim.error:
         return -1
+
+
+def get_encoding(nr):
+    try:
+        getbufvar = vim.Function('getbufvar')
+        encoding = getbufvar(nr, '&encoding')
+    except vim.error:
+        encoding = ''
+    return to_unicode(encoding or 'utf-8', 'utf-8')
 
 
 class TokenStore(object):
@@ -37,6 +47,8 @@ class TokenStore(object):
 
     def store_buffer(self, buffer, base, cur_nr, cur_line):
         nr = buffer.number
+        encoding = get_encoding(nr)
+
         if nr == cur_nr:
             start = cur_line - 1000
             end = cur_line + 1000
@@ -44,7 +56,7 @@ class TokenStore(object):
                 start = 0
             data = ' '.join(itertools.chain(buffer[start:cur_line],
                                             buffer[cur_line + 1:end]))
-            self.current = set(self.pat.findall(data))
+            self.current = set(self.pat.findall(to_unicode(data, encoding)))
             self.current.difference_update([base])
         elif buffer.valid and len(buffer) <= 10000:
             ftime = getftime(nr)
@@ -52,7 +64,7 @@ class TokenStore(object):
                 return
             if nr not in self.cache or ftime > self.cache[nr]['t']:
                 self.cache[nr] = {'t': ftime}
-                data = ' '.join(buffer[:])
+                data = to_unicode(' '.join(buffer[:]), encoding)
                 words = set(self.store)
                 words.update(set(self.pat.findall(data)))
                 self.store.clear()
