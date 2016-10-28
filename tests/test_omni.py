@@ -6,19 +6,17 @@ import re
 from completers.common import Omni  # noqa
 
 
-def Function(func_name):
-    def f(start, base):
-        if start:
-            return 1
-        return [b'text-transform']
-    return f
+def sample_omnifunc(start, base):
+    if start:
+        return 1
+    return [b'text-transform']
 
 
 def test_has_omnifunc(vim_mod):
     vim_mod.vars = {
         'completor_css_omni_trigger': b'([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$'
     }
-    vim_mod.current.buffer.options = {'omnifunc': b''}
+    vim_mod.current.buffer.options['omnifunc'] = b''
 
     omni = completor.get('omni')
     assert omni.has_omnifunc('css') is False
@@ -29,8 +27,8 @@ def test_has_omnifunc(vim_mod):
 
 
 def test_get_completions(vim_mod):
-    vim_mod.current.buffer.options = {'omnifunc': b'csscomplete#CompleteCSS'}
-    vim_mod.Function = Function
+    vim_mod.current.buffer.options['omnifunc'] = b'csscomplete#CompleteCSS'
+    vim_mod.funcs[b'csscomplete#CompleteCSS'] = sample_omnifunc
 
     omni = completor.get('omni')
     omni.trigger_cache = {}

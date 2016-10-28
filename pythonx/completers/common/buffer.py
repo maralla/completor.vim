@@ -26,7 +26,7 @@ def get_encoding(nr):
         encoding = getbufvar(nr, '&encoding')
     except vim.error:
         encoding = ''
-    return encoding or 'utf-8'
+    return to_unicode(encoding or 'utf-8', 'utf-8')
 
 
 class TokenStore(object):

@@ -11,7 +11,8 @@ endfunction
 function! completor#utils#get_completer(ft, inputted)
 Py << EOF
 import completor, vim
-c = completor.load_completer(vim.eval('a:ft'), vim.eval('a:inputted'))
+args = vim.bindeval('a:')
+c = completor.load_completer(args['ft'], args['inputted'])
 info = [c.format_cmd(), c.filetype, c.daemon, c.sync] if c else []
 completor.current = c
 EOF
@@ -22,14 +23,14 @@ endfunction
 function! completor#utils#get_completions(ft, msg, inputted)
 Py << EOF
 import completor, vim
-inputted = vim.eval('a:inputted')
+args = vim.bindeval('a:')
 c = completor.current
-result, ft, ty = ((c.get_completions(vim.eval('a:msg')), c.ft, c.filetype)
-                  if c else ([], vim.eval('a:ft'), ''))
+result, ft, ty = ((c.get_completions(args['msg']), c.ft, c.filetype)
+                  if c else ([], args['ft'], ''))
 if not result and ty != 'common':
-  c = completor.get('common', ft, inputted)
+  c = completor.get('common', ft, args['inputted'])
   completor.current = c
-  result = c.get_completions(inputted)
+  result = c.get_completions(args['inputted'])
 EOF
   return Pyeval('result')
 endfunction
