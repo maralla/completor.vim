@@ -44,8 +44,7 @@ class Omni(Completor):
 
     def parse(self, base):
         trigger = self.trigger_cache.get(self.ft)
-        enc_base = base.encode('unicode-escape').decode('utf-8')
-        if not trigger or not trigger.search(enc_base):
+        if not trigger or not trigger.search(base):
             return []
 
         try:

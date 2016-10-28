@@ -11,7 +11,7 @@ class Buffer(list):
         self.valid = 1
 
 
-def test_parse(vim_mod):
+def test_get_completions(vim_mod):
     common = completor.get('common')
 
     vim_mod.current.buffer.number = 1
@@ -23,14 +23,15 @@ def test_parse(vim_mod):
         buffer[:] = f.read().split('\n')
 
     vim_mod.buffers = [buffer]
-    assert common.parse('urt') == [
+    assert common.get_completions('urt') == [
         {'menu': '[snip] mock snips', 'word': 'ultisnips_trigger'},
         {'menu': '[ID]', 'word': 'current'}
     ]
 
     vim_mod.vars = {'completor_disable_ultisnips': 1}
-    assert common.parse('urt') == [{'menu': '[ID]', 'word': 'current'}]
+    assert common.get_completions('urt') == [
+        {'menu': '[ID]', 'word': 'current'}]
 
     vim_mod.vars = {'completor_disable_buffer': 1}
-    assert common.parse('urt') == [
+    assert common.get_completions('urt') == [
         {'menu': '[snip] mock snips', 'word': 'ultisnips_trigger'}]

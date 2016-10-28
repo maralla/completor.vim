@@ -24,12 +24,12 @@ Py << EOF
 import completor, vim
 inputted = vim.eval('a:inputted')
 c = completor.current
-result, ft, ty = ((c.parse(vim.eval('a:msg')), c.ft, c.filetype)
+result, ft, ty = ((c.get_completions(vim.eval('a:msg')), c.ft, c.filetype)
                   if c else ([], vim.eval('a:ft'), ''))
 if not result and ty != 'common':
   c = completor.get('common', ft, inputted)
   completor.current = c
-  result = c.parse(inputted)
+  result = c.get_completions(inputted)
 EOF
   return Pyeval('result')
 endfunction

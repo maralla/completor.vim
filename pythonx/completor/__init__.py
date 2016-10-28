@@ -5,9 +5,17 @@ import os
 import re
 import vim
 
-from .compat import integer_types, to_bytes, to_str
+from .compat import integer_types, to_bytes, to_str, to_unicode
 
 current = None
+
+
+def _unicode(text):
+    encoding = vim.eval('&encoding') or 'utf-8'
+    try:
+        return to_unicode(text, encoding)
+    except Exception:
+        return text
 
 
 def _read_args(path):
@@ -89,6 +97,7 @@ class Completor(Base):
             return to_bytes(self.ft) in types
         return False
 
+    # input_data: unicode
     def match(self, input_data):
         if self.trigger is None:
             return True
@@ -99,6 +108,16 @@ class Completor(Base):
 
     def format_cmd(self):
         return ''
+
+    # base: unicode or list
+    def parse(self, base):
+        return []
+
+    # base: str or unicode or list
+    def get_completions(self, base):
+        if not isinstance(base, (list, vim.List)):
+            base = _unicode(base)
+        return self.parse(base)
 
     @staticmethod
     def find_config_file(file):
@@ -153,6 +172,8 @@ def _load(ft):
 
 # ft: str, input_data: str
 def load_completer(ft, input_data):
+    input_data = _unicode(input_data)
+
     if not ft or not input_data.strip():
         return
 
@@ -184,5 +205,5 @@ def get(filetype, ft=None, input_data=None):
         if ft is not None:
             completer.ft = ft
         if input_data is not None:
-            completer.input_data = input_data
+            completer.input_data = _unicode(input_data)
     return completer
