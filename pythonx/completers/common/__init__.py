@@ -14,7 +14,7 @@ try:
 except ImportError:
     pass
 
-word = re.compile(r'[^\W\d]{2,}\w*$', re.U)
+word = re.compile(r'[^\W\d]\w*$', re.U)
 
 
 class Common(completor.Completor):
@@ -35,6 +35,9 @@ class Common(completor.Completor):
         if not match:
             return []
         base = match.group()
+
+        if len(base) < self.get_option('completor_min_chars'):
+            return []
 
         return list(itertools.chain(
             *[self.completions(n, base) for n in ('ultisnips', 'buffer')]))

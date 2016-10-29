@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import mock
 import completor
 from completor.compat import to_unicode
 
@@ -17,7 +18,6 @@ def test_get_completions(vim_mod):
 
     vim_mod.current.buffer.number = 1
     vim_mod.current.window.cursor = (1, 2)
-    vim_mod.vars = {}
 
     buffer = Buffer(1)
     with open(__file__) as f:
@@ -30,10 +30,15 @@ def test_get_completions(vim_mod):
     ]
 
     vim_mod.vars = {'completor_disable_ultisnips': 1}
+
     assert common.get_completions('urt') == [
         {'menu': '[ID]', 'word': 'current'}]
 
-    vim_mod.vars = {'completor_disable_buffer': 1}
+    vim_mod.vars = {
+        'completor_disable_buffer': 1,
+        'completor_disable_ultisnips': 0
+    }
+
     assert common.get_completions('urt') == [
         {'menu': '[snip] mock snips', 'word': 'ultisnips_trigger'}]
 
@@ -53,3 +58,21 @@ def test_unicode(vim_mod):
         {'menu': '[ID]', 'word': to_unicode('pielęgniarką', 'utf-8')},
         {'menu': '[ID]', 'word': to_unicode('pielęgniarkach', 'utf-8')}
     ]
+
+
+def test_min_chars(vim_mod, monkeypatch):
+    vim_mod.vars = {'completor_min_chars': 3}
+    common = completor.get('common')
+    mock_buffer_parse = mock.Mock(return_value=['hello'])
+    monkeypatch.setattr(completor.get('buffer'), 'parse', mock_buffer_parse)
+
+    mock_snips_parse = mock.Mock(return_value=['snips'])
+    monkeypatch.setattr(completor.get('ultisnips'), 'parse', mock_snips_parse)
+
+    assert common.get_completions('he') == []
+    mock_buffer_parse.assert_not_called()
+    mock_snips_parse.assert_not_called()
+
+    assert common.get_completions('hello') == ['snips', 'hello']
+    mock_buffer_parse.assert_called_with('hello')
+    mock_snips_parse.assert_called_with('hello')

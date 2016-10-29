@@ -171,9 +171,7 @@ endfunction
 
 
 function! completor#disable()
-  augroup completor
-    autocmd!
-  augroup END
+  autocmd! completor
 endfunction
 
 
