@@ -2,6 +2,7 @@
 
 import re
 from completor import Completor
+from completor.compat import to_bytes
 
 
 word_patten = re.compile('\w+$')
@@ -13,9 +14,9 @@ def sanitize(menu):
         return menu
 
     # type
-    menu = menu.replace('[#', '').replace('#]', ' ')
+    menu = menu.replace(b'[#', b'').replace(b'#]', b' ')
     # argument
-    menu = menu.replace('<#', '').replace('#>', '')
+    menu = menu.replace(b'<#', b'').replace(b'#>', b'')
     return menu
 
 
@@ -51,6 +52,7 @@ class Clang(Completor):
         ])
         return args
 
+    # items: list of bytes
     def parse(self, items):
         match = trigger.search(self.input_data)
         if match:
@@ -60,25 +62,26 @@ class Clang(Completor):
             if not match:
                 return []
             prefix = match.group()
+        prefix = to_bytes(prefix)
 
         res = []
         for item in items:
-            if not item.startswith('COMPLETION:'):
+            if not item.startswith(b'COMPLETION:'):
                 continue
 
-            parts = [e.strip() for e in item.split(':')]
+            parts = [e.strip() for e in item.split(b':')]
             if len(parts) < 2 or not parts[1].startswith(prefix):
                 continue
 
             data = {'word': parts[1], 'dup': 1, 'menu': ''}
             if len(parts) > 2:
-                if parts[1] == 'Pattern':
-                    subparts = parts[2].split(' ', 1)
+                if parts[1] == b'Pattern':
+                    subparts = parts[2].split(b' ', 1)
                     data['word'] = subparts[0]
                     if len(subparts) > 1:
                         data['menu'] = subparts[1]
                 else:
-                    data['menu'] = ':'.join(parts[2:])
+                    data['menu'] = b':'.join(parts[2:])
             data['menu'] = sanitize(data['menu'])
             res.append(data)
         return res

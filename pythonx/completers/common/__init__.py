@@ -4,6 +4,8 @@ import completor
 import itertools
 import re
 
+from completor.compat import text_type
+
 from .filename import Filename  # noqa
 from .buffer import Buffer  # noqa
 from .omni import Omni  # noqa
@@ -31,6 +33,8 @@ class Common(completor.Completor):
         return com.parse(base)
 
     def parse(self, base):
+        if not isinstance(base, text_type):
+            return []
         match = word.search(base)
         if not match:
             return []
