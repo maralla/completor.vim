@@ -150,6 +150,12 @@ Other                                                   *completor-other*
 <
         Default: unset
 
+*g:completor_min_chars*
+        Set the minimum characters to trigger completions for buffer and
+        ultisnips completers.
+
+        Default: 2
+
 ==============================================================================
 5. Write a new completer                                *completor-writing*
 

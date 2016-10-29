@@ -26,6 +26,7 @@ let s:default_blacklist = ['tagbar', 'qf', 'netrw', 'unite', 'vimwiki']
 let g:completor_blacklist = extend(get(g:, 'completor_blacklist', []), s:default_blacklist)
 " file size limit in KB
 let g:completor_filesize_limit = get(g:, 'completor_filesize_limit', 1024) * 1024
+let g:completor_min_chars = get(g:, 'completor_min_chars', 2)
 
 if has('python3')
     command! -nargs=1 Py py3 <args>
