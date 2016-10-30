@@ -11,7 +11,7 @@ endfunction
 if exists('g:loaded_completor_plugin')
     call s:restore_cpo()
     finish
-elseif !(has('python') || has('python3')) || !(has('job') && has('timers') && has('lambda'))
+elseif !(has('python') || has('python3')) && (!has('nvim') || !(has('job') && has('timers') && has('lambda')))
     echohl WarningMsg
     echomsg 'Completor requires vim compiled with python or python3 and has features `job`, `timers` and `lambda`'
     echohl None

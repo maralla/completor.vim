@@ -6,13 +6,15 @@ import re
 import vim
 
 from completor import Completor
-from completor.compat import to_unicode
+from completor.compat import to_unicode, nvim
 
 from .utils import test_subseq, LIMIT
 
 
 def getftime(nr):
     try:
+        if nvim:
+            return int(vim.eval('getftime(bufname(%d))' % nr))
         bufname = vim.Function('bufname')
         ftime = vim.Function('getftime')
         return ftime(bufname(nr))
@@ -22,8 +24,11 @@ def getftime(nr):
 
 def get_encoding(nr):
     try:
-        getbufvar = vim.Function('getbufvar')
-        encoding = getbufvar(nr, '&encoding')
+        if nvim:
+            encoding = vim.eval('getbufvar(%d, "&encoding")' % nr)
+        else:
+            getbufvar = vim.Function('getbufvar')
+            encoding = getbufvar(nr, '&encoding')
     except vim.error:
         encoding = ''
     return to_unicode(encoding or 'utf-8', 'utf-8')

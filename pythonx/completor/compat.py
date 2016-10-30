@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import vim
 
 
 # py2
@@ -26,3 +27,5 @@ def to_unicode(x, charset):
     if not isinstance(x, bytes):
         return text_type(x)
     return x.decode(charset)
+
+nvim = '_from_nvim' in dir(vim)
