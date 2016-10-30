@@ -10,9 +10,13 @@ from .compat import integer_types, to_bytes, to_unicode
 current = None
 
 
+def get_encoding():
+    return to_unicode(vim.current.buffer.options['fileencoding'] or
+                      vim.options['encoding'] or 'utf-8', 'utf-8')
+
+
 def _unicode(text):
-    encoding = to_unicode(vim.current.buffer.options['fileencoding'] or
-                          vim.options['encoding'] or 'utf-8', 'utf-8')
+    encoding = get_encoding()
     try:
         return to_unicode(text, encoding)
     except Exception:
@@ -76,7 +80,8 @@ class Completor(Base):
 
     @property
     def cursor(self):
-        return (vim.current.window.cursor[0], vim.Function('virtcol')('.'))
+        line, _ = vim.current.window.cursor
+        return line, len(self.input_data)
 
     # use cached property
     @property
@@ -147,7 +152,7 @@ class Completor(Base):
             text = self.input_data[i:index]
             matched = pat.match(text)
             if matched and matched.end() == len(text):
-                return len(to_bytes(self.input_data[:i], 'utf-8'))
+                return len(to_bytes(self.input_data[:i], get_encoding()))
         return index
 
     def start_column(self):

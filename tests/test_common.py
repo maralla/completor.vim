@@ -49,11 +49,11 @@ def test_unicode(vim_mod):
         buffer[:] = f.read().split('\n')
     vim_mod.buffers = [buffer]
     vim_mod.current.buffer.number = 1
-    vim_mod.current.window.cursor = (1, 14)
+    vim_mod.current.window.cursor = (1, 16)
 
     buf = completor.get('buffer')
-    buf.input_data = to_unicode('hello pielęgn', 'utf-8')
-    assert buf.start_column() == 6
+    buf.input_data = to_unicode('pielę pielęgn', 'utf-8')
+    assert buf.start_column() == 7
     assert buf.get_completions(b'piel\xc4\x99gn') == [
         {'menu': '[ID]', 'word': to_unicode('pielęgniarką', 'utf-8')},
         {'menu': '[ID]', 'word': to_unicode('pielęgniarkach', 'utf-8')}

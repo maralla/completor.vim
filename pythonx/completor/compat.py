@@ -8,16 +8,16 @@ if sys.version_info[0] == 2:
     integer_types = (int, long)
     text_type = unicode
 
-    def to_bytes(s, charset='utf-8'):
-        return s
-
 # py3
 else:
     integer_types = (int,)
     text_type = str
 
-    def to_bytes(s, charset='utf-8'):
+
+def to_bytes(s, charset='utf-8'):
+    if isinstance(s, text_type):
         return s.encode(charset)
+    return s
 
 
 def to_unicode(x, charset):
