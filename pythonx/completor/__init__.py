@@ -5,7 +5,7 @@ import os
 import re
 import vim
 
-from .compat import integer_types, to_bytes, to_unicode
+from .compat import integer_types, to_bytes, to_unicode, nvim
 
 current = None
 
@@ -68,10 +68,14 @@ class Completor(Base):
 
     @property
     def current_directory(self):
+        if nvim:
+            return vim.eval('expand("%:p:h")')
         return vim.Function('expand')('%:p:h')
 
     @property
     def tempname(self):
+        if nvim:
+            return vim.eval('completor#utils#tempname()')
         return vim.Function('completor#utils#tempname')()
 
     @property
@@ -99,7 +103,7 @@ class Completor(Base):
         types = self.get_option('completor_disable_{}'.format(self.filetype))
         if isinstance(types, integer_types):
             return bool(types)
-        if isinstance(types, (list, vim.List)):
+        if isinstance(types, (list, list if nvim else vim.List)):
             return to_bytes(self.ft) in types
         return False
 
@@ -121,7 +125,7 @@ class Completor(Base):
 
     # base: str or unicode or list
     def get_completions(self, base):
-        if not isinstance(base, (list, vim.List)):
+        if not isinstance(base, (list, list if nvim else vim.List)):
             base = _unicode(base)
         return self.parse(base)
 

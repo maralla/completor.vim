@@ -7,22 +7,49 @@ let s:completions = []
 let s:daemon = {}
 let s:status = {'pos': [], 'nr': -1, 'input': '', 'ft': ''}
 
-function s:daemon.respawn(cmd, name)
-  if self.status(a:name) == 'run'
-    call job_stop(self.job)
+function s:nvim_daemon(job_id, data, event)
+  if a:event == 'stdout'
+    s:trigger(a:data)
+  elseif a:event == 'stderr'
+    s:trigger(a:data)
+  else
+    unlet self.job
   endif
+endfunction
 
-  let self.job = job_start(a:cmd, {
-        \   "out_cb": {c,m->s:trigger(m)},
-        \   "err_io": 'out',
-        \   "mode": 'nl'
-        \ })
-  let self.type = a:name
+function s:daemon.respawn(cmd, name)
+  if has('nvim')
+    if self.status(a:name) == 'run'
+      call jobstop(self.job)
+    endif
+
+    let self.job = jobstart(a:cmd, {
+          \   "on_stdout": function('s:nvim_daemon'),
+          \   "on_stderr": function('s:nvim_daemon'),
+          \   "on_exit": function('s:nvim_daemon'),
+          \ })
+    let self.type = a:name
+  else
+    if self.status(a:name) == 'run'
+      call job_stop(self.job)
+    endif
+
+    let self.job = job_start(a:cmd, {
+          \   "out_cb": {c, m -> s:trigger(m)},
+          \   "err_io": 'out',
+          \   "mode": 'nl'
+          \ })
+    let self.type = a:name
+  endif
 endfunction
 
 function s:daemon.write(data)
-  let ch = job_getchannel(self.job)
-  call ch_sendraw(ch, a:data."\n")
+  if has('nvim')
+    jobsend(self.job, a:data."\n")
+  else
+    let ch = job_getchannel(self.job)
+    call ch_sendraw(ch, a:data."\n")
+  endif
 endfunction
 
 function s:daemon.status(name)
@@ -30,10 +57,18 @@ function s:daemon.status(name)
     return 'none'
   endif
 
-  let s = job_status(self.job)
+  if has('nvim')
+    let s = 'run'
+  else
+    let s = job_status(self.job)
+  endif
   if exists('self.type') && self.type != a:name
     if s == 'run'
-      call job_stop(self.job)
+      if has('nvim')
+        call jobstop(self.job)
+      else
+        call job_stop(self.job)
+      endif
     endif
     return 'none'
   endif
@@ -74,6 +109,17 @@ function! s:trigger(msg)
 endfunction
 
 
+function s:nvim_handle(job_id, data, event)
+  if a:event == 'stdout'
+    s:trigger(a:data)
+  elseif a:event == 'stderr'
+    s:trigger(a:data)
+  else
+    unlet s:job
+  endif
+endfunction
+
+
 function! s:handle(ch)
   let msg = []
   while ch_status(a:ch) == 'buffered'
@@ -85,8 +131,12 @@ endfunction
 
 function! s:reset()
   let s:completions = []
-  if exists('s:job') && job_status(s:job) == 'run'
-    call job_stop(s:job)
+  if exists('s:job') && (has('nvim') || job_status(s:job) == 'run')
+    if has('nvim')
+      call jobstop(s:job)
+    else
+      call job_stop(s:job)
+    endif
   endif
 endfunction
 
@@ -107,7 +157,7 @@ function! s:process_daemon(cmd, name)
 endfunction
 
 
-function! s:complete()
+function! s:complete(t)
   call s:reset()
   if !s:consistent() | return | endif
 
@@ -121,11 +171,19 @@ function! s:complete()
     if daemon
       call s:process_daemon(cmd, name)
     else
-      let s:job = job_start(cmd, {
-            \   "close_cb": {c->s:handle(c)},
-            \   "in_io": 'null',
-            \   "err_io": 'out'
-            \ })
+      if has('nvim')
+        let s:job = jobstart(cmd, {
+              \   "on_stdout": function('s:nvim_handle'),
+              \   "on_stderr": function('s:nvim_handle'),
+              \   "on_exit": function('s:nvim_handle'),
+              \ })
+      else
+        let s:job = job_start(cmd, {
+              \   "close_cb": {c -> s:handle(c)},
+              \   "in_io": 'null',
+              \   "err_io": 'out'
+              \ })
+      endif
     endif
   endif
 endfunction
@@ -148,9 +206,13 @@ function! s:on_text_change()
   if s:skip() | return | endif
 
   if exists('s:timer')
-    let info = timer_info(s:timer)
-    if !empty(info)
+    if has('nvim')
       call timer_stop(s:timer)
+    else
+      let info = timer_info(s:timer)
+      if !empty(info)
+        call timer_stop(s:timer)
+      endif
     endif
   endif
 
@@ -158,7 +220,7 @@ function! s:on_text_change()
   let inputted = e >= 0 ? getline('.')[:e] : ''
 
   let s:status = {'input': inputted, 'pos': getcurpos(), 'nr': bufnr(''), 'ft': &ft}
-  let s:timer = timer_start(16, {t->s:complete()})
+  let s:timer = timer_start(16, function('s:complete'))
 endfunction
 
 

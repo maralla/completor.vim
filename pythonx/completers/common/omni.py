@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from completor import Completor
-from completor.compat import to_unicode
+from completor.compat import to_unicode, nvim
 
 import vim
 import re
@@ -52,10 +52,16 @@ class Omni(Completor):
             if not func_name:
                 return []
 
-            omnifunc = vim.Function(func_name)
-            start = omnifunc(1, '')
-            if start < 0:
-                return []
-            return omnifunc(0, base[start:len(base)])
+            if nvim:
+                start = int(vim.eval(func_name + '(1, "")'))
+                if start < 0:
+                    return []
+                return int(vim.eval(func_name = '(0, "%s")' % base[start:len(base)]))
+            else:
+                omnifunc = vim.Function(func_name)
+                start = omnifunc(1, '')
+                if start < 0:
+                    return []
+                return omnifunc(0, base[start:len(base)])
         except (vim.error, ValueError, KeyboardInterrupt):
             return []
