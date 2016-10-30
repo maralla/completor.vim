@@ -76,7 +76,7 @@ class Completor(Base):
 
     @property
     def cursor(self):
-        return vim.current.window.cursor
+        return (vim.current.window.cursor[0], vim.Function('virtcol')('.'))
 
     # use cached property
     @property
@@ -147,7 +147,7 @@ class Completor(Base):
             text = self.input_data[i:index]
             matched = pat.match(text)
             if matched and matched.end() == len(text):
-                return i
+                return len(to_bytes(self.input_data[:i], 'utf-8'))
         return index
 
     def start_column(self):
