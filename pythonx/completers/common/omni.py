@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from completor import Completor
-from completor.compat import to_unicode
+from completor import Completor, get_encoding
+from completor.compat import to_unicode, to_bytes
 
 import vim
 import re
@@ -42,6 +42,7 @@ class Omni(Completor):
         idx = self.ident_match(pat)
         return idx
 
+    # base: unicode
     def parse(self, base):
         trigger = self.trigger_cache.get(self.ft)
         if not trigger or not trigger.search(base):
@@ -54,8 +55,9 @@ class Omni(Completor):
 
             omnifunc = vim.Function(func_name)
             start = omnifunc(1, '')
-            if start < 0:
+            codepoint = self.start_column()
+            if start < 0 or start != codepoint:
                 return []
-            return omnifunc(0, base[start:len(base)])
+            return omnifunc(0, to_bytes(base, get_encoding())[codepoint:])
         except (vim.error, ValueError, KeyboardInterrupt):
             return []
