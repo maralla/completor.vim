@@ -97,10 +97,11 @@ should be in a single line in the file. This is an example file:
 ```
 
 #### go
-Use [gocode](https://github.com/nsf/gocode) with [vim-go](https://github.com/fatih/vim-go) to provide omni completions. No additional setting is needed. Only add the following option to your `.vimrc` to trigger completion for Go source code.
+Use [gocode](https://github.com/nsf/gocode) to provide omni completions.
+To specify the gocode executable path:
 
 ```vim
-let g:completor_go_omni_trigger = '(?:\b[^\W\d]\w*|[\]\)])\.(?:[^\W\d]\w*)?'
+let g:completor_gocode_binary = '/path/to/gocode'
 ```
 
 #### other languages

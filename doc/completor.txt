@@ -95,6 +95,12 @@ c/c++                                                   *completor-cpp*
             -I/Users/maralla/Workspace/src/dji-sdk/Onboard-SDK/lib/inc
             -I/Users/maralla/Workspace/src/dji-sdk/Onboard-SDK/sample/Linux/inc
 <
+go                                                      *completor-go*
+        Use [gocode](https://github.com/nsf/gocode) to provide omni completions.
+        To specify the gocode executable path:
+>
+            let g:completor_gocode_binary = '/path/to/gocode'
+<
 Other                                                   *completor-other*
         For other omni completions completor not natively implemented, auto
         completion can still be used if an omni function is defined for the
