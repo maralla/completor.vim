@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import importlib
+import json
 import os
 import re
 import vim
@@ -162,6 +163,24 @@ class Completor(Base):
             self.ident = re.compile(self.ident, re.U | re.X)
         return self.ident_match(self.ident)
 
+    def request(self):
+        """Generate daemon request arguments
+        """
+        line, col = self.cursor
+        return json.dumps({
+            'line': line - 1,
+            'col': col,
+            'filename': self.filename,
+            'content': to_unicode(b'\n'.join(vim.current.buffer[:]),
+                                  get_encoding())
+        })
+
+    def message_ended(self, msg):
+        """Test the end of daemon response
+
+        :param msg: the message received from daemon (bytes)
+        """
+        return True
 
 _completor = Completor()
 

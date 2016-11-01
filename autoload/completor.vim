@@ -4,7 +4,7 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 let s:completions = []
-let s:daemon = {}
+let s:daemon = {'msgs': [], 'requested': v:false, 't': 0}
 let s:status = {'pos': [], 'nr': -1, 'input': '', 'ft': ''}
 
 function s:daemon.respawn(cmd, name)
@@ -13,11 +13,20 @@ function s:daemon.respawn(cmd, name)
   endif
 
   let self.job = job_start(a:cmd, {
-        \   "out_cb": {c,m->s:trigger(m)},
+        \   "out_cb": {c,m->s:daemon_handler(m)},
         \   "err_io": 'out',
         \   "mode": 'nl'
         \ })
   let self.type = a:name
+  let self.requested = v:false
+  let self.t = localtime()
+endfunction
+
+function s:daemon.kill()
+  if exists('self.job') && job_status(self.job) == 'run'
+    let self.requested = v:false
+    call job_stop(self.job, 'kill')
+  endif
 endfunction
 
 function s:daemon.write(data)
@@ -74,7 +83,17 @@ function! s:trigger(msg)
 endfunction
 
 
-function! s:handle(ch)
+function! s:daemon_handler(msg)
+  call add(s:daemon.msgs, a:msg)
+
+  if completor#utils#message_ended(a:msg)
+    call s:trigger(s:daemon.msgs)
+    let s:daemon.requested = v:false
+  endif
+endfunction
+
+
+function! s:handler(ch)
   let msg = []
   while ch_status(a:ch) == 'buffered'
     call add(msg, ch_read(a:ch))
@@ -92,18 +111,25 @@ endfunction
 
 
 function! s:process_daemon(cmd, name)
+  let s:daemon.msgs = []
+
   if s:daemon.status(a:name) != 'run'
     call s:daemon.respawn(a:cmd, a:name)
   endif
-  let filename = expand('%:p')
-  let content = join(getline(1, '$'), "\n")
-  let req = {
-        \   "line": line('.') - 1,
-        \   "col": col('.') - 1,
-        \   "filename": filename,
-        \   "content": content
-        \ }
-  call s:daemon.write(json_encode(req))
+
+  if s:daemon.requested
+    if localtime() - s:daemon.t > 5
+      call s:daemon.kill()
+    endif
+    return
+  endif
+
+  let req = completor#utils#daemon_request()
+  if empty(req) | return | endif
+  call s:daemon.write(req)
+
+  let s:daemon.requested = v:true
+  let s:daemon.t = localtime()
 endfunction
 
 
@@ -122,7 +148,7 @@ function! s:complete()
       call s:process_daemon(cmd, name)
     else
       let s:job = job_start(cmd, {
-            \   "close_cb": {c->s:handle(c)},
+            \   "close_cb": {c->s:handler(c)},
             \   "in_io": 'null',
             \   "err_io": 'out'
             \ })
@@ -158,7 +184,7 @@ function! s:on_text_change()
   let inputted = e >= 0 ? getline('.')[:e] : ''
 
   let s:status = {'input': inputted, 'pos': getcurpos(), 'nr': bufnr(''), 'ft': &ft}
-  let s:timer = timer_start(16, {t->s:complete()})
+  let s:timer = timer_start(50, {t->s:complete()})
 endfunction
 
 

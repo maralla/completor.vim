@@ -4,6 +4,7 @@ import json
 import os.path
 
 from completor import Completor
+from completor.compat import to_unicode
 
 dirname = os.path.dirname(__file__)
 
@@ -23,6 +24,7 @@ class Tern(Completor):
 
     def parse(self, data):
         try:
+            data = to_unicode(data[0], 'utf-8')
             return json.loads(data)
         except Exception:
             return []

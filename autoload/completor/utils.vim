@@ -43,3 +43,22 @@ column = completor.current.start_column() if completor.current else -1
 EOF
   return Pyeval('column')
 endfunction
+
+
+function! completor#utils#daemon_request()
+Py << EOF
+import completor
+args = completor.current.request() if completor.current else ''
+EOF
+  return Pyeval('args')
+endfunction
+
+
+function! completor#utils#message_ended(msg)
+Py << EOF
+import completor
+msg = vim.bindeval('a:')['msg']
+ended = completor.current.message_ended(msg) if completor.current else False
+EOF
+  return Pyeval('ended')
+endfunction

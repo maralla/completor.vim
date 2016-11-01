@@ -4,6 +4,7 @@ import json
 import os
 
 from completor import Completor
+from completor.compat import to_unicode
 
 DIRNAME = os.path.dirname(__file__)
 
@@ -22,6 +23,7 @@ class Jedi(Completor):
 
     def parse(self, data):
         try:
+            data = to_unicode(data[0], 'utf-8')
             return json.loads(data)
         except Exception:
             return []
