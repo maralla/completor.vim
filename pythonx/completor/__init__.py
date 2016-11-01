@@ -171,7 +171,8 @@ class Completor(Base):
             'line': line - 1,
             'col': col,
             'filename': self.filename,
-            'content': to_unicode(b'\n'.join(vim.current.buffer[:]),
+            'content': to_unicode(b'\n'.join([to_bytes(s, get_encoding())
+                                              for s in vim.current.buffer[:]]),
                                   get_encoding())
         })
 
