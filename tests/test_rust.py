@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import completor
+from completor.compat import to_unicode
+
 from completers.rust import Racer  # noqa
 
 
@@ -11,6 +13,7 @@ def test_parse():
         b'MATCH run,1092,11,./src/event.rs,Function,pub fn run(&mut self)'
     ]
     racer = completor.get('rust')
+    racer.input_data = to_unicode('self.', 'utf-8')
     assert racer.get_completions(items) == [
         {'dup': 0, 'menu': b'struct FrameHandler', 'word': b'FrameHandler'},
         {'dup': 0, 'menu': b'Option<u16>', 'word': b'tcp_port'},
