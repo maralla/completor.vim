@@ -69,14 +69,26 @@ class Completor(Base):
 
     @property
     def current_directory(self):
-        return vim.Function('expand')('%:p:h')
+        """Return the directory of the file in current buffer
+
+        :rtype: unicode
+        """
+        return to_unicode(vim.Function('expand')('%:p:h'), 'utf-8')
 
     @property
     def tempname(self):
-        return vim.Function('completor#utils#tempname')()
+        """Write buffer content to a temp file and return the file name
+
+        :rtype: unicode
+        """
+        return to_unicode(vim.Function('completor#utils#tempname')(), 'utf-8')
 
     @property
     def filename(self):
+        """Get the file name of current buffer
+
+        :rtype: unicode
+        """
         return vim.current.buffer.name
 
     @property
@@ -171,8 +183,7 @@ class Completor(Base):
             'line': line - 1,
             'col': col,
             'filename': self.filename,
-            'content': to_unicode(b'\n'.join(vim.current.buffer[:]),
-                                  get_encoding())
+            'content': '\n'.join(vim.current.buffer[:])
         })
 
     def message_ended(self, msg):
