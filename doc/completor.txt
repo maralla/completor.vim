@@ -162,6 +162,11 @@ Other                                                   *completor-other*
 
         Default: 2
 
+*g:completor_auto_trigger*
+        Whether to auto trigger the completion popup.
+
+        Default: 1
+
 ==============================================================================
 5. Write a new completer                                *completor-writing*
 

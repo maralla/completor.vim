@@ -79,7 +79,9 @@ function! s:trigger(msg)
   if &completeopt !~# 'noinsert\|noselect'
     setlocal completeopt+=noselect
   endif
-  call feedkeys("\<C-x>\<C-u>\<C-p>", 'n')
+  if get(g:, "completor_auto_trigger", 1)
+    call feedkeys("\<C-x>\<C-u>\<C-p>", 'n')
+  endif
 endfunction
 
 
