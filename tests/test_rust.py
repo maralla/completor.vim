@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import mock
 import completor
 from completor.compat import to_unicode
 
@@ -19,3 +20,14 @@ def test_parse():
         {'dup': 0, 'menu': b'Option<u16>', 'word': b'tcp_port'},
         {'dup': 0, 'menu': b'fn run(&mut self)', 'word': b'run'}
     ]
+
+
+def test_request(vim_mod):
+    vim_mod.funcs['completor#utils#tempname'] = mock.Mock(
+        return_value=b'/tmp/vJBio2A/2.vim')
+    vim_mod.current.buffer.name = '/home/vagrant/bench.vim'
+    vim_mod.current.window.cursor = (1, 5)
+    racer = completor.get('rust')
+    racer.input_data = to_unicode('self.', 'utf-8')
+    assert racer.request() == \
+        'complete 1 5 /home/vagrant/bench.vim /tmp/vJBio2A/2.vim'
