@@ -36,8 +36,10 @@ class Racer(Completor):
                 continue
 
             parts = item.split(b',')
-            name = parts[0][6:]
+            if len(parts) < 6:
+                continue
 
+            name = parts[0][6:]
             kind = parts[4].lower()
             spec = b'mod' if kind == b'module' else b', '.join(parts[5:])
             if spec.startswith(b'pub '):
