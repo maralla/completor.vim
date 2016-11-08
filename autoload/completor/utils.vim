@@ -56,6 +56,18 @@ function! completor#utils#daemon_request()
 endfunction
 
 
+function! completor#utils#add_buffer_request()
+Py << EOF
+common = completor.get('common')
+req, cmd = '', ''
+if common and common.daemon:
+  req = common.request(action='add')
+  cmd = common.format_cmd()
+EOF
+  return [Pyeval('req'), Pyeval('cmd')]
+endfunction
+
+
 function! completor#utils#message_ended(msg)
   exe s:py 'res = completor_api.is_message_end()'
   return s:pyeval('res')

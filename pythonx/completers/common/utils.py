@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import functools
+import os
 import re
+import vim
+
+from completor.compat import to_unicode
+
+
+DIR = os.path.dirname(__file__)
+MEMOIZE = {}
 
 LIMIT = 50
 REGEX_MAP = {
@@ -50,6 +59,18 @@ for k, v in list(REGEX_MAP.items()):
     REGEX_MAP[k] = re.compile(v, re.U)
 
 
+def memoize(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kw):
+        key_args = ','.join((str(e) for e in args))
+        key_kw = ','.join(('{}={}'.format(k, v) for k, v in kw.items()))
+        key = '|'.join([func.__name__, key_args, key_kw])
+        if key not in MEMOIZE:
+            MEMOIZE[key] = func(*args, **kw)
+        return MEMOIZE[key]
+    return wrapper
+
+
 def test_subseq(src, target):
     if not src:
         return 0
@@ -68,3 +89,13 @@ def test_subseq(src, target):
         i += 1
         if i == src_len:
             return score
+
+
+@memoize
+def subseq_binary():
+    binary = vim.vars.get('completor_subseq_binary')
+    if binary:
+        binary = to_unicode(binary, 'utf-8')
+    else:
+        binary = os.path.join(DIR, 'wq')
+    return binary
