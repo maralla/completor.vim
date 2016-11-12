@@ -2,7 +2,8 @@
 
 import os
 
-from .filename import Filename  # noqa
+from ._common import Common
+from ._filename import Filename
 from .buffer import Buffer  # noqa
 from .omni import Omni  # noqa
 
@@ -16,8 +17,8 @@ from .utils import subseq_binary
 
 
 if os.path.exists(subseq_binary()):
-    from .acce_common import Common  # noqa
     Filename.sync = False
     Filename.daemon = True
-else:
-    from .sync_common import Common  # noqa
+
+    Common.sync = False
+    Common.daemon = True
