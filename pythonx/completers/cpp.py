@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+import os
 from completor import Completor
 from completor.compat import to_bytes
 
@@ -43,11 +44,17 @@ class Clang(Completor):
             '-I{}'.format(self.current_directory),
         ]
         args.extend(self.parse_config(self.args_file))
+        complatfile = tempfile
+        if os.getenv('MSYSTEM') != None:
+            cmd ='cygpath -a -w {}'.format(complatfile) 
+            complatfile = os.popen(cmd).read()
+            print(complatfile)
+            complatfile = complatfile.strip().replace('\\', '\\\\')
         args.extend([
             '-Xclang',
             '-code-completion-macros',
             '-Xclang',
-            '-code-completion-at={}:{}:{}'.format(tempfile, row, col + 1),
+            '-code-completion-at={}:{}:{}'.format(complatfile, row, col + 1),
             tempfile
         ])
         return args
