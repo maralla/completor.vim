@@ -3,6 +3,7 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
+let s:char_inserted = v:false
 let s:completions = []
 let s:daemon = {'msgs': [], 'requested': v:false, 't': 0}
 let s:status = {'pos': [], 'nr': -1, 'input': '', 'ft': ''}
@@ -173,7 +174,8 @@ endfunction
 
 
 function! s:on_text_change()
-  if s:skip() | return | endif
+  if !s:char_inserted || s:skip() | return | endif
+  let s:char_inserted = v:false
 
   if exists('s:timer')
     let info = timer_info(s:timer)
@@ -190,10 +192,23 @@ function! s:on_text_change()
 endfunction
 
 
+function s:on_insert_char_pre()
+  let s:char_inserted = v:true
+
+  if !pumvisible()
+    return
+  endif
+
+  " close popup
+  call feedkeys("\<C-e>")
+endfunction
+
+
 function! s:set_events()
   augroup completor
     autocmd!
     autocmd TextChangedI * call s:on_text_change()
+    autocmd InsertCharPre * call s:on_insert_char_pre()
   augroup END
 endfunction
 
