@@ -4,9 +4,21 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 let s:char_inserted = v:false
-let s:completions = []
+let s:completions = {'words': [], 'refresh': 'always'}
 let s:daemon = {'msgs': [], 'requested': v:false, 't': 0}
 let s:status = {'pos': [], 'nr': -1, 'input': '', 'ft': ''}
+
+function s:completions.set(comps)
+  let self.words = a:comps
+endfunction
+
+function s:completions.clear()
+  let self.words = []
+endfunction
+
+function s:completions.empty()
+  return empty(self.words)
+endfunction
 
 function s:daemon.respawn(cmd, name)
   if self.status(a:name) == 'run'
@@ -54,9 +66,15 @@ endfunction
 
 function! completor#completefunc(findstart, base)
   if a:findstart
+    if s:completions.empty()
+      return -3
+    endif
     return completor#utils#get_start_column()
   endif
-  return s:completions
+
+  let completions = copy(s:completions)
+  call s:completions.clear()
+  return completions
 endfunction
 
 
@@ -67,11 +85,11 @@ endfunction
 
 function! s:trigger(msg)
   if !s:consistent()
-    let s:completions = []
+    call s:completions.clear()
   else
-    let s:completions = completor#utils#get_completions(s:status.ft, a:msg, s:status.input)
+    call s:completions.set(completor#utils#get_completions(s:status.ft, a:msg, s:status.input))
   endif
-  if empty(s:completions) | return | endif
+  if s:completions.empty() | return | endif
 
   setlocal completefunc=completor#completefunc
   setlocal completeopt-=longest
@@ -106,7 +124,7 @@ endfunction
 
 
 function! s:reset()
-  let s:completions = []
+  call s:completions.clear()
   if exists('s:job') && job_status(s:job) == 'run'
     call job_stop(s:job)
   endif
@@ -169,12 +187,12 @@ function! s:skip()
   if exists('g:completor_whitelist') && type(g:completor_whitelist) == v:t_list
     let skip = skip || index(g:completor_whitelist, &ft) == -1
   endif
-  return skip
+  return skip || !s:char_inserted
 endfunction
 
 
 function! s:on_text_change()
-  if !s:char_inserted || s:skip() | return | endif
+  if s:skip() | return | endif
   let s:char_inserted = v:false
 
   if exists('s:timer')
@@ -188,19 +206,12 @@ function! s:on_text_change()
   let inputted = e >= 0 ? getline('.')[:e] : ''
 
   let s:status = {'input': inputted, 'pos': getcurpos(), 'nr': bufnr(''), 'ft': &ft}
-  let s:timer = timer_start(50, {t->s:complete()})
+  let s:timer = timer_start(g:completor_completion_delay, {t->s:complete()})
 endfunction
 
 
 function s:on_insert_char_pre()
   let s:char_inserted = v:true
-
-  if !pumvisible()
-    return
-  endif
-
-  " close popup
-  call feedkeys("\<C-e>")
 endfunction
 
 

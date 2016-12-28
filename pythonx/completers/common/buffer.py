@@ -96,5 +96,5 @@ class Buffer(Completor):
                 break
 
         res = list(res)
-        res.sort(key=lambda x: x[1])
+        res.sort(key=lambda x: (x[1], x[0]))
         return [{'word': token, 'menu': '[ID]'} for token, _ in res]
