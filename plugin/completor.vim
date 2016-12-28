@@ -27,6 +27,7 @@ let g:completor_blacklist = extend(get(g:, 'completor_blacklist', []), s:default
 " file size limit in KB
 let g:completor_filesize_limit = get(g:, 'completor_filesize_limit', 1024) * 1024
 let g:completor_min_chars = get(g:, 'completor_min_chars', 2)
+let g:completor_completion_delay = get(g:, 'completor_completion_delay', 80)
 
 if has('python3')
     command! -nargs=1 Py py3 <args>
