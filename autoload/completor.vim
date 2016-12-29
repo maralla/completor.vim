@@ -268,10 +268,15 @@ function! s:set_events()
     autocmd!
     autocmd TextChangedI * call s:on_text_change()
     autocmd InsertCharPre * call s:on_insert_char_pre()
-    autocmd BufWinEnter,BufWrite * call s:on_buffer()
   augroup END
   call completor#utils#setup_python()
-  call s:on_buffer()
+
+  if completor#utils#is_common_daemon()
+    augroup completor
+      autocmd BufWinEnter,BufWrite * call s:on_buffer()
+    augroup END
+    call s:on_buffer()
+  endif
 endfunction
 
 

@@ -56,6 +56,15 @@ function! completor#utils#daemon_request()
 endfunction
 
 
+function! completor#utils#is_common_daemon()
+Py << EOF
+common = completor.get('common')
+is_daemon = common and common.daemon
+EOF
+  return Pyeval('is_daemon')
+endfunction
+
+
 function! completor#utils#add_buffer_request()
 Py << EOF
 common = completor.get('common')
