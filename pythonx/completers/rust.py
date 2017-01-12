@@ -8,6 +8,7 @@ except ImportError:
 from completor import Completor, get_encoding
 from completor.compat import to_bytes
 
+import platform
 
 class Racer(Completor):
     filetype = 'rust'
@@ -20,8 +21,11 @@ class Racer(Completor):
 
     def request(self):
         line, col = self.cursor
+        is_windows = platform.system() == "Windows"
+        filename = self.filename if is_windows else quote(self.filename)
+        tempname = self.tempname if is_windows else quote(self.tempname)
         return ' '.join(['complete', str(line), str(col),
-                         quote(self.filename), quote(self.tempname)])
+                         filename, tempname])
 
     def message_ended(self, msg):
         return msg == 'END'
