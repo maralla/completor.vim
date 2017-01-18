@@ -1,5 +1,5 @@
 let s:py = has('python3') ? 'py3' : 'py'
-let s:pyeval = function(has('python3') ? 'pyeval3' : 'pyeval')
+let s:pyeval = function(has('python3') ? 'py3eval' : 'pyeval')
 
 
 function! completor#utils#tempname()
