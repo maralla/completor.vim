@@ -24,7 +24,7 @@ class Racer(Completor):
                          quote(self.filename), quote(self.tempname)])
 
     def is_message_end(self, msg):
-        return msg == 'END'
+        return msg == b'END'
 
     # items: list of bytes
     def parse(self, items):

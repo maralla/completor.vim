@@ -31,3 +31,8 @@ def test_request(vim_mod):
     racer.input_data = to_unicode('self.', 'utf-8')
     assert racer.request() == \
         'complete 1 5 /home/vagrant/bench.vim /tmp/vJBio2A/2.vim'
+
+
+def test_message_end(vim_mod):
+    racer = completor.get('rust')
+    assert racer.is_message_end(b'END')
