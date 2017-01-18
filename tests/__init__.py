@@ -2,9 +2,15 @@
 
 import mock
 import sys
-import types
 
 from copy import deepcopy
+
+
+class Buffer(list):
+    def __init__(self, number, name=''):
+        self.name = name
+        self.number = number
+        self.valid = 1
 
 
 class VimError(Exception):
@@ -39,6 +45,7 @@ class Vim(object):
 
     def reset(self):
         self._vars = {}
+        self.var_map = {}
         self.eval_map = {'&encoding': b'utf-8'}
         self.funcs = {'getbufvar': lambda nr, var: b''}
         self.current = mock.Mock()
@@ -46,6 +53,9 @@ class Vim(object):
 
     def eval(self, expr):
         return self.eval_map.get(expr)
+
+    def bindeval(self, category):
+        return self.var_map.get(category, {})
 
     def Function(self, func_name):
         return self.funcs.get(func_name)

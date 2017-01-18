@@ -23,7 +23,7 @@ class Racer(Completor):
         return ' '.join(['complete', str(line), str(col),
                          quote(self.filename), quote(self.tempname)])
 
-    def message_ended(self, msg):
+    def is_message_end(self, msg):
         return msg == 'END'
 
     # items: list of bytes

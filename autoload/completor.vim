@@ -221,6 +221,7 @@ function! s:set_events()
     autocmd TextChangedI * call s:on_text_change()
     autocmd InsertCharPre * call s:on_insert_char_pre()
   augroup END
+  call completor#utils#setup_python()
 endfunction
 
 
