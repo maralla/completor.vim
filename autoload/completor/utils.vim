@@ -13,35 +13,35 @@ endfunction
 
 
 function! completor#utils#setup_python()
-  exe s:py 'from completor import api'
+  exe s:py 'from completor import api as completor_api'
 endfunction
 
 
 function! completor#utils#get_completer(ft, inputted)
-  exe s:py 'res = api.get_completer()'
+  exe s:py 'res = completor_api.get_completer()'
   return s:pyeval('res')
 endfunction
 
 
 function! completor#utils#get_completions(ft, msg, inputted)
-  exe s:py 'res = api.get_completions()'
+  exe s:py 'res = completor_api.get_completions()'
   return s:pyeval('res')
 endfunction
 
 
 function! completor#utils#get_start_column()
-  exe s:py 'res = api.get_start_column()'
+  exe s:py 'res = completor_api.get_start_column()'
   return s:pyeval('res')
 endfunction
 
 
 function! completor#utils#daemon_request()
-  exe s:py 'res = api.get_daemon_request()'
+  exe s:py 'res = completor_api.get_daemon_request()'
   return s:pyeval('res')
 endfunction
 
 
 function! completor#utils#message_ended(msg)
-  exe s:py 'res = api.is_message_end()'
+  exe s:py 'res = completor_api.is_message_end()'
   return s:pyeval('res')
 endfunction
