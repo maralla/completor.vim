@@ -29,17 +29,6 @@ let g:completor_filesize_limit = get(g:, 'completor_filesize_limit', 1024) * 102
 let g:completor_min_chars = get(g:, 'completor_min_chars', 2)
 let g:completor_completion_delay = get(g:, 'completor_completion_delay', 80)
 
-if has('python3')
-    command! -nargs=1 Py py3 <args>
-    function! Pyeval(arg)
-        return py3eval(a:arg)
-    endfunction
-else
-    command! -nargs=1 Py py <args>
-    function! Pyeval(arg)
-        return pyeval(a:arg)
-    endfunction
-endif
 
 augroup completor
     autocmd!

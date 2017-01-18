@@ -8,8 +8,6 @@ import vim
 
 from .compat import integer_types, to_bytes, to_unicode
 
-current = None
-
 
 def get_encoding():
     return to_unicode(vim.current.buffer.options['fileencoding'] or
@@ -186,7 +184,7 @@ class Completor(Base):
             'content': '\n'.join(vim.current.buffer[:])
         })
 
-    def message_ended(self, msg):
+    def is_message_end(self, msg):
         """Test the end of daemon response
 
         :param msg: the message received from daemon (bytes)

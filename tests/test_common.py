@@ -6,11 +6,7 @@ from completor.compat import to_unicode
 
 from completers.common import Common  # noqa
 
-
-class Buffer(list):
-    def __init__(self, number):
-        self.number = number
-        self.valid = 1
+from . import Buffer
 
 
 def test_get_completions(vim_mod):
