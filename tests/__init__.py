@@ -47,9 +47,12 @@ class Vim(object):
         self._vars = {}
         self.var_map = {}
         self.eval_map = {'&encoding': b'utf-8'}
-        self.funcs = {'getbufvar': lambda nr, var: b''}
         self.current = mock.Mock()
         self.current.buffer.options = {'fileencoding': b'utf-8'}
+        self.funcs = {
+            'getbufvar': lambda nr, var: b'',
+            'completor#utils#in_comment_or_string': lambda: 0
+        }
 
     def eval(self, expr):
         return self.eval_map.get(expr)
