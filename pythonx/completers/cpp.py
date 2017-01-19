@@ -32,23 +32,22 @@ class Clang(Completor):
 
         match = trigger.search(self.input_data)
         if match:
-            start, end = match.span()
+            start, _ = match.span()
             sign, _ = match.groups()
             col = start + (2 if sign in ('->', '::') else 1)
         elif not word_patten.search(self.input_data):
             return []
 
         args = [
-            self.get_option('completor_clang_binary') or 'clang',
+            self.get_option('clang_binary') or 'clang',
             '-fsyntax-only',
             '-I{}'.format(self.current_directory),
         ]
         args.extend(self.parse_config(self.args_file))
         complatfile = tempfile
-        if os.getenv('MSYSTEM') != None:
-            cmd ='cygpath -a -w {}'.format(complatfile) 
+        if os.getenv('MSYSTEM') is not None:
+            cmd = 'cygpath -a -w {}'.format(complatfile)
             complatfile = os.popen(cmd).read()
-            print(complatfile)
             complatfile = complatfile.strip().replace('\\', '\\\\')
         args.extend([
             '-Xclang',

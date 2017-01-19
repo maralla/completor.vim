@@ -40,7 +40,7 @@ class Common(completor.Completor):
             return []
         base = match.group()
 
-        if len(base) < self.get_option('completor_min_chars'):
+        if len(base) < self.get_option('min_chars'):
             return []
 
         return list(itertools.chain(

@@ -15,7 +15,7 @@ class Go(Completor):
         return line2byte(line) + col - 1
 
     def format_cmd(self):
-        binary = self.get_option('completor_gocode_binary') or 'gocode'
+        binary = self.get_option('gocode_binary') or 'gocode'
         return [binary, '-f=csv', '--in={}'.format(self.tempname),
                 'autocomplete', self.offset()]
 

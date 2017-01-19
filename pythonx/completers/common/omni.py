@@ -18,7 +18,7 @@ class Omni(Completor):
     # ft: str
     def has_omnifunc(self, ft):
         if ft not in self.trigger_cache:
-            name = 'completor_{}_omni_trigger'.format(ft)
+            name = '{}_omni_trigger'.format(ft)
             option = self.get_option(name)
             if not option:
                 return False

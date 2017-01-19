@@ -18,7 +18,7 @@ class Jedi(Completor):
                r'^\s*import\s+(?:[\w\.]*(?:,\s*)?)*')
 
     def format_cmd(self):
-        binary = self.get_option('completor_python_binary') or 'python'
+        binary = self.get_option('python_binary') or 'python'
         return [binary, os.path.join(DIRNAME, 'python_jedi.py')]
 
     def parse(self, data):
