@@ -15,7 +15,7 @@ class Tern(Completor):
     trigger = r'\w+$|[\w\)\]\}\'\"]+\.\w*$'
 
     def format_cmd(self):
-        binary = self.get_option('completor_node_binary') or 'node'
+        binary = self.get_option('node_binary') or 'node'
         tern_config = self.find_config_file('.tern-project')
         cmd = [binary, os.path.join(dirname, 'tern_wrapper.js')]
         if tern_config:

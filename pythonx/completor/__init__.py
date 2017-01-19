@@ -97,17 +97,17 @@ class Completor(Base):
     # use cached property
     @property
     def filetype_map(self):
-        m = self.get_option('completor_filetype_map') or {}
+        m = self.get_option('filetype_map') or {}
         self._type_map.update(m)
         return self._type_map
 
     @staticmethod
     def get_option(key):
-        return vim.vars.get(key)
+        return vim.vars.get('completor_{}'.format(key))
 
     @property
     def disabled(self):
-        types = self.get_option('completor_disable_{}'.format(self.filetype))
+        types = self.get_option('disable_{}'.format(self.filetype))
         if isinstance(types, integer_types):
             return bool(types)
         if isinstance(types, (list, vim.List)):

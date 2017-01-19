@@ -15,7 +15,7 @@ class Racer(Completor):
     trigger = r'(?:\w{2,}\w*|\.\w*|::\w*)$'
 
     def format_cmd(self):
-        binary = self.get_option('completor_racer_binary') or 'racer'
+        binary = self.get_option('racer_binary') or 'racer'
         return [binary, 'daemon']
 
     def request(self):
