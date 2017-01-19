@@ -28,6 +28,9 @@ class Racer(Completor):
 
     # items: list of bytes
     def parse(self, items):
+        if self.is_comment_or_string():
+            return []
+
         input_data = to_bytes(self.input_data, get_encoding())
 
         completions = []

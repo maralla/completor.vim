@@ -191,6 +191,17 @@ class Completor(Base):
         """
         return True
 
+    def is_comment_or_string(self):
+        """Test current position is in comment or string.
+
+        :returns:
+            0   not in comment or string
+            1   in comment
+            2   in string
+            3   in constant
+        """
+        return vim.Function('completor#utils#in_comment_or_string')()
+
 _completor = Completor()
 
 

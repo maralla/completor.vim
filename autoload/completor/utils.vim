@@ -12,6 +12,21 @@ function! completor#utils#tempname()
 endfunction
 
 
+function! completor#utils#in_comment_or_string()
+  let syn_group = synIDattr(synIDtrans(synID(line('.'), col('.') - 1, 1)), 'name')
+  if stridx(syn_group, 'Comment') > -1
+    return 1
+  endif
+  if stridx(syn_group, 'String') > -1
+    return 2
+  endif
+  if stridx(syn_group, 'Constant') > -1
+    return 3
+  endif
+  return 0
+endfunction
+
+
 function! completor#utils#setup_python()
   exe s:py 'from completor import api as completor_api'
 endfunction
