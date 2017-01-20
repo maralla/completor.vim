@@ -104,6 +104,10 @@ To specify the gocode executable path:
 let g:completor_gocode_binary = '/path/to/gocode'
 ```
 
+#### swift
+
+Use [completor-swift](https://github.com/maralla/completor-swift).
+
 #### other languages
 
 For other omni completions completor not natively implemented, auto completion
