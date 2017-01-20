@@ -211,7 +211,10 @@ def _load(ft):
         try:
             importlib.import_module("completers.{}".format(ft))
         except ImportError:
-            return
+            try:
+                importlib.import_module("completor_{}".format(ft))
+            except ImportError:
+                return
     return _completor._registry.get(ft)
 
 
