@@ -38,7 +38,7 @@ function! completor#utils#get_completer(ft, inputted)
 endfunction
 
 
-function! completor#utils#get_completions(ft, msg, inputted)
+function! completor#utils#get_completions(msg)
   exe s:py 'res = completor_api.get_completions()'
   return s:pyeval('res')
 endfunction
@@ -59,4 +59,15 @@ endfunction
 function! completor#utils#message_ended(msg)
   exe s:py 'res = completor_api.is_message_end()'
   return s:pyeval('res')
+endfunction
+
+function! completor#utils#retrigger()
+  exe s:py 'res = completor_api.fallback_to_common()'
+  let info = s:pyeval('res')
+  if empty(info)
+    return
+  endif
+
+  let [cmd, ft, daemon, is_sync] = info
+  call completor#do_complete(cmd, ft, daemon, is_sync)
 endfunction
