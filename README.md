@@ -22,9 +22,15 @@ Install
 * vim8 builtin package manager:
 
 ```bash
-mkdir -p ~/.vim/pack/completor/start
-cd ~/.vim/pack/completor/start
-git clone https://github.com/maralla/completor.vim.git
+$ mkdir -p ~/.vim/pack/completor/start
+$ cd ~/.vim/pack/completor/start
+$ git clone https://github.com/maralla/completor.vim.git
+```
+
+* [pack](https://github.com/maralla/pack)
+
+```bash
+$ pack install maralla/completor.vim
 ```
 
 * [vim-plug](https://github.com/junegunn/vim-plug)
