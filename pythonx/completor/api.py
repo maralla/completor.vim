@@ -25,13 +25,7 @@ def get_completer(args):
 @_api
 def get_completions(args):
     c = ctx.current_completer
-    res, ft, ty = ((c.get_completions(args['msg']), c.ft, c.filetype)
-                   if c else ([], args['ft'], ''))
-    if not res and ty != 'common':
-        c = get('common', ft, args['inputted'])
-        ctx.current_completer = c
-        res = c.get_completions(args['inputted'])
-    return res
+    return c.get_completions(args['msg']) if c else []
 
 
 @_api
@@ -50,3 +44,14 @@ def get_daemon_request(args):
 def is_message_end(args):
     c = ctx.current_completer
     return c.is_message_end(args['msg']) if c else False
+
+
+@_api
+def fallback_to_common(args):
+    c = ctx.current_completer
+    info = []
+    if c and c.filetype != 'common':
+        c = get('common', c.ft, c.input_data)
+        ctx.current_completer = c
+        info = [c.format_cmd(), c.filetype, c.daemon, c.sync]
+    return info

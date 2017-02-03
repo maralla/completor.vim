@@ -20,6 +20,7 @@ function s:completions.empty()
   return empty(self.words)
 endfunction
 
+
 function s:daemon.respawn(cmd, name)
   if self.status(a:name) == 'run'
     call job_stop(self.job)
@@ -84,12 +85,18 @@ endfunction
 
 
 function! s:trigger(msg)
+  let is_empty = v:false
   if !s:consistent()
     call s:completions.clear()
+    let is_empty = v:true
   else
-    call s:completions.set(completor#utils#get_completions(s:status.ft, a:msg, s:status.input))
+    call s:completions.set(completor#utils#get_completions(a:msg))
+    if s:completions.empty()
+      let is_empty = v:true
+      call completor#utils#retrigger()
+    endif
   endif
-  if s:completions.empty() | return | endif
+  if is_empty | return | endif
 
   setlocal completefunc=completor#completefunc
   setlocal completeopt-=longest
@@ -154,6 +161,23 @@ function! s:process_daemon(cmd, name)
 endfunction
 
 
+function! completor#do_complete(cmd, name, daemon, is_sync)
+  if a:is_sync
+    call s:trigger(s:status.input)
+  elseif !empty(a:cmd)
+    if a:daemon
+      call s:process_daemon(a:cmd, a:name)
+    else
+      let s:job = job_start(a:cmd, {
+            \   "close_cb": {c->s:handler(c)},
+            \   "in_io": 'null',
+            \   "err_io": 'out'
+            \ })
+    endif
+  endif
+endfunction
+
+
 function! s:complete()
   call s:reset()
   if !s:consistent() | return | endif
@@ -161,20 +185,7 @@ function! s:complete()
   let info = completor#utils#get_completer(s:status.ft, s:status.input)
   if empty(info) | return | endif
   let [cmd, name, daemon, is_sync] = info
-
-  if is_sync
-    call s:trigger(s:status.input)
-  elseif !empty(cmd)
-    if daemon
-      call s:process_daemon(cmd, name)
-    else
-      let s:job = job_start(cmd, {
-            \   "close_cb": {c->s:handler(c)},
-            \   "in_io": 'null',
-            \   "err_io": 'out'
-            \ })
-    endif
-  endif
+  call completor#do_complete(cmd, name, daemon, is_sync)
 endfunction
 
 
