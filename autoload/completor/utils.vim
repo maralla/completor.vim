@@ -57,23 +57,14 @@ endfunction
 
 
 function! completor#utils#is_common_daemon()
-Py << EOF
-common = completor.get('common')
-is_daemon = common and common.daemon
-EOF
-  return Pyeval('is_daemon')
+  exe s:py 'res = completor_api.is_common_daemon()'
+  return s:pyeval('res')
 endfunction
 
 
 function! completor#utils#add_buffer_request()
-Py << EOF
-common = completor.get('common')
-req, cmd = '', ''
-if common and common.daemon:
-  req = common.request(action='add')
-  cmd = common.format_cmd()
-EOF
-  return [Pyeval('req'), Pyeval('cmd')]
+  exe s:py 'res = completor_api.buffer_add_request()'
+  return s:pyeval('res')
 endfunction
 
 
@@ -81,6 +72,7 @@ function! completor#utils#message_ended(msg)
   exe s:py 'res = completor_api.is_message_end()'
   return s:pyeval('res')
 endfunction
+
 
 function! completor#utils#retrigger()
   exe s:py 'res = completor_api.fallback_to_common()'
