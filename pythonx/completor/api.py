@@ -55,3 +55,22 @@ def fallback_to_common(args):
         ctx.current_completer = c
         info = [c.format_cmd(), c.filetype, c.daemon, c.sync]
     return info
+
+
+@_api
+def buffer_add_request(args):
+    common = get('common')
+    req, cmd = '', ''
+    if common and common.daemon:
+        req = common.request(action='add')
+        cmd = common.format_cmd()
+    return req, cmd
+
+
+@_api
+def is_common_daemon(args):
+    common = get('common')
+    if not common:
+        import completers.common  # noqa
+        common = get('common')
+    return common and common.daemon

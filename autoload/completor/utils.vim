@@ -56,10 +56,23 @@ function! completor#utils#daemon_request()
 endfunction
 
 
+function! completor#utils#is_common_daemon()
+  exe s:py 'res = completor_api.is_common_daemon()'
+  return s:pyeval('res')
+endfunction
+
+
+function! completor#utils#add_buffer_request()
+  exe s:py 'res = completor_api.buffer_add_request()'
+  return s:pyeval('res')
+endfunction
+
+
 function! completor#utils#message_ended(msg)
   exe s:py 'res = completor_api.is_message_end()'
   return s:pyeval('res')
 endfunction
+
 
 function! completor#utils#retrigger()
   exe s:py 'res = completor_api.fallback_to_common()'

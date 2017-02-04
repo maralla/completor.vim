@@ -48,7 +48,7 @@ class Racer(Completor):
             if spec.startswith(b'pub '):
                 spec = spec[4:]
 
-            if spec.startswith(input_data):
+            if spec.startswith(input_data.strip()):
                 continue
 
             completions.append({
