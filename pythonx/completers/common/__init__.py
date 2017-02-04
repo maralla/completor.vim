@@ -23,6 +23,8 @@ class Common(completor.Completor):
     filetype = 'common'
     sync = True
 
+    hooks = ['ultisnips', 'buffer']
+
     def completions(self, completer, base):
         com = completor.get(completer)
         if not com:
@@ -44,4 +46,4 @@ class Common(completor.Completor):
             return []
 
         return list(itertools.chain(
-            *[self.completions(n, base) for n in ('ultisnips', 'buffer')]))
+            *[self.completions(n, base) for n in self.hooks]))
