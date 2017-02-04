@@ -25,6 +25,7 @@ class Tern(Completor):
     def parse(self, data):
         try:
             data = to_unicode(data[0], 'utf-8')
-            return json.loads(data)
+            return [i for i in json.loads(data)
+                    if not self.input_data.endswith(i['word'])]
         except Exception:
             return []
