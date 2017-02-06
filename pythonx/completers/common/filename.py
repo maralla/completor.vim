@@ -7,7 +7,7 @@ from completor import Completor
 from .utils import test_subseq, LIMIT
 
 
-def find(input_data):
+def find(current_dir, input_data):
     path_dir = os.path.expanduser(os.path.expandvars(input_data))
     if not path_dir:
         return []
@@ -15,6 +15,9 @@ def find(input_data):
     dirname, basename = os.path.split(path_dir)
     if not dirname:
         dirname = '.'
+
+    if not os.path.isabs(dirname):
+        dirname = os.path.join(current_dir, dirname)
 
     entries = []
     for entry in os.listdir(dirname):
@@ -68,7 +71,7 @@ class Filename(Completor):
         if not match:
             return []
         try:
-            items = find(match.group())
+            items = find(self.current_directory, match.group())
         except Exception:
             return []
         return [item[0] for item in items]
