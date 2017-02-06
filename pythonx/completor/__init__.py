@@ -222,7 +222,7 @@ def _load(ft):
 def load_completer(ft, input_data):
     input_data = _unicode(input_data)
 
-    if not ft or not input_data.strip():
+    if not input_data.strip():
         return
     ft = to_unicode(_completor.filetype_map.get(ft, ft), 'utf-8')
 
@@ -232,6 +232,8 @@ def load_completer(ft, input_data):
     filename = get('filename')
     if filename.match(input_data) and not filename.disabled:
         c = filename
+    elif not ft:
+        c = get('common')
     else:
         c = _load(ft)
         if c is None:
