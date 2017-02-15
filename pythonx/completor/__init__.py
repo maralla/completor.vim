@@ -244,7 +244,7 @@ def load_completer(ft, input_data):
             omni = get('omni')
             if omni.has_omnifunc(ft):
                 c = omni
-        if c is None or not c.match(input_data):
+        if c is None or not c.match(input_data) or c.disabled:
             c = get('common')
     c.input_data = input_data
     c.ft = ft
