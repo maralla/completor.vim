@@ -167,6 +167,12 @@ Other                                                   *completor-other*
 
         Default: 1
 
+*g:completor_completion_delay*
+        Time (in milliseconds) to wait before auto triggering completion
+        popup.
+
+        Default: 80
+
 ==============================================================================
 5. Write a new completer                                *completor-writing*
 
