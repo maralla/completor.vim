@@ -23,7 +23,7 @@ class Jedi(Completor):
 
     def parse(self, data):
         try:
-            data = to_unicode(data[0], 'utf-8')
+            data = to_unicode(data[0], 'utf-8').replace('\\u', '\\\\u')
             return json.loads(data)
         except Exception:
             return []
