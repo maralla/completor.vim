@@ -103,8 +103,10 @@ endfunction
 
 function! s:skip()
   let buftype = &buftype
-  let fsize = getfsize(bufname(''))
-  let skip = buftype == 'quickfix'
+  let name = bufname('')
+  let fsize = getfsize(name)
+  let skip = buftype ==? 'quickfix'
+        \ || name ==? '[Command Line]'
         \ || fsize == -2 || fsize > g:completor_filesize_limit
         \ || index(g:completor_blacklist, &ft) != -1
   if exists('g:completor_whitelist') && type(g:completor_whitelist) == v:t_list
