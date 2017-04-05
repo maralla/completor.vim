@@ -32,7 +32,7 @@ def test_format_cmd(vim_mod):
     cpp = completor.get('cpp')
     cpp.input_data = to_unicode('self.', 'utf-8')
     assert cpp.format_cmd() == [
-        'clang', '-fsyntax-only', '-I/tmp/vJBio2A',
+        'clang', '-fsyntax-only', '-I', '/tmp/vJBio2A',
         '-Xclang', '-code-completion-macros',
         '-Xclang', '-code-completion-at=/tmp/vJBio2A/2.cpp:1:6',
         '/tmp/vJBio2A/2.cpp']
