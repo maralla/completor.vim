@@ -41,7 +41,8 @@ class Clang(Completor):
         args = [
             self.get_option('clang_binary') or 'clang',
             '-fsyntax-only',
-            '-I{}'.format(self.current_directory),
+            '-I',
+            self.current_directory,
         ]
         args.extend(self.parse_config(self.args_file))
         complatfile = tempfile
