@@ -58,7 +58,10 @@ if has('nvim')
 
   function! s:daemon.write(data)
     let s:nvim_last_msg = ''
-    call jobsend(self.job, a:data."\n")
+    try
+      call jobsend(self.job, a:data."\n")
+    catch /E900/
+    endtry
   endfunction
 else
   " vim8
@@ -116,6 +119,10 @@ function! completor#daemon#process(cmd, name)
   " Daemon not running
   if s:daemon.status(a:name) != 'run'
     call s:daemon.respawn(a:cmd, a:name)
+  endif
+
+  if s:daemon.status(a:name) != 'run'
+    return
   endif
 
   " Already requested
