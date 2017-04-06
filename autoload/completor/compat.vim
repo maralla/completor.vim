@@ -49,7 +49,11 @@ if has('nvim')
   endfunction
 
   function! completor#compat#job_stop(name, ...)
-    return jobstop(a:name)
+    try
+      return jobstop(a:name)
+    catch /E900/
+      return 0
+    endtry
   endfunction
 
   function! completor#compat#job_status(job)
