@@ -10,7 +10,7 @@ from .patch import patch_nvim
 if hasattr(vim, 'from_nvim'):
     patch_nvim(vim)
 
-from .compat import integer_types, to_bytes, to_unicode
+from .compat import integer_types, to_bytes, to_unicode  # noqa
 
 
 def get_encoding():

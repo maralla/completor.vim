@@ -6,9 +6,8 @@ def _bytes(data):
         for i, e in enumerate(data):
             data[i] = _bytes(e)
     elif isinstance(data, dict):
-        for k, v in data.items():
-            data[_bytes(k)] = _bytes(v)
-
+        for k in list(data.keys()):
+            data[_bytes(k)] = _bytes(data.pop(k))
     return data
 
 
@@ -30,6 +29,14 @@ def patch_nvim(vim):
         data = vim.eval(value)
         return Bindeval(data)
 
+    vim_vars = vim.vars
+
+    class vars_wrapper(object):
+        def get(self, *args, **kwargs):
+            item = vim_vars.get(*args, **kwargs)
+            return _bytes(item)
+
     vim.Function = function
     vim.bindeval = bindeval
     vim.List = list
+    vim.vars = vars_wrapper()
