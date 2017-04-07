@@ -1,6 +1,10 @@
 def _bytes(data):
+    from completor import get_encoding
+
+    if isinstance(data, bytes):
+        return data
     if isinstance(data, str):
-        return data.encode('utf-8')
+        return data.encode(get_encoding())
 
     if isinstance(data, list):
         for i, e in enumerate(data):
