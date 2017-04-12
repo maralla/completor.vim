@@ -64,7 +64,7 @@ function! completor#trigger(msg)
     setlocal completeopt+=noselect
   endif
   if get(g:, 'completor_auto_trigger', 1)
-    call feedkeys("\<Plug>(completor_trigger)")
+    call feedkeys("\<Plug>CompletorTrigger")
   endif
 endfunction
 
@@ -159,7 +159,8 @@ function! completor#enable()
   if &diff
     return
   endif
-  inoremap <silent> <Plug>(completor_trigger) <c-x><c-u><c-p>
+  noremap  <silent> <Plug>CompletorTrigger <nop>
+  inoremap <silent> <Plug>CompletorTrigger <c-x><c-u><c-p>
   call s:set_events()
 endfunction
 
