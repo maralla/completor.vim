@@ -74,7 +74,7 @@ let g:completor_racer_binary = '/path/to/racer'
 
 #### Javascript
 Use [tern](https://github.com/ternjs/tern) for completion. To install tern
-you must have node and npm installed. Then run:
+you must have node and either npm or yarn installed. Then run:
 
 ```bash
 make js
