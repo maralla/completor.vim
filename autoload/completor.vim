@@ -43,6 +43,9 @@ endfunction
 
 
 function! completor#trigger(msg)
+  if &paste!=0 || mode() != 'i'
+    return
+  endif
   let is_empty = v:false
   if !s:consistent()
     call s:completions.clear()
