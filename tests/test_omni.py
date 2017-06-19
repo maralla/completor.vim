@@ -32,22 +32,22 @@ def test_on_data(vim_mod):
     omni.trigger_cache = {}
     omni.ft = 'css'
 
-    assert omni.on_data('complete', 'text') == []
+    assert omni.on_data(b'complete', b'text') == []
 
     omni.trigger_cache = {
         'css': re.compile('([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$', re.X | re.U)}
 
     omnifunc.side_effect = [1, [b'text-transform']]
-    assert omni.on_data('complete', '#') == []
+    assert omni.on_data(b'complete', b'#') == []
 
     omnifunc.side_effect = [0, [b'text-transform']]
     vim_mod.current.window.cursor = (1, 2)
     omni.input_data = 'text'
-    assert omni.on_data('complete', 'text') == [b'text-transform']
+    assert omni.on_data(b'complete', b'text') == [b'text-transform']
     omnifunc.assert_called_with(0, b'text')
 
     omnifunc.side_effect = [17, [b'text-transform']]
     vim_mod.current.window.cursor = (1, 2)
     omni.input_data = to_unicode('które się nią opiekują', 'utf-8')
-    omni.on_data('complete', omni.input_data)
+    omni.on_data(b'complete', omni.input_data)
     omnifunc.assert_called_with(0, b'opiekuj\xc4\x85')

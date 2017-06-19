@@ -20,14 +20,14 @@ def test_on_data(vim_mod):
         buffer[:] = f.read().split('\n')
 
     vim_mod.buffers = [buffer]
-    assert common.on_data('complete', 'urt') == [
+    assert common.on_data(b'complete', b'urt') == [
         {'menu': '[snip] mock snips', 'word': 'ultisnips_trigger'},
         {'menu': '[ID]', 'word': 'current'}
     ]
 
     vim_mod.vars = {'completor_disable_ultisnips': 1}
 
-    assert common.on_data('complete', 'urt') == [
+    assert common.on_data(b'complete', b'urt') == [
         {'menu': '[ID]', 'word': 'current'}]
 
     vim_mod.vars = {
@@ -35,7 +35,7 @@ def test_on_data(vim_mod):
         'completor_disable_ultisnips': 0
     }
 
-    assert common.on_data('complete', 'urt') == [
+    assert common.on_data(b'complete', b'urt') == [
         {'menu': '[snip] mock snips', 'word': 'ultisnips_trigger'}]
 
 
@@ -50,7 +50,7 @@ def test_unicode(vim_mod):
     buf = completor.get('buffer')
     buf.input_data = to_unicode('pielę pielęgn', 'utf-8')
     assert buf.start_column() == 7
-    assert buf.on_data('complete', b'piel\xc4\x99gn') == [
+    assert buf.on_data(b'complete', b'piel\xc4\x99gn') == [
         {'menu': '[ID]', 'word': to_unicode('pielęgniarką', 'utf-8')},
         {'menu': '[ID]', 'word': to_unicode('pielęgniarkach', 'utf-8')}
     ]
@@ -65,10 +65,10 @@ def test_min_chars(vim_mod, monkeypatch):
     mock_snips_parse = mock.Mock(return_value=['snips'])
     monkeypatch.setattr(completor.get('ultisnips'), 'parse', mock_snips_parse)
 
-    assert common.on_data('complete', 'he') == []
+    assert common.on_data(b'complete', b'he') == []
     mock_buffer_parse.assert_not_called()
     mock_snips_parse.assert_not_called()
 
-    assert common.on_data('complete', 'hello') == ['snips', 'hello']
+    assert common.on_data(b'complete', b'hello') == ['snips', 'hello']
     mock_buffer_parse.assert_called_with('hello')
     mock_snips_parse.assert_called_with('hello')

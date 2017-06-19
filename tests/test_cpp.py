@@ -16,7 +16,7 @@ def test_parse(vim_mod):
 
     cpp = completor.get('cpp')
     cpp.input_data = to_unicode('b->', 'utf-8')
-    assert cpp.on_data('complete', items) == [
+    assert cpp.on_data(b'complete', items) == [
         {'dup': 1, 'menu': b'int pclose(FILE *)', 'word': b'pclose'},
         {'dup': 1, 'menu': b'int hello', 'word': b'hello'},
         {'dup': 1, 'menu': b'int b', 'word': b'b'},

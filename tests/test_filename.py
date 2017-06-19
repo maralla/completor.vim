@@ -12,7 +12,7 @@ def test_on_data(vim_mod):
     vim_mod.vars = {}
     vim_mod.funcs['expand'] = lambda _: os.path.join(os.getcwd(), 'tests')
     data = list(set([item['menu']
-                     for item in filename.on_data('complete', './')]))
+                     for item in filename.on_data(b'complete', b'./')]))
     assert data == ['[F]']
 
     vim_mod.vars = {'completor_disable_filename': [b'python']}

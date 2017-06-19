@@ -63,6 +63,9 @@ class Vim(object):
     def Function(self, func_name):
         return self.funcs.get(func_name)
 
+    def Dictionary(self, **kwargs):
+        return kwargs
+
 
 class UltiSnips(object):
     def _snips(self, base, other):
