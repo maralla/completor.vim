@@ -22,7 +22,7 @@ def test_has_omnifunc(vim_mod):
     assert omni.has_omnifunc('css') is True
 
 
-def test_get_completions(vim_mod):
+def test_on_data(vim_mod):
     omnifunc = mock.Mock()
 
     vim_mod.current.buffer.options['omnifunc'] = b'csscomplete#CompleteCSS'
@@ -32,22 +32,22 @@ def test_get_completions(vim_mod):
     omni.trigger_cache = {}
     omni.ft = 'css'
 
-    assert omni.get_completions('text') == []
+    assert omni.on_data('complete', 'text') == []
 
     omni.trigger_cache = {
         'css': re.compile('([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$', re.X | re.U)}
 
     omnifunc.side_effect = [1, [b'text-transform']]
-    assert omni.get_completions('#') == []
+    assert omni.on_data('complete', '#') == []
 
     omnifunc.side_effect = [0, [b'text-transform']]
     vim_mod.current.window.cursor = (1, 2)
     omni.input_data = 'text'
-    assert omni.get_completions('text') == [b'text-transform']
+    assert omni.on_data('complete', 'text') == [b'text-transform']
     omnifunc.assert_called_with(0, b'text')
 
     omnifunc.side_effect = [17, [b'text-transform']]
     vim_mod.current.window.cursor = (1, 2)
     omni.input_data = to_unicode('które się nią opiekują', 'utf-8')
-    omni.get_completions(omni.input_data)
+    omni.on_data('complete', omni.input_data)
     omnifunc.assert_called_with(0, b'opiekuj\xc4\x85')

@@ -3,9 +3,9 @@ let s:daemon = {'msgs': [], 'requested': v:false, 't': 0}
 
 function! s:vim_daemon_handler(msg)
   call add(s:daemon.msgs, a:msg)
-  if completor#utils#message_ended(a:msg)
+  if completor#utils#is_message_end(a:msg)
     let s:daemon.requested = v:false
-    call completor#trigger(s:daemon.msgs)
+    call completor#action#callback(s:daemon.msgs)
   endif
 endfunction
 
@@ -38,9 +38,9 @@ function! s:nvim_daemon_handler(job_id, data, event)
   call s:nvim_read(a:data)
 
   if empty(s:nvim_last_msg) && !empty(s:daemon.msgs)
-    if completor#utils#message_ended(s:daemon.msgs[-1])
+    if completor#utils#is_message_end(s:daemon.msgs[-1])
       let s:daemon.requested = v:false
-      call completor#trigger(s:daemon.msgs)
+      call completor#action#callback(s:daemon.msgs)
     endif
   endif
 endfunction
@@ -113,7 +113,7 @@ function s:daemon.kill()
 endfunction
 
 
-function! completor#daemon#process(cmd, name)
+function! completor#daemon#process(action, cmd, name)
   let s:daemon.msgs = []
 
   " Daemon not running
@@ -133,7 +133,7 @@ function! completor#daemon#process(cmd, name)
     return
   endif
 
-  let req = completor#utils#daemon_request()
+  let req = completor#utils#prepare_request(a:action)
   if empty(req)
     return
   endif

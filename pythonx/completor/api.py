@@ -2,7 +2,7 @@ import threading
 import functools
 import vim
 
-from . import load_completer, get
+from . import load_completer, get, load as _load
 
 ctx = threading.local()
 ctx.current_completer = None
@@ -19,13 +19,20 @@ def _api(func):
 def get_completer(args):
     c = load_completer(args['ft'], args['inputted'])
     ctx.current_completer = c
-    return [c.format_cmd(), c.filetype, c.daemon, c.sync] if c else []
+    return c.get_cmd_info(b'complete') if c else vim.Dictionary()
 
 
 @_api
-def get_completions(args):
+def load(args):
+    c = _load(args['ft'], args['inputted'])
+    ctx.current_completer = c
+    return c.get_cmd_info(args['action']) if c else vim.Dictionary()
+
+
+@_api
+def on_data(args):
     c = ctx.current_completer
-    return c.get_completions(args['msg']) if c else []
+    return c.on_data(args['action'], args['msg']) if c else []
 
 
 @_api
@@ -35,9 +42,9 @@ def get_start_column(args):
 
 
 @_api
-def get_daemon_request(args):
+def prepare_request(args):
     c = ctx.current_completer
-    return c.request() if c else ''
+    return c.prepare_request(args['action']) if c else ''
 
 
 @_api
@@ -49,9 +56,7 @@ def is_message_end(args):
 @_api
 def fallback_to_common(args):
     c = ctx.current_completer
-    info = []
     if c and c.filetype != 'common':
         c = get('common', c.ft, c.input_data)
         ctx.current_completer = c
-        info = [c.format_cmd(), c.filetype, c.daemon, c.sync]
-    return info
+        return c.get_cmd_info(b'complete')

@@ -20,21 +20,33 @@ def write(msg):
     sys.stdout.flush()
 
 
-def get_completions(args):
+def process_request(args):
     import jedi
     script = jedi.Script(source=args['content'], line=args['line'] + 1,
                          column=args['col'], path=args['filename'])
 
     data = []
-    for c in script.completions():
-        res = {
-            'word': c.name,
-            'abbr': c.name_with_symbols,
-            'menu': c.description,
-            'info': c.docstring(),
-        }
-        data.append(res)
-    write(json.dumps(data))
+    if args['action'] == 'complete':
+        for c in script.completions():
+            res = {
+                'word': c.name,
+                'abbr': c.name_with_symbols,
+                'menu': c.description,
+                'info': c.docstring(),
+            }
+            data.append(res)
+        write(json.dumps(data))
+    elif args['action'] == 'definition':
+        data = []
+        for d in script.goto_definitions():
+            item = {'text': d.description}
+            if d.in_builtin_module():
+                item['text'] = 'Builtin {}'.format(item['text'])
+            else:
+                item.update({'filename': d.module_path, 'lnum': d.line,
+                             'col': d.column + 1})
+            data.append(item)
+        write(json.dumps(data))
 
 
 def run():
@@ -58,7 +70,7 @@ def run():
             continue
 
         try:
-            get_completions(args)
+            process_request(args)
         except Exception as e:
             logging.exception(e)
             write(json.dumps([]))
