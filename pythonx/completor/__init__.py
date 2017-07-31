@@ -41,6 +41,7 @@ class Meta(type):
 
         return super(Meta, cls).__init__(name, bases, attrs)
 
+
 Base = Meta('Base', (object,), {})
 
 
@@ -245,6 +246,7 @@ class Completor(Base):
             3   in constant
         """
         return vim.Function('completor#utils#in_comment_or_string')()
+
 
 _completor = Completor()
 

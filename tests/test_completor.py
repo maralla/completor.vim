@@ -26,7 +26,6 @@ def test_load(vim_mod, monkeypatch):
 
     with mock.patch.object(_completor, '_type_map',
                            {b'python.django': b'python'}):
-        assert load_completer(b'', b'/etc') is get('filename')
         assert load_completer(b'hello', b'') is None
         assert get('python') is None
         c = load_completer(b'python', b'os.')
