@@ -54,7 +54,7 @@ class Racer(Completor):
 
     # items: list of bytes
     def on_complete(self, items):
-        if self.is_comment_or_string():
+        if self.is_comment_or_string() or '///' in self.input_data:
             return []
 
         input_data = to_bytes(self.input_data, get_encoding())

@@ -145,6 +145,18 @@ class Completor(Base):
             )
         return vim.Dictionary()
 
+    def do_complete(self, data):
+        ret = []
+        filename = get('filename')
+        if filename.match(self.input_data) and not filename.disabled:
+            ret.extend(filename.parse(self.input_data))
+
+        if callable(getattr(self, 'parse', None)):
+            ret.extend(self.parse(data))
+        else:
+            ret.extend(self.on_complete(data))
+        return ret
+
     def on_data(self, action, data):
         """Callback when received data.
 
@@ -154,8 +166,8 @@ class Completor(Base):
         action = action.decode('ascii')
         if not isinstance(data, (list, vim.List)):
             data = _unicode(data)
-        if action == 'complete' and callable(getattr(self, 'parse', None)):
-            return self.parse(data)
+        if action == 'complete':
+            return self.do_complete(data)
         return getattr(self, 'on_' + action)(data)
 
     @staticmethod
@@ -275,10 +287,7 @@ def load_completer(ft, input_data):
     if 'common' not in _completor._registry:
         import completers.common  # noqa
 
-    filename = get('filename')
-    if filename.match(input_data) and not filename.disabled:
-        c = filename
-    elif not ft:
+    if not ft:
         c = get('common')
     else:
         c = _load(ft)
