@@ -41,6 +41,7 @@ class Meta(type):
 
         return super(Meta, cls).__init__(name, bases, attrs)
 
+
 Base = Meta('Base', (object,), {})
 
 
@@ -130,15 +131,45 @@ class Completor(Base):
     def format_cmd(self):
         return ''
 
-    # base: unicode or list
-    def parse(self, base):
-        return []
+    def get_cmd_info(self, action):
+        """Get command information of this completor action.
 
-    # base: str or unicode or list
-    def get_completions(self, base):
-        if not isinstance(base, (list, vim.List)):
-            base = _unicode(base)
-        return self.parse(base)
+        :param action: request action (bytes)
+        :rtype: vim.Dictionary (cmd, ftype, is_daemon, is_sync)
+        """
+        if action == b'complete':
+            return vim.Dictionary(
+                cmd=self.format_cmd(),
+                ftype=self.filetype,
+                is_daemon=self.daemon,
+                is_sync=self.sync
+            )
+        return vim.Dictionary()
+
+    def do_complete(self, data):
+        ret = []
+        filename = get('filename')
+        if filename.match(self.input_data) and not filename.disabled:
+            ret.extend(filename.parse(self.input_data))
+
+        if callable(getattr(self, 'parse', None)):
+            ret.extend(self.parse(data))
+        else:
+            ret.extend(self.on_complete(data))
+        return ret
+
+    def on_data(self, action, data):
+        """Callback when received data.
+
+        :param action: action bind to this data (bytes)
+        :param data: data to process (bytes, list)
+        """
+        action = action.decode('ascii')
+        if not isinstance(data, (list, vim.List)):
+            data = _unicode(data)
+        if action == 'complete':
+            return self.do_complete(data)
+        return getattr(self, 'on_' + action)(data)
 
     @staticmethod
     def find_config_file(file):
@@ -177,8 +208,9 @@ class Completor(Base):
             self.ident = re.compile(self.ident, re.U | re.X)
         return self.ident_match(self.ident)
 
+    # Deprecated, use `prepare_request` instead.
     def request(self):
-        """Generate daemon request arguments
+        """Generate daemon complete request arguments
         """
         line, col = self.cursor
         return json.dumps({
@@ -187,6 +219,15 @@ class Completor(Base):
             'filename': self.filename,
             'content': '\n'.join(vim.current.buffer[:])
         })
+
+    def prepare_request(self, action=b'complete'):
+        """Generate request payload.
+
+        :param action: request action (bytes)
+        """
+        if action == b'complete':
+            return self.request()
+        return ''
 
     def is_message_end(self, msg):
         """Test the end of daemon response
@@ -206,6 +247,7 @@ class Completor(Base):
         """
         return vim.Function('completor#utils#in_comment_or_string')()
 
+
 _completor = Completor()
 
 
@@ -222,10 +264,24 @@ def _load(ft):
     return _completor._registry.get(ft)
 
 
+def load(ft, input_data=b''):
+    """Load a completer of the given file type.
+
+    :param ft: file type (bytes)
+    :param input_data: input data (bytes)
+    """
+    input_data = _unicode(input_data)
+    ft = to_unicode(_completor.filetype_map.get(ft, ft), 'utf-8')
+    c = _load(ft)
+    if c:
+        c.input_data = input_data
+        c.ft = ft
+    return c
+
+
 # ft: bytes, input_data: bytes
 def load_completer(ft, input_data):
     input_data = _unicode(input_data)
-
     if not input_data.strip():
         return
     ft = to_unicode(_completor.filetype_map.get(ft, ft), 'utf-8')
@@ -233,10 +289,7 @@ def load_completer(ft, input_data):
     if 'common' not in _completor._registry:
         import completers.common  # noqa
 
-    filename = get('filename')
-    if filename.match(input_data) and not filename.disabled:
-        c = filename
-    elif not ft:
+    if not ft:
         c = get('common')
     else:
         c = _load(ft)

@@ -6,17 +6,23 @@ from . import Buffer
 
 def test_get_completer(vim_mod):
     vim_mod.var_map['a:'] = {'ft': 'common', 'inputted': 'os.'}
-    assert api.get_completer() == ['', 'common', False, True]
+    assert api.get_completer() == {
+        'is_sync': True,
+        'ftype': 'common',
+        'cmd': '',
+        'is_daemon': False
+    }
 
 
-def test_get_completions(vim_mod):
+def test_on_data(vim_mod):
     vim_mod.var_map['a:'] = {
-        'ft': 'common',
-        'inputted': 'os.',
-        'msg': []
+        'ft': b'common',
+        'inputted': b'os.',
+        'msg': [],
+        'action': b'complete'
     }
     api.get_completer()
-    assert api.get_completions() == []
+    assert api.on_data() == []
 
 
 def test_get_start_column(vim_mod):
@@ -24,10 +30,13 @@ def test_get_start_column(vim_mod):
     assert api.get_start_column() == 3
 
 
-def test_get_daemon_request(vim_mod):
+def test_prepare_request(vim_mod):
+    vim_mod.var_map['a:'] = {
+        'action': b'complete'
+    }
     vim_mod.current.window.cursor = (1, 2)
     vim_mod.current.buffer = Buffer(1, name='test')
-    assert json.loads(api.get_daemon_request()) == {
+    assert json.loads(api.prepare_request()) == {
         "content": "",
         "line": 0,
         "col": 3,

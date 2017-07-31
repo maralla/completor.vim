@@ -4,97 +4,14 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 let s:char_inserted = v:false
-let s:completions = {'words': []}
-let s:status = {'pos': [], 'nr': -1, 'input': '', 'ft': ''}
+let s:python_imported = v:false
 
 
-function s:completions.set(comps)
-  let self.words = a:comps
-endfunction
-
-
-function s:completions.clear()
-  let self.words = []
-endfunction
-
-
-function s:completions.empty()
-  return empty(self.words)
-endfunction
-
-
-function! completor#completefunc(findstart, base)
-  if a:findstart
-    if s:completions.empty()
-      return -2
-    endif
-    return completor#utils#get_start_column()
+function! completor#import_python()
+  if !s:python_imported
+    call completor#utils#setup_python()
+    let s:python_imported = v:true
   endif
-
-  let words = s:completions.words
-  call s:completions.clear()
-  return {'words': words, 'refresh': 'always'}
-endfunction
-
-
-function! s:consistent()
-  return s:status.nr == bufnr('') && s:status.pos == getcurpos() && s:status.ft == &ft
-endfunction
-
-
-function! completor#trigger(msg)
-  if &paste!=0 || mode() != 'i'
-    return
-  endif
-  let is_empty = v:false
-  if !s:consistent()
-    call s:completions.clear()
-    let is_empty = v:true
-  else
-    call s:completions.set(completor#utils#get_completions(a:msg))
-    if s:completions.empty()
-      let is_empty = v:true
-      call completor#utils#retrigger()
-    endif
-  endif
-  if is_empty | return | endif
-
-  setlocal completefunc=completor#completefunc
-  if get(g:, 'completor_auto_trigger', 1)
-    call feedkeys("\<Plug>CompletorTrigger")
-  endif
-endfunction
-
-
-function! completor#do_complete(cmd, name, daemon, is_sync)
-  if a:is_sync
-    call completor#trigger(s:status.input)
-  elseif !empty(a:cmd)
-    if a:daemon
-      call completor#daemon#process(a:cmd, a:name)
-    else
-      let s:job = completor#compat#job_start_oneshot(a:cmd)
-    endif
-  endif
-endfunction
-
-
-function! s:reset()
-  call s:completions.clear()
-  if exists('s:job') && completor#compat#job_status(s:job) ==# 'run'
-    call completor#compat#job_stop(s:job)
-  endif
-endfunction
-
-
-function! s:complete(...)
-  call s:reset()
-  if !s:consistent() | return | endif
-
-  let info = completor#utils#get_completer(s:status.ft, s:status.input)
-  if empty(info) | return | endif
-  let [cmd, name, daemon, is_sync] = info
-  call completor#do_complete(cmd, name, daemon, is_sync)
 endfunction
 
 
@@ -104,8 +21,11 @@ function! s:skip()
   let fsize = getfsize(name)
   let skip = buftype ==? 'quickfix'
         \ || name ==? '[Command Line]'
-        \ || fsize == -2 || fsize > g:completor_filesize_limit
+        \ || fsize == -2
+        \ || fsize > g:completor_filesize_limit
         \ || index(g:completor_blacklist, &ft) != -1
+        \ || &paste
+        \ || mode() !=# 'i'
   if exists('g:completor_whitelist') && type(g:completor_whitelist) == v:t_list
     let skip = skip || index(g:completor_whitelist, &ft) == -1
   endif
@@ -116,16 +36,7 @@ endfunction
 function! s:on_text_change()
   if s:skip() | return | endif
   let s:char_inserted = v:false
-
-  if exists('s:timer')
-    call timer_stop(s:timer)
-  endif
-
-  let e = col('.') - 2
-  let inputted = e >= 0 ? getline('.')[:e] : ''
-
-  let s:status = {'input': inputted, 'pos': getcurpos(), 'nr': bufnr(''), 'ft': &ft}
-  let s:timer = timer_start(g:completor_completion_delay, function('s:complete'))
+  call completor#action#complete()
 endfunction
 
 
@@ -143,7 +54,7 @@ function! s:set_events()
       autocmd! CompleteDone * if pumvisible() == 0 | pclose | endif
     endif
   augroup END
-  call completor#utils#setup_python()
+  call completor#import_python()
 endfunction
 
 
