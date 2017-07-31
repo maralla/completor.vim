@@ -43,4 +43,5 @@ def patch_nvim(vim):
     vim.Function = function
     vim.bindeval = bindeval
     vim.List = list
+    vim.Dictionary = dict
     vim.vars = vars_wrapper()
