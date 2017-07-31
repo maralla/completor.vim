@@ -60,12 +60,6 @@ function! completor#trigger(msg)
   if is_empty | return | endif
 
   setlocal completefunc=completor#completefunc
-  setlocal completeopt-=longest
-  setlocal completeopt+=menuone
-  setlocal completeopt-=menu
-  if &completeopt !~# 'noinsert\|noselect'
-    setlocal completeopt+=noselect
-  endif
   if get(g:, 'completor_auto_trigger', 1)
     call feedkeys("\<Plug>CompletorTrigger")
   endif
