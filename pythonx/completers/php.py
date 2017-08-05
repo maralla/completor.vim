@@ -2,7 +2,6 @@
 
 import vim
 import json
-import pprint
 
 from completor import Completor
 from completor.compat import to_unicode
