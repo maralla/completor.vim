@@ -17,7 +17,7 @@ class Go(Completor):
     def format_cmd(self):
         binary = self.get_option('gocode_binary') or 'gocode'
         return [binary, '-f=csv', '--in={}'.format(self.tempname),
-                'autocomplete', self.offset()]
+                'autocomplete', self.filename, self.offset()]
 
     def parse(self, items):
         res = []
