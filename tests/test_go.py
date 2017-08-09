@@ -10,12 +10,14 @@ def test_format_cmd(vim_mod):
     vim_mod.funcs['line2byte'] = mock.Mock(return_value=20)
     vim_mod.funcs['completor#utils#tempname'] = mock.Mock(
         return_value=b'/tmp/vJBio2A/2.vim')
+    vim_mod.current.buffer.name = '/home/vagrant/bench.vim'
     vim_mod.current.window.cursor = (1, 5)
 
     go = completor.get('go')
     go.input_data = to_unicode('self.', 'utf-8')
     assert go.format_cmd() == [
-        'gocode', '-f=csv', '--in=/tmp/vJBio2A/2.vim', 'autocomplete', 24]
+        'gocode', '-f=csv', '--in=/tmp/vJBio2A/2.vim', 'autocomplete',
+        '/home/vagrant/bench.vim', 24]
 
 
 def test_parse():
