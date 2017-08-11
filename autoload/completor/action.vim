@@ -48,6 +48,7 @@ function! s:trigger_complete(msg)
   if is_empty | return | endif
 
   setlocal completefunc=completor#action#completefunc
+  setlocal completeopt-=longest
   if get(g:, 'completor_auto_trigger', 1)
     call feedkeys("\<Plug>CompletorTrigger")
   endif
