@@ -74,7 +74,11 @@ else
   endfunction
 
   function! s:daemon.write(data)
-    call ch_sendraw(job_getchannel(self.job), a:data."\n")
+    try
+      call ch_sendraw(job_getchannel(self.job), a:data."\n")
+    catch /E631/
+      call self.kill()
+    endtry
   endfunction
 endif
 
