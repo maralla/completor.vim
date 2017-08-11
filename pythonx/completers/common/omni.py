@@ -48,6 +48,7 @@ class Omni(Completor):
         if not trigger or not trigger.search(base):
             return []
 
+        cursor = self.cursor
         try:
             func_name = vim.current.buffer.options['omnifunc']
             if not func_name:
@@ -61,3 +62,5 @@ class Omni(Completor):
             return omnifunc(0, to_bytes(base, get_encoding())[codepoint:])
         except (vim.error, ValueError, KeyboardInterrupt):
             return []
+        finally:
+            self.cursor = cursor

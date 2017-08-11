@@ -99,6 +99,10 @@ class Completor(Base):
         line, _ = vim.current.window.cursor
         return line, len(self.input_data)
 
+    @cursor.setter
+    def cursor(self, value):
+        vim.current.window.cursor = value
+
     # use cached property
     @property
     def filetype_map(self):
