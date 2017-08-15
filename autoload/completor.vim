@@ -54,6 +54,14 @@ function! s:set_events()
       autocmd! CompleteDone * if pumvisible() == 0 | pclose | endif
     endif
   augroup END
+  if get(g:, 'completor_set_options', 1)
+    set completeopt-=longest
+    set completeopt+=menuone
+    set completeopt-=menu
+    if &completeopt !~# 'noinsert\|noselect'
+      set completeopt+=noselect
+    endif
+  endif
   call completor#import_python()
 endfunction
 

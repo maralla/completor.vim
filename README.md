@@ -164,3 +164,23 @@ inoremap <expr> <cr> pumvisible() ? "\<C-y>\<cr>" : "\<cr>"
 let g:completor_auto_trigger = 0
 inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<C-x>\<C-u>\<C-p>"
 ```
+
+#### Complete Options (completeopt)
+
+By default completor.vim set some options to the `completeopt`.
+If you don't want these options you can use the following config to disable it:
+
+```vim
+let g:completor_set_options = 0
+```
+
+The default options:
+
+```vim
+set completeopt-=longest
+set completeopt+=menuone
+set completeopt-=menu
+if &completeopt !~# 'noinsert\|noselect'
+  set completeopt+=noselect
+endif
+```

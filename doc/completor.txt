@@ -173,6 +173,12 @@ Other                                                   *completor-other*
 
         Default: 80
 
+*g:completor_set_options*
+        Set general complete options. Set the value to 0 to disable setting
+        the default options.
+
+        Defaut: 1
+
 ==============================================================================
 5. Write a new completer                                *completor-writing*
 
