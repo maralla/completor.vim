@@ -70,6 +70,47 @@ function! s:goto_definition(msg)
 endfunction
 
 
+function! s:call_signatures(msg)
+  let items = completor#utils#on_data('signature', a:msg)
+
+  hi def CompletorCallCurrentArg term=bold,underline cterm=bold,underline
+
+  if empty(items)
+    return
+  endif
+  let item = items[0]
+  if !empty(item.params)
+    let prefix = item.index == 0 ? [] : item.params[:item.index - 1]
+    let suffix = item.params[item.index + 1:]
+    let current = item.params[item.index]
+  else
+    let [prefix, suffix] = [[], []]
+    let current = ''
+  endif
+  echohl Function | echon item.func | echohl None
+  echon '(' join(prefix, ', ')
+  if !empty(prefix)
+    echon ', '
+  endif
+  echohl CompletorCallCurrentArg | echon current | echohl None
+  if !empty(suffix)
+    echon ', '
+  endif
+  echon join(suffix, ', ') ')'
+endfunction
+
+
+function! completor#action#callback(msg)
+  if s:action ==# 'complete'
+    call s:trigger_complete(a:msg)
+  elseif s:action ==# 'definition'
+    call s:goto_definition(a:msg)
+  elseif s:action ==# 'signature'
+    call s:call_signatures(a:msg)
+  endif
+endfunction
+
+
 function! completor#action#completefunc(findstart, base)
   if a:findstart
     if empty(s:completions)
@@ -82,15 +123,6 @@ function! completor#action#completefunc(findstart, base)
   finally
     let s:completions = []
   endtry
-endfunction
-
-
-function! completor#action#callback(msg)
-  if s:action ==# 'complete'
-    call s:trigger_complete(a:msg)
-  elseif s:action ==# 'definition'
-    call s:goto_definition(a:msg)
-  endif
 endfunction
 
 
@@ -119,10 +151,11 @@ function! completor#action#complete()
 endfunction
 
 
-function! completor#action#goto_definition()
-  call completor#import_python()
-  call s:status.update()
+function! completor#action#get_status()
+  return s:status
+endfunction
 
-  let info = completor#utils#load(&ft, 'definition', s:status.input)
-  call completor#action#do('definition', info)
+
+function! completor#action#update_status()
+  call s:status.update()
 endfunction

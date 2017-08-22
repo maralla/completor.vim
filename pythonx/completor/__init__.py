@@ -167,13 +167,17 @@ class Completor(Base):
 
         :param action: action bind to this data (bytes)
         :param data: data to process (bytes, list)
+        :rtype: list
         """
         action = action.decode('ascii')
         if not isinstance(data, (list, vim.List)):
             data = _unicode(data)
         if action == 'complete':
             return self.do_complete(data)
-        return getattr(self, 'on_' + action)(data)
+        try:
+            return getattr(self, 'on_' + action)(data)
+        except AttributeError:
+            return []
 
     @staticmethod
     def find_config_file(file):

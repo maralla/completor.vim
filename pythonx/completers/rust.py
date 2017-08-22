@@ -19,10 +19,6 @@ class Racer(Completor):
     filetype = 'rust'
     trigger = r'(?:\w{2,}\w*|\.\w*|::\w*)$'
 
-    def format_cmd(self):
-        binary = self.get_option('racer_binary') or 'racer'
-        return [binary, 'daemon']
-
     def get_cmd_info(self, action):
         binary = self.get_option('racer_binary') or 'racer'
         return vim.Dictionary(
@@ -34,7 +30,10 @@ class Racer(Completor):
 
     def prepare_request(self, action):
         line, col = self.cursor
-        return ' '.join([ACTION_MAP[action], str(line), str(col),
+        action = ACTION_MAP.get(action)
+        if not action:
+            return ''
+        return ' '.join([action, str(line), str(col),
                          quote(self.filename), quote(self.tempname)])
 
     def is_message_end(self, msg):

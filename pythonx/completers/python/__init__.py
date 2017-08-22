@@ -12,7 +12,8 @@ DIRNAME = os.path.dirname(__file__)
 
 class Jedi(Completor):
     filetype = 'python'
-    trigger = (r'[\w\)\]\}\'\"]+\.\w*$|'
+    trigger = (r'\w{3,}$|'
+               r'[\w\)\]\}\'\"]+\.\w*$|'
                r'^\s*@\w*$|'
                r'^\s*from\s+[\w\.]*(?:\s+import\s+(?:\w*(?:,\s*)?)*)?|'
                r'^\s*import\s+(?:[\w\.]*(?:,\s*)?)*')
@@ -46,3 +47,6 @@ class Jedi(Completor):
             return json.loads(data)
         except Exception:
             return []
+
+    def on_signature(self, data):
+        return json.loads(data[0])

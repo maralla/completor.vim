@@ -71,6 +71,21 @@ function! completor#disable()
 endfunction
 
 
+function! completor#do(action)
+  call completor#import_python()
+  call completor#action#update_status()
+
+  let status = completor#action#get_status()
+
+  if a:action ==# 'complete'
+    let info = completor#utils#get_completer(status.ft, status.input)
+  else
+    let info = completor#utils#load(status.ft, a:action, status.input)
+  endif
+  call completor#action#do(a:action, info)
+endfunction
+
+
 function! completor#enable()
   if &diff
     return
