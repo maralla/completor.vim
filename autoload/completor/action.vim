@@ -62,7 +62,7 @@ function! s:goto_definition(msg)
       if expand('%:p') !=# item['filename']
         exe 'edit '.item['filename']
       endif
-      call cursor(item['lnum'], item['col'])
+      call feedkeys(item['lnum'].'G'.item['col'].'|')
     else
       echo item['text']
     endif
