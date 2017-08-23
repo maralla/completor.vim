@@ -50,7 +50,7 @@ def process_request(args):
             item = {
                 'params': params,
                 'func': s.call_name,
-                'index': s.index
+                'index': s.index or 0
             }
             logging.info(str(item))
             data.append(item)
