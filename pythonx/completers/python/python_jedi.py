@@ -35,9 +35,7 @@ def process_request(args):
                 'info': c.docstring(),
             }
             data.append(res)
-        write(json.dumps(data))
     elif args['action'] == 'definition':
-        data = []
         for d in script.goto_definitions():
             item = {'text': d.description}
             if d.in_builtin_module():
@@ -46,7 +44,17 @@ def process_request(args):
                 item.update({'filename': d.module_path, 'lnum': d.line,
                              'col': d.column + 1})
             data.append(item)
-        write(json.dumps(data))
+    elif args['action'] == 'signature':
+        for s in script.call_signatures():
+            params = [p.description.replace('\n', '')[6:] for p in s.params]
+            item = {
+                'params': params,
+                'func': s.call_name,
+                'index': s.index
+            }
+            logging.info(str(item))
+            data.append(item)
+    write(json.dumps(data))
 
 
 def run():
