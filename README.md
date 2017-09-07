@@ -50,6 +50,13 @@ completed.
 This is the fallback completer. When no semantic completer found the buffer
 completer will be used and will complete based on the current buffers.
 
+#### Ultisnips and neosnippet
+
+Ultisnips is supported by default. If [ultisnips](https://github.com/SirVer/ultisnips) is installed,
+the snips candidates will show on the completion popup menu.
+
+Use this plugin [completor-neosnippet](https://github.com/maralla/completor-neosnippet) for neosnippet support.
+
 #### Python
 Use [jedi](https://github.com/davidhalter/jedi) for completion. jedi should be
 installed for semantic completion.  Install jedi to global environment or in virtualenv:
