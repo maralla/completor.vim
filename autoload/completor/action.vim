@@ -119,7 +119,11 @@ function! completor#action#completefunc(findstart, base)
     return completor#utils#get_start_column()
   endif
   try
-    return {'words': s:completions, 'refresh': 'always'}
+    let ret = {'words': s:completions}
+    if g:completor_refresh_always
+      let ret.refresh = 'always'
+    endif
+    return ret
   finally
     let s:completions = []
   endtry

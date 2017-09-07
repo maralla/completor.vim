@@ -33,6 +33,7 @@ let g:completor_blacklist = get(g:, 'completor_blacklist', s:default_blacklist)
 let g:completor_filesize_limit = get(g:, 'completor_filesize_limit', 1024) * 1024
 let g:completor_min_chars = get(g:, 'completor_min_chars', 2)
 let g:completor_completion_delay = get(g:, 'completor_completion_delay', 80)
+let g:completor_refresh_always = 1
 
 
 augroup completor
