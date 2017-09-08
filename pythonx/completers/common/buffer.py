@@ -77,6 +77,7 @@ class TokenStore(object):
         for buffer in vim.buffers:
             self.store_buffer(buffer, base, nr, line)
 
+
 token_store = TokenStore()
 
 

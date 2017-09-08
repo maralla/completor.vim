@@ -38,7 +38,6 @@ REGEX_MAP = {
     'perl6': r"[_a-zA-Z](?:\w|[-'](?=[_a-zA-Z]))*",
 
     'php': r"[_a-zA-Z$]\w*",
-    'html': r"[\w-]+",
 }
 
 for ty in ('scss', 'sass', 'less'):
