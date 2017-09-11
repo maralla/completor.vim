@@ -11,6 +11,7 @@ from . import Buffer
 
 def test_on_data(vim_mod):
     common = completor.get('common')
+    common.input_data = 'urt'
 
     vim_mod.current.buffer.number = 1
     vim_mod.current.window.cursor = (1, 2)
@@ -21,7 +22,7 @@ def test_on_data(vim_mod):
 
     vim_mod.buffers = [buffer]
     assert common.on_data(b'complete', b'urt') == [
-        {'menu': '[snip] mock snips', 'word': 'ultisnips_trigger'},
+        {'menu': '[snip] mock snips', 'word': 'urt'},
         {'menu': '[ID]', 'word': 'current'}
     ]
 
@@ -36,7 +37,7 @@ def test_on_data(vim_mod):
     }
 
     assert common.on_data(b'complete', b'urt') == [
-        {'menu': '[snip] mock snips', 'word': 'ultisnips_trigger'}]
+        {'menu': '[snip] mock snips', 'word': 'urt'}]
 
 
 def test_unicode(vim_mod):

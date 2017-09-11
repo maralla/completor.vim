@@ -72,8 +72,7 @@ class UltiSnips(object):
         if base != 'urt':
             return []
 
-        return [mock.Mock(
-            trigger='ultisnips_trigger', description='mock snips')]
+        return [mock.Mock(trigger='urt', description='mock snips')]
 
 sys.path.append('./pythonx')
 sys.modules['vim'] = Vim()

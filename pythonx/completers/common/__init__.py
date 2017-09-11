@@ -30,6 +30,7 @@ class Common(completor.Completor):
         if not com:
             return []
         com.ft = self.ft
+        com.input_data = self.input_data
         if com.disabled:
             return []
         return com.parse(base)
