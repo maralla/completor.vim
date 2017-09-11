@@ -16,6 +16,7 @@ class Ultisnips(Completor):
             return []
         candidates = [{
             'word': snip.trigger,
+            'dup': 1,
             'menu': ' '.join(['[snip]', snip.description]),
         } for snip in snips]
 

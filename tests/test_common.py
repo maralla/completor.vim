@@ -22,7 +22,7 @@ def test_on_data(vim_mod):
 
     vim_mod.buffers = [buffer]
     assert common.on_data(b'complete', b'urt') == [
-        {'menu': '[snip] mock snips', 'word': 'urt'},
+        {'menu': '[snip] mock snips', 'word': 'urt', 'dup': 1},
         {'menu': '[ID]', 'word': 'current'}
     ]
 
@@ -37,7 +37,7 @@ def test_on_data(vim_mod):
     }
 
     assert common.on_data(b'complete', b'urt') == [
-        {'menu': '[snip] mock snips', 'word': 'urt'}]
+        {'menu': '[snip] mock snips', 'word': 'urt', 'dup': 1}]
 
 
 def test_unicode(vim_mod):
