@@ -58,7 +58,7 @@ class Completor(Base):
     daemon = False
     sync = False
     trigger = None
-    ident = re.compile(r'[^\W\d]\w*', re.U)
+    ident = re.compile(r'\w+', re.U)
 
     _type_map = {
         b'c': b'cpp'

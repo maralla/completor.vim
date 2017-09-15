@@ -7,6 +7,9 @@ from completor import Completor
 from .utils import test_subseq, LIMIT
 
 
+DSN_PAT = re.compile('\w+:(//?[^\s]*)?')
+
+
 def find(current_dir, input_data):
     path_dir = os.path.expanduser(os.path.expandvars(input_data))
     if not path_dir:
@@ -28,14 +31,18 @@ def find(current_dir, input_data):
         abbr = ''
         if os.path.isdir(os.path.join(dirname, entry)):
             abbr = ''.join([entry, os.sep])
+        if entry.startswith('.'):
+            score += 1000
         entry = {
             'word': entry,
             'abbr': abbr,
             'menu': '[F]',
         }
         entries.append((entry, score))
+        if len(entries) >= LIMIT:
+            break
     entries.sort(key=lambda x: x[1])
-    return entries[:LIMIT]
+    return entries
 
 
 class Filename(Completor):
@@ -67,6 +74,13 @@ class Filename(Completor):
     ident = r"""[a-zA-Z0-9(){}$ +_~.'"\x80-\xff-\[\]]*"""
 
     def parse(self, base):
+        """
+        :param base: type unicode
+        """
+        pat = list(DSN_PAT.finditer(base))
+        if pat:
+            base = base[pat[-1].end():]
+
         try:
             match = self.trigger.search(base)
         except TypeError:
