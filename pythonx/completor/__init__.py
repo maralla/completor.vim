@@ -61,7 +61,8 @@ class Completor(Base):
     ident = re.compile(r'\w+', re.U)
 
     _type_map = {
-        b'c': b'cpp'
+        b'c': b'cpp',
+        b'javascript.jsx': b'javascript'
     }
 
     _arg_cache = {}
