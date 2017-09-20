@@ -89,6 +89,11 @@ class Clang(Completor):
                         data['menu'] = subparts[1]
                 else:
                     data['menu'] = b':'.join(parts[2:])
-            data['menu'] = sanitize(data['menu'])
+            func_sig = sanitize(data['menu'])
+            data['menu'] = func_sig
+
+            # Show function signature in the preview window
+            data['info'] = func_sig
+
             res.append(data)
         return res
