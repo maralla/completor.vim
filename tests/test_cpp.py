@@ -17,10 +17,10 @@ def test_parse(vim_mod):
     cpp = completor.get('cpp')
     cpp.input_data = to_unicode('b->', 'utf-8')
     assert cpp.on_data(b'complete', items) == [
-        {'dup': 1, 'menu': b'int pclose(FILE *)', 'word': b'pclose'},
-        {'dup': 1, 'menu': b'int hello', 'word': b'hello'},
-        {'dup': 1, 'menu': b'int b', 'word': b'b'},
-        {'dup': 1, 'menu': b'hello', 'word': b'fake'}
+        {'dup': 1, 'menu': b'int pclose(FILE *)', 'info': b'int pclose(FILE *)', 'word': b'pclose'},
+        {'dup': 1, 'menu': b'int hello', 'info': b'int hello', 'word': b'hello'},
+        {'dup': 1, 'menu': b'int b', 'info': b'int b', 'word': b'b'},
+        {'dup': 1, 'menu': b'hello', 'info': b'hello', 'word': b'fake'}
     ]
 
 
