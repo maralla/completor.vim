@@ -7,7 +7,7 @@ let s:char_inserted = v:false
 let s:python_imported = v:false
 
 
-function! completor#import_python()
+function! s:import_python()
   if !s:python_imported
     call completor#utils#setup_python()
     let s:python_imported = v:true
@@ -71,7 +71,6 @@ function! s:set_events()
       set completeopt+=noselect
     endif
   endif
-  call completor#import_python()
 endfunction
 
 
@@ -80,8 +79,18 @@ function! completor#disable()
 endfunction
 
 
+function! completor#enable()
+  if &diff
+    return
+  endif
+  noremap  <silent> <Plug>CompletorTrigger <nop>
+  inoremap <silent> <Plug>CompletorTrigger <c-x><c-u><c-p>
+  call s:set_events()
+endfunction
+
+
 function! completor#do(action)
-  call completor#import_python()
+  call s:import_python()
   call completor#action#update_status()
 
   let status = completor#action#get_status()
@@ -94,15 +103,6 @@ function! completor#do(action)
   call completor#action#do(a:action, info)
 endfunction
 
-
-function! completor#enable()
-  if &diff
-    return
-  endif
-  noremap  <silent> <Plug>CompletorTrigger <nop>
-  inoremap <silent> <Plug>CompletorTrigger <c-x><c-u><c-p>
-  call s:set_events()
-endfunction
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
