@@ -27,12 +27,6 @@ function! s:reset()
 endfunction
 
 
-function! s:complete(...)
-  let info = completor#utils#get_completer(s:status.ft, s:status.input)
-  call completor#action#do('complete', info)
-endfunction
-
-
 function! s:trigger_complete(msg)
   let is_empty = v:false
   if !s:status.consistent()
@@ -143,15 +137,6 @@ function! completor#action#do(action, info)
       let s:job = completor#compat#job_start_oneshot(a:info.cmd)
     endif
   endif
-endfunction
-
-
-function! completor#action#complete()
-  if exists('s:timer')
-    call timer_stop(s:timer)
-  endif
-  call s:status.update()
-  let s:timer = timer_start(g:completor_completion_delay, function('s:complete'))
 endfunction
 
 
