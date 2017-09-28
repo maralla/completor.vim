@@ -42,9 +42,7 @@ function! s:trigger_complete(msg)
   if is_empty | return | endif
 
   setlocal completefunc=completor#action#completefunc
-  if get(g:, 'completor_auto_trigger', 1)
-    call feedkeys("\<Plug>CompletorTrigger")
-  endif
+  call feedkeys("\<Plug>CompletorTrigger")
 endfunction
 
 

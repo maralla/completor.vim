@@ -42,6 +42,10 @@ function! s:on_text_change()
   if s:skip() | return | endif
   let s:char_inserted = v:false
 
+  if !get(g:, 'completor_auto_trigger', 1)
+    return
+  endif
+
   if exists('s:timer')
     call timer_stop(s:timer)
   endif
@@ -101,6 +105,7 @@ function! completor#do(action)
     let info = completor#utils#load(status.ft, a:action, status.input)
   endif
   call completor#action#do(a:action, info)
+  return ''
 endfunction
 
 
