@@ -179,12 +179,19 @@ Other                                                   *completor-other*
 
         Defaut: 1
 
-g:completor_refresh_always
+*g:completor_refresh_always*
         Set to 1 to refresh the completion menu whenever a key is pressed. If
         the value is 0 the list will not be refreshed when it has items with
         the prefix of the inputted characters.
 
         Default: 1
+
+*g:completor_debug*
+        There is log file under `<completor_root>/pythonx/completor.log`. When
+        set to 1 debug messages defined in python codes will be logged to this
+        file.
+
+        Default: 0
 
 ==============================================================================
 5. Write a new completer                                *completor-writing*
