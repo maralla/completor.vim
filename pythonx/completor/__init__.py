@@ -11,6 +11,15 @@ if hasattr(vim, 'from_nvim'):
     patch_nvim(vim)
 
 from .compat import integer_types, to_bytes, to_unicode  # noqa
+from ._log import config_logging  # noqa
+
+
+class LogFilter(object):
+    def filter(self, record):
+        return bool(Completor.get_option('debug'))
+
+
+config_logging('completor.LogFilter')
 
 
 def get_encoding():

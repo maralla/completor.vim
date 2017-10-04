@@ -2,11 +2,13 @@
 
 import os
 import re
+import logging
 from completor import Completor
 
 from .utils import test_subseq, LIMIT
 
 
+logger = logging.getLogger('completor')
 DSN_PAT = re.compile('\w+:(//?[^\s]*)?')
 
 
@@ -77,19 +79,24 @@ class Filename(Completor):
         """
         :param base: type unicode
         """
+        logger.info('start filename parse: %s', base)
         pat = list(DSN_PAT.finditer(base))
         if pat:
             base = base[pat[-1].end():]
 
         try:
             match = self.trigger.search(base)
-        except TypeError:
+        except TypeError as e:
+            logger.exception(e)
             match = None
 
         if not match:
+            logger.info('no matches')
             return []
         try:
             items = find(self.current_directory, match.group())
-        except Exception:
+        except Exception as e:
+            logger.exception(e)
             return []
+        logger.info('completions: %s', items)
         return [item[0] for item in items]

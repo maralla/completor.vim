@@ -8,8 +8,7 @@ import logging
 import os.path
 import sys
 
-log_file = os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                        "completor.log")
+log_file = os.path.join(os.path.dirname(__file__), 'completor_python.log')
 logging.basicConfig(
     filename=log_file, level=logging.INFO,
     format='%(asctime)s [%(levelname)s][%(module)s] %(message)s')
