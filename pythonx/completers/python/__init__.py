@@ -3,18 +3,19 @@
 import json
 import os
 import vim
+import logging
 
 from completor import Completor
 from completor.compat import to_unicode
 
 DIRNAME = os.path.dirname(__file__)
+logger = logging.getLogger('completor')
 
 
 class Jedi(Completor):
     filetype = 'python'
     trigger = (r'\w{3,}$|'
                r'[\w\)\]\}\'\"]+\.\w*$|'
-               r'^\s*@\w*$|'
                r'^\s*from\s+[\w\.]*(?:\s+import\s+(?:\w*(?:,\s*)?)*)?|'
                r'^\s*import\s+(?:[\w\.]*(?:,\s*)?)*')
 
@@ -43,9 +44,12 @@ class Jedi(Completor):
 
     def on_complete(self, data):
         try:
-            data = to_unicode(data[0], 'utf-8').replace('\\u', '\\\\u')
+            data = to_unicode(data[0], 'utf-8') \
+                .replace('\\u', '\\\\\\u') \
+                .replace('\\U', '\\\\\\U')
             return json.loads(data)
-        except Exception:
+        except Exception as e:
+            logger.exception(e)
             return []
 
     def on_signature(self, data):
