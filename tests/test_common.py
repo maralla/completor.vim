@@ -6,17 +6,15 @@ from completor.compat import to_unicode
 
 from completers.common import Common  # noqa
 
-from . import Buffer
 
-
-def test_on_data(vim_mod):
+def test_on_data(vim_mod, create_buffer):
     common = completor.get('common')
     common.input_data = 'urt'
 
     vim_mod.current.buffer.number = 1
     vim_mod.current.window.cursor = (1, 2)
 
-    buffer = Buffer(1)
+    buffer = create_buffer(1)
     with open(__file__) as f:
         buffer[:] = f.read().split('\n')
 
@@ -40,8 +38,8 @@ def test_on_data(vim_mod):
         {'menu': '[snip] mock snips', 'word': 'urt', 'dup': 1}]
 
 
-def test_unicode(vim_mod):
-    buffer = Buffer(1)
+def test_unicode(vim_mod, create_buffer):
+    buffer = create_buffer(1)
     with open('./tests/test.txt') as f:
         buffer[:] = f.read().split('\n')
     vim_mod.buffers = [buffer]

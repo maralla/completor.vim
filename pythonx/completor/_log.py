@@ -13,7 +13,7 @@ _conf = {
     'version': 1,
     'formatters': {
         'default': {
-            'format': '%(asctime)s [%(levelname)s][%(module)s] %(message)s'
+            'format': '%(asctime)s [%(levelname)s][%(pathname)s] %(message)s'
         }
     },
     'filters': {
