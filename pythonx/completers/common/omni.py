@@ -48,7 +48,6 @@ class Omni(Completor):
     # base: unicode
     def parse(self, base):
         trigger = self.trigger_cache.get(self.ft)
-        logger.info('omni parse: %s, trigger: %s', base, trigger.pattern)
         if not trigger or not trigger.search(base):
             return []
 
