@@ -310,11 +310,13 @@ def load_completer(ft, input_data):
     if not ft:
         c = get('common')
     else:
-        c = _load(ft)
+        c = None
+        # omni has the highest priority
+        omni = get('omni')
+        if omni.has_omnifunc(ft):
+            c = omni
         if c is None:
-            omni = get('omni')
-            if omni.has_omnifunc(ft):
-                c = omni
+            c = _load(ft)
         if c is None or not c.match(input_data) or c.disabled:
             c = get('common')
     c.input_data = input_data
