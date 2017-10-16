@@ -42,6 +42,8 @@ class Jedi(Completor):
     def on_definition(self, data):
         return json.loads(data[0])
 
+    on_doc = on_definition
+
     def on_complete(self, data):
         try:
             data = to_unicode(data[0], 'utf-8') \

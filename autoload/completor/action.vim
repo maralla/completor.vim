@@ -92,6 +92,42 @@ function! s:call_signatures(msg)
 endfunction
 
 
+function! s:open_doc_window()
+  let n = bufnr('__doc__')
+  if n > 0
+    let i = index(tabpagebuflist(tabpagenr()), n)
+    if i >= 0
+      " Just jump to the doc window
+      silent execute (i + 1).'wincmd w'
+    else
+      silent execute 'sbuffer '.n
+    endif
+  else
+    split __doc__
+  endif
+endfunction
+
+
+function! s:show_doc(msg)
+  let items = completor#utils#on_data('doc', a:msg)
+  if empty(items)
+    return
+  endif
+  let doc = split(items[0], "\n")
+  if empty(doc)
+    return
+  endif
+  call s:open_doc_window()
+
+  setlocal modifiable noswapfile buftype=nofile
+  silent normal! ggdG
+  silent $put=doc
+  silent normal! 1Gdd
+  setlocal nomodifiable nomodified foldlevel=200
+  nnoremap <buffer> q ZQ
+endfunction
+
+
 function! completor#action#callback(msg)
   if s:action ==# 'complete'
     call s:trigger_complete(a:msg)
@@ -99,6 +135,8 @@ function! completor#action#callback(msg)
     call s:goto_definition(a:msg)
   elseif s:action ==# 'signature'
     call s:call_signatures(a:msg)
+  elseif s:action ==# 'doc'
+    call s:show_doc(a:msg)
   endif
 endfunction
 
