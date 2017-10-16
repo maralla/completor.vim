@@ -43,6 +43,9 @@ def process_request(args):
                 item.update({'filename': d.module_path, 'lnum': d.line,
                              'col': d.column + 1})
             data.append(item)
+    elif args['action'] == 'doc':
+        for d in script.goto_definitions():
+            data.append(d.docstring(fast=False).strip())
     elif args['action'] == 'signature':
         for s in script.call_signatures():
             params = [p.description.replace('\n', '')[6:] for p in s.params]
