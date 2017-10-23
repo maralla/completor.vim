@@ -71,7 +71,8 @@ class Completor(Base):
 
     _type_map = {
         b'c': b'cpp',
-        b'javascript.jsx': b'javascript'
+        b'javascript.jsx': b'javascript',
+        b'python.django': b'python',
     }
 
     _arg_cache = {}
