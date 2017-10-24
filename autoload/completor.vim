@@ -33,11 +33,6 @@ function! s:skip()
 endfunction
 
 
-function! s:complete(...)
-  call completor#do('complete')
-endfunction
-
-
 function! s:on_text_change()
   if s:skip() | return | endif
   let s:char_inserted = v:false
@@ -46,14 +41,13 @@ function! s:on_text_change()
     return
   endif
 
-  if exists('s:timer')
-    call timer_stop(s:timer)
+  if !(exists('s:timer') && !empty(timer_info(s:timer)))
+    let s:timer = timer_start(g:completor_completion_delay, {t->completor#do('complete')})
   endif
-  let s:timer = timer_start(g:completor_completion_delay, function('s:complete'))
 endfunction
 
 
-function s:on_insert_char_pre()
+function! s:on_insert_char_pre()
   let s:char_inserted = v:true
 endfunction
 
