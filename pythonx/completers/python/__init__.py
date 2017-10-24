@@ -40,8 +40,9 @@ class Jedi(Completor):
         })
 
     def on_definition(self, data):
-        return json.loads(data[0])
+        return json.loads(to_unicode(data[0], 'utf-8'))
 
+    on_signature = on_definition
     on_doc = on_definition
 
     def on_complete(self, data):
@@ -56,6 +57,3 @@ class Jedi(Completor):
         except Exception as e:
             logger.exception(e)
             return []
-
-    def on_signature(self, data):
-        return json.loads(data[0])
