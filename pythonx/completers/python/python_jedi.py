@@ -40,8 +40,12 @@ def process_request(args):
             if d.in_builtin_module():
                 item['text'] = 'Builtin {}'.format(item['text'])
             else:
-                item.update({'filename': d.module_path, 'lnum': d.line,
-                             'col': d.column + 1})
+                item.update({
+                    'filename': d.module_path,
+                    'lnum': d.line,
+                    'col': d.column + 1,
+                    'name': d.name,
+                })
             data.append(item)
     elif args['action'] == 'doc':
         for d in script.goto_definitions():

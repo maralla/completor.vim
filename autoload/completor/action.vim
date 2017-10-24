@@ -46,18 +46,51 @@ function! s:trigger_complete(msg)
 endfunction
 
 
+function! s:jump(items)
+  let tmp = tempname()
+  let name = ''
+  let content = []
+  for item in a:items
+    if !has_key(item, 'filename')
+      continue
+    endif
+    if !name
+      let name = item.name
+    endif
+    let spec = printf('call cursor(%d, %d)', item.lnum, item.col)
+    let tag = item.name."\t".item.filename."\t".spec
+    call add(content, tag)
+  endfor
+  if empty(name)
+    return
+  endif
+
+  call writefile(content, tmp)
+  let tags = &tags
+  let wildignore = &wildignore
+  let action = len(content) == 1 ? 'tjump' : 'tselect'
+  try
+    set wildignore=
+    let &tags = tmp
+    exe action . ' ' . name
+  finally
+    let &tags = tags
+    let &wildignore = wildignore
+  endtry
+endfunction
+
+
 function! s:goto_definition(msg)
   let items = completor#utils#on_data('definition', a:msg)
   if len(items) > 0
-    let item = items[0]
-    if has_key(item, 'filename')
-      if expand('%:p') !=# item['filename']
-        exe 'edit '.item['filename']
-      endif
-      call feedkeys(item['lnum'].'G'.item['col'].'|')
-    else
-      echo item['text']
-    endif
+    try
+      call s:jump(items)
+    catch /E37/
+      echohl ErrorMsg
+      echomsg '`hidden` should be set (set hidden)'
+      echohl NONE
+      return
+    endtry
   endif
 endfunction
 
