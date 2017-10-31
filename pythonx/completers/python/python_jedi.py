@@ -35,7 +35,7 @@ def process_request(args):
             }
             data.append(res)
     elif args['action'] == 'definition':
-        for d in script.goto_definitions():
+        for d in script.goto_assignments(follow_imports=True):
             item = {'text': d.description}
             if d.in_builtin_module():
                 item['text'] = 'Builtin {}'.format(item['text'])
@@ -48,7 +48,7 @@ def process_request(args):
                 })
             data.append(item)
     elif args['action'] == 'doc':
-        for d in script.goto_definitions():
+        for d in script.goto_assignments(follow_imports=True):
             data.append(d.docstring(fast=False).strip())
     elif args['action'] == 'signature':
         for s in script.call_signatures():
