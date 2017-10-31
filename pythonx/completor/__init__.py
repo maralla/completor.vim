@@ -106,6 +106,18 @@ class Completor(Base):
         return vim.current.buffer.name
 
     @property
+    def cursor_word(self):
+        """Get the word under cursor.
+
+        :rtype: unicode
+        """
+        try:
+            return to_unicode(vim.Function('expand')('<cword>'),
+                              get_encoding())
+        except vim.error:
+            return
+
+    @property
     def cursor(self):
         line, _ = vim.current.window.cursor
         return line, len(self.input_data)
