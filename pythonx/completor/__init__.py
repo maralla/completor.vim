@@ -183,6 +183,12 @@ class Completor(Base):
             ret.extend(self.parse(data))
         else:
             ret.extend(self.on_complete(data))
+
+        common = get('common')
+        if not isinstance(self, common.__class__):
+            common.ft = self.ft
+            common.input_data = self.input_data
+            ret.extend(common.parse(self.input_data))
         return ret
 
     def on_data(self, action, data):

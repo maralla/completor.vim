@@ -28,19 +28,12 @@ endfunction
 
 
 function! s:trigger_complete(msg)
-  let is_empty = v:false
   if !s:status.consistent()
     let s:completions = []
-    let is_empty = v:true
   else
     let s:completions = completor#utils#on_data('complete', a:msg)
-    if empty(s:completions)
-      let is_empty = v:true
-      call completor#utils#retrigger()
-    endif
   endif
-  if is_empty | return | endif
-
+  if empty(s:completions) | return | endif
   setlocal completefunc=completor#action#completefunc
   call feedkeys("\<Plug>CompletorTrigger")
 endfunction

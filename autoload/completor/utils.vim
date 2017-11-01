@@ -67,6 +67,7 @@ function! completor#utils#is_message_end(msg)
   return s:pyeval('res')
 endfunction
 
+
 function! completor#utils#retrigger()
   exe s:py 'res = completor_api.fallback_to_common()'
   call completor#action#do('complete', s:pyeval('res'))
