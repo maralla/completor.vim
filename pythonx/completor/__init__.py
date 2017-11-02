@@ -72,6 +72,7 @@ class Completor(Base):
     _type_map = {
         b'c': b'cpp',
         b'javascript.jsx': b'javascript',
+        b'typescript.jsx': b'typescript',
         b'python.django': b'python',
     }
 
