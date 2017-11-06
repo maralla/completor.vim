@@ -9,7 +9,7 @@ from .utils import test_subseq, LIMIT
 
 
 logger = logging.getLogger('completor')
-DSN_PAT = re.compile('\w+:(//?[^\s]*)?')
+PAT = re.compile('(\w+:(//?[^\s]*)?)|(</[^\s>]*>?)')
 
 
 def find(current_dir, input_data):
@@ -80,7 +80,7 @@ class Filename(Completor):
         :param base: type unicode
         """
         logger.info('start filename parse: %s', base)
-        pat = list(DSN_PAT.finditer(base))
+        pat = list(PAT.finditer(base))
         if pat:
             base = base[pat[-1].end():]
 
