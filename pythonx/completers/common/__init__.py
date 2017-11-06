@@ -25,6 +25,10 @@ class Common(completor.Completor):
 
     hooks = ['ultisnips', 'buffer']
 
+    @classmethod
+    def is_common(cls, comp):
+        return isinstance(comp, (cls, Buffer))
+
     def completions(self, completer, base):
         com = completor.get(completer)
         if not com:

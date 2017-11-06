@@ -27,6 +27,8 @@ def test_on_data(vim_mod):
 
     vim_mod.current.buffer.options['omnifunc'] = b'csscomplete#CompleteCSS'
     vim_mod.funcs[b'csscomplete#CompleteCSS'] = omnifunc
+    vim_mod.current.window.cursor = (1, 2)
+    vim_mod.buffers = []
 
     omni = completor.get('omni')
     omni.trigger_cache = {}

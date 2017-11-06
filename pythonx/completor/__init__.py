@@ -177,7 +177,8 @@ class Completor(Base):
     def do_complete(self, data):
         ret = []
         filename = get('filename')
-        if filename.match(self.input_data) and not filename.disabled:
+        if not isinstance(self, filename.__class__) and \
+                filename.match(self.input_data) and not filename.disabled:
             ret.extend(filename.parse(self.input_data))
 
         if callable(getattr(self, 'parse', None)):
@@ -186,7 +187,7 @@ class Completor(Base):
             ret.extend(self.on_complete(data))
 
         common = get('common')
-        if not isinstance(self, common.__class__):
+        if not common.is_common(self):
             common.ft = self.ft
             common.input_data = self.input_data
             ret.extend(common.parse(self.input_data))
