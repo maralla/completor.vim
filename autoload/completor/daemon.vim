@@ -67,7 +67,7 @@ else
   " vim8
   function! s:job_start_daemon(cmd)
     return job_start(a:cmd, {
-          \   'out_cb': {c, m -> s:vim_daemon_handler(m)},
+          \   'out_cb': {c,m->s:vim_daemon_handler(m)},
           \   'err_io': 'out',
           \   'mode': 'nl'
           \ })
@@ -89,6 +89,7 @@ function! s:daemon.respawn(cmd, name)
   endif
   let self.job = s:job_start_daemon(a:cmd)
   let self.type = a:name
+  let self.cmd = a:cmd
   let self.requested = v:false
   let self.t = localtime()
 endfunction
@@ -102,6 +103,7 @@ function! s:daemon.status(name)
   if exists('self.type') && self.type != a:name
     if s ==# 'run'
       call completor#compat#job_stop(self.job)
+      let s = completor#compat#job_status(self.job)
     endif
     return 'none'
   endif
@@ -146,4 +148,21 @@ function! completor#daemon#process(action, cmd, name)
 
   let s:daemon.requested = v:true
   let s:daemon.t = localtime()
+endfunction
+
+
+function! s:check_status()
+  if s:daemon.status(s:daemon.type) != 'run'
+    echo 'Daemon killed'
+  endif
+endfunction
+
+
+function! completor#daemon#kill()
+  if has_key(s:daemon, 'type')
+    call s:daemon.kill()
+    call timer_start(300, {t->s:check_status()})
+  else
+    echo 'Daemon killed.'
+  endif
 endfunction
