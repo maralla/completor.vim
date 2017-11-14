@@ -3,6 +3,7 @@
 import os
 import re
 import logging
+import glob
 from completor import Completor
 
 from .utils import test_subseq, LIMIT
@@ -24,8 +25,11 @@ def find(current_dir, input_data):
     if not os.path.isabs(dirname):
         dirname = os.path.join(current_dir, dirname)
 
+    dirname = ''.join((dirname, '/'))
+    dir_len = len(dirname)
     entries = []
-    for entry in os.listdir(dirname):
+    for fname in glob.iglob(''.join((dirname, '*'))):
+        entry = fname[dir_len:]
         score = test_subseq(basename, entry)
         if score is None:
             continue
