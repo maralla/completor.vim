@@ -25,10 +25,10 @@ def find(current_dir, input_data):
     if not os.path.isabs(dirname):
         dirname = os.path.join(current_dir, dirname)
 
-    dirname = ''.join((dirname, '/'))
-    dir_len = len(dirname)
+    dir_spec = os.path.join(dirname, '*')
+    dir_len = len(dir_spec) - 1
     entries = []
-    for fname in glob.iglob(''.join((dirname, '*'))):
+    for fname in glob.iglob(dir_spec):
         entry = fname[dir_len:]
         score = test_subseq(basename, entry)
         if score is None:
