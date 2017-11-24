@@ -48,7 +48,7 @@ class Racer(Completor):
             if len(parts) < 4:
                 continue
             ret.append({'filename': parts[3], 'lnum': int(parts[1]),
-                        'col': int(parts[2]) + 1, 'text': parts[0]})
+                        'col': int(parts[2]) + 1, 'name': parts[0]})
         return ret
 
     # items: list of bytes

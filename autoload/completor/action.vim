@@ -47,7 +47,7 @@ function! s:jump(items)
     if !has_key(item, 'filename')
       continue
     endif
-    if !name
+    if empty(name)
       let name = item.name
     endif
     let spec = printf('call cursor(%d, %d)', item.lnum, item.col)
