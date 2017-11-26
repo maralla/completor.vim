@@ -5,6 +5,7 @@ import json
 import os
 import re
 import vim
+from os.path import expanduser
 
 from .patch import patch_nvim
 if hasattr(vim, 'from_nvim'):
@@ -136,7 +137,10 @@ class Completor(Base):
 
     @staticmethod
     def get_option(key):
-        return vim.vars.get('completor_{}'.format(key))
+        option = vim.vars.get('completor_{}'.format(key))
+        if option and key.endswith('_binary'): # expand ~ in binary path
+            option = expanduser(option)
+        return option
 
     @property
     def disabled(self):
