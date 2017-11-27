@@ -23,6 +23,8 @@ class Go(Completor):
         res = []
         for item in items:
             parts = item.split(b',,')
+            if len(parts) < 3:
+                continue
             res.append({
                 'word': parts[1],
                 'menu': parts[2]
