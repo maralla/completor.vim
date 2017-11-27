@@ -82,7 +82,7 @@ function! completor#enable()
     return
   endif
   noremap  <silent> <Plug>CompletorTrigger <nop>
-  inoremap <silent> <Plug>CompletorTrigger <c-x><c-u><c-p>
+  inoremap <silent> <Plug>CompletorTrigger <c-x><c-u>
   call s:set_events()
 endfunction
 
