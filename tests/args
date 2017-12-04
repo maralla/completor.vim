@@ -1,0 +1,5 @@
+# Arguments passed to clang
+-x
+c
+-D/usr/lib/
+123

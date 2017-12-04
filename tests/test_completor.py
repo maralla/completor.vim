@@ -44,3 +44,13 @@ def test_load(vim_mod, monkeypatch):
             'completor_css_omni_trigger': b'([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$'
         }
         assert load_completer(b'css', b'text') is get('omni')
+
+
+def test_parse_config():
+    h = HelloCompleter()
+    args = h.parse_config('tests/test_config')
+    assert args == ['-I/home/hello', '-x', '--std=c11', '-hello=world',
+                    'abcd', '-a', '123']
+    args = h.parse_config(['tests/invalid', 'tests/args',
+                           'tests/tests_config'])
+    assert args == ['-x', 'c', '-D/usr/lib/', '123']

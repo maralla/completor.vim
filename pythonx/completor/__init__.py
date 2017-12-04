@@ -5,6 +5,7 @@ import json
 import os
 import re
 import vim
+import shlex
 from os.path import expanduser
 
 from .patch import patch_nvim
@@ -39,7 +40,8 @@ def _unicode(text):
 def _read_args(path):
     try:
         with open(path) as f:
-            return [l.strip() for l in f.readlines()]
+            args = shlex.split(f.read(), comments=True, posix=True)
+        return [os.path.expandvars(a) for a in args]
     except Exception:
         return []
 
@@ -138,7 +140,8 @@ class Completor(Base):
     @staticmethod
     def get_option(key):
         option = vim.vars.get('completor_{}'.format(key))
-        if option and key.endswith('_binary'): # expand ~ in binary path
+        # expand ~ in binary path
+        if option and key.endswith('_binary'):
             option = expanduser(option)
         return option
 
@@ -221,16 +224,27 @@ class Completor(Base):
             path = os.path.join(cwd, file)
             if os.path.exists(path):
                 return path
-            if os.path.dirname(cwd) == cwd:
+            dirname = os.path.dirname(cwd)
+            if dirname == cwd:
                 break
-            cwd = os.path.split(cwd)[0]
+            cwd = dirname
 
-    def parse_config(self, file):
-        key = "{}-{}".format(self.filetype, file)
-        if key not in self._arg_cache:
-            path = self.find_config_file(file)
-            self._arg_cache[key] = [] if path is None else _read_args(path)
-        return self._arg_cache[key]
+    def parse_config(self, files):
+        if not isinstance(files, (list, tuple)):
+            files = [files]
+        for f in files:
+            key = '{}-{}'.format(self.filetype, f)
+            arg = self._arg_cache.get(key)
+            if arg:
+                return arg
+            if arg is not None:
+                continue
+            path = self.find_config_file(f)
+            arg = [] if path is None else _read_args(path)
+            self._arg_cache[key] = arg
+            if arg:
+                return arg
+        return []
 
     def ident_match(self, pat):
         if not self.input_data:

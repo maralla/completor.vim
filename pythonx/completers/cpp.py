@@ -24,7 +24,7 @@ def sanitize(menu):
 class Clang(Completor):
     filetype = 'cpp'
 
-    args_file = '.clang_complete'
+    args_file = ['.clang_complete', '.clang']
 
     def format_cmd(self):
         row, col = self.cursor
