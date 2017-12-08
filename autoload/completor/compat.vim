@@ -1,10 +1,7 @@
 function! s:vim_oneshot_handler(ch)
   let msg = []
-  while ch_status(a:ch) ==# 'buffered'
+  while ch_status(a:ch) ==# 'buffered' && ch_canread(a:ch)
     let chunk = ch_read(a:ch)
-    if strlen(chunk) == 0
-      break
-    endif
     call add(msg, chunk)
   endwhile
   call completor#action#callback(msg)

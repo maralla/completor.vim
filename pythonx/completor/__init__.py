@@ -119,7 +119,19 @@ class Completor(Base):
             return to_unicode(vim.Function('expand')('<cword>'),
                               get_encoding())
         except vim.error:
-            return
+            pass
+
+    @property
+    def cursor_line(self):
+        """Get line under the cursor.
+
+        :rtype: unicode
+        """
+        try:
+            line, _ = vim.current.window.cursor
+            return to_unicode(vim.current.buffer[line - 1], get_encoding())
+        except vim.error:
+            pass
 
     @property
     def cursor(self):
