@@ -9,9 +9,12 @@ import os.path
 import sys
 
 log_file = os.path.join(os.path.dirname(__file__), 'completor_python.log')
-logging.basicConfig(
-    filename=log_file, level=logging.INFO,
-    format='%(asctime)s [%(levelname)s][%(module)s] %(message)s')
+logger = logging.getLogger('python-jedi')
+handler = logging.FileHandler(log_file, delay=1)
+handler.setLevel(logging.INFO)
+handler.setFormatter(logging.Formatter(
+    '%(asctime)s [%(levelname)s][%(module)s] %(message)s'))
+logger.addHandler(handler)
 
 
 def write(msg):
@@ -58,7 +61,7 @@ def process_request(args):
                 'func': s.call_name,
                 'index': s.index or 0
             }
-            logging.info(str(item))
+            logger.info(str(item))
             data.append(item)
     write(json.dumps(data))
 
@@ -75,18 +78,18 @@ def run():
     """
     while True:
         data = sys.stdin.readline()
-        logging.info(data)
+        logger.info(data)
 
         try:
             args = json.loads(data)
         except Exception as e:
-            logging.exception(e)
+            logger.exception(e)
             continue
 
         try:
             process_request(args)
         except Exception as e:
-            logging.exception(e)
+            logger.exception(e)
             write(json.dumps([]))
 
 
@@ -99,7 +102,7 @@ def main():
         def filter(self, record):
             return args.verbose
 
-    logging.root.addFilter(Filter())
+    logger.addFilter(Filter())
     run()
 
 

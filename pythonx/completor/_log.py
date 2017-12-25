@@ -23,6 +23,7 @@ _conf = {
         'file': {
             'class': 'logging.FileHandler',
             'filename': _file,
+            'delay': 1,
             'formatter': 'default'
         }
     },
