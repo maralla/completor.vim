@@ -2,8 +2,8 @@
 
 import mock
 import completor
+import completers.common  # noqa
 from completor.compat import to_unicode
-
 from completers.rust import Racer  # noqa
 
 
@@ -36,3 +36,20 @@ def test_request(vim_mod):
 def test_message_end(vim_mod):
     racer = completor.get('rust')
     assert racer.is_message_end(b'END')
+
+
+def test_on_doc(vim_mod):
+    racer = completor.get('rust')
+    data = [
+        (b'MATCH io;io;1;1;'
+         b'/Users/maralla/Workspace/src/rust/src/libstd/io/mod.rs;Module;'
+         b'/Users/maralla/Workspace/src/rust/src/libstd/io/mod.rs;'
+         b'"Traits, helpers, and type definitions for core I/O functionality.'
+         b'\\n\\nThe `std::io` module contains a number of common things'
+         b" you\\'ll need\\nwhen doing input and output.\"")
+    ]
+    r = racer.on_doc(data)
+    assert r == [b"Traits, helpers, and type definitions for core I/O"
+                 b" functionality.\n\nThe `std::io` module contains a number"
+                 b" of common things you'll need\nwhen doing input and "
+                 b"output."]

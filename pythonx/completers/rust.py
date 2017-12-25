@@ -62,9 +62,10 @@ class Racer(Completor):
             parts = item.split(b';', 7)
             if len(parts) < 8:
                 continue
-            doc = parts[-1].replace('\\n', '\n').replace("\\'", "'").\
-                replace('\;', ';').replace('\\"', '"').strip('"')
-            ret.append(doc)
+            doc = parts[-1].replace(b'\\n', b'\n').replace(b"\\'", b"'").\
+                replace(b'\;', b';').replace(b'\\"', b'"').strip(b'"')
+            if doc:
+                ret.append(doc)
         return ret
 
     # items: list of bytes
