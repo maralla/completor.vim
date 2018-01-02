@@ -118,7 +118,8 @@ class Clang(Completor):
         return args
 
     def _gen_complete_args(self):
-        row, col = self.cursor
+        row, _ = self.cursor
+        col = len(self.input_data)
         tempfile = self.tempname
 
         match = trigger.search(self.input_data)
@@ -217,8 +218,7 @@ class Clang(Completor):
         line = self.cursor_line
         if not (line and word):
             return []
-        _, column = self.cursor
-
+        column = len(self.input_data)
         try:
             return parse_ast_dump(items, word, line, column)
         except Exception as e:

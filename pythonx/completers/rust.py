@@ -30,7 +30,8 @@ class Racer(Completor):
         )
 
     def prepare_request(self, action):
-        line, col = self.cursor
+        line, _ = self.cursor
+        col = len(self.input_data)
         if action == b'doc':
             col += 1
         action = ACTION_MAP.get(action)

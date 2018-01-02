@@ -30,7 +30,8 @@ class Jedi(Completor):
         )
 
     def prepare_request(self, action):
-        line, col = self.cursor
+        line, _ = self.cursor
+        col = len(self.input_data)
         return json.dumps({
             'action': action.decode('ascii'),
             'line': line - 1,

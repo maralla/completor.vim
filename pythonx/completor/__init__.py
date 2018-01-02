@@ -135,8 +135,7 @@ class Completor(Base):
 
     @property
     def cursor(self):
-        line, _ = vim.current.window.cursor
-        return line, len(self.input_data)
+        return vim.current.window.cursor
 
     @cursor.setter
     def cursor(self, value):
@@ -262,9 +261,9 @@ class Completor(Base):
         if not self.input_data:
             return -1
 
-        _, index = self.cursor
+        index = len(self.input_data)
         for i in range(index):
-            text = self.input_data[i:index]
+            text = self.input_data[i:]
             matched = pat.match(text)
             if matched and matched.end() == len(text):
                 return len(to_bytes(self.input_data[:i], get_encoding()))
@@ -281,7 +280,8 @@ class Completor(Base):
     def request(self):
         """Generate daemon complete request arguments
         """
-        line, col = self.cursor
+        line, _ = self.cursor
+        col = len(self.input_data)
         return json.dumps({
             'line': line - 1,
             'col': col,
