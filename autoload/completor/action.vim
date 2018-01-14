@@ -191,6 +191,9 @@ function! completor#action#do(action, info)
   if empty(a:info) || !s:status.consistent() | return | endif
   call s:reset()
   let s:action = a:action
+  if has_key(a:info, "cmd") && type(a:info.cmd) == 3
+     let a:info.cmd += g:completor_additional_options
+  endif
   if a:info.is_sync
     call completor#action#callback(s:status.input)
   elseif !empty(a:info.cmd)
