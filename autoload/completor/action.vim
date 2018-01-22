@@ -2,6 +2,11 @@ let s:status = {'pos': [], 'nr': -1, 'input': '', 'ft': ''}
 let s:action = ''
 let s:completions = []
 
+let s:DOC_POSITION = {
+      \ 'bottom': 'rightbelow',
+      \ 'top': 'topleft',
+      \ }
+
 
 function! s:status.update()
   let e = col('.') - 2
@@ -121,16 +126,17 @@ endfunction
 
 function! s:open_doc_window()
   let n = bufnr('__doc__')
+  let direction = get(s:DOC_POSITION, g:completor_doc_position, s:DOC_POSITION.bottom)
   if n > 0
     let i = index(tabpagebuflist(tabpagenr()), n)
     if i >= 0
       " Just jump to the doc window
       silent execute (i + 1).'wincmd w'
     else
-      silent execute 'sbuffer '.n
+      silent execute direction.' sbuffer '.n
     endif
   else
-    split __doc__
+    silent execute direction.' split __doc__'
   endif
 endfunction
 
