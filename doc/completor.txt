@@ -193,6 +193,18 @@ Other                                                   *completor-other*
 
         Default: 0
 
+*g:completor_doc_position*
+        This option controls the position of the doc window triggerred by
+        executing `:call completor#do('doc')`.
+
+        Available values:
+
+            bottom: Open the doc window at bottom. (Default)
+            top: Open the doc window at top.
+
+        Default: bottom
+
+
 ==============================================================================
 5. Write a new completer                                *completor-writing*
 
