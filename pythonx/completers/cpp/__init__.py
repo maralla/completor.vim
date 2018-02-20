@@ -8,6 +8,7 @@ import functools
 from completor import Completor
 from completor.compat import to_bytes
 
+path = os.path.dirname(__file__)
 
 word_patten = re.compile('\w+$')
 trigger = re.compile('(\.|->|#|::)\s*(\w*)$')
@@ -16,6 +17,15 @@ ast_pat = re.compile(
     b'.*?'
     b'<(.*?):(\d+):(\d+), (?:col|line):\d+(?::\d+)?>'
     b' (line|col):(\d+)(?::(\d+))? (.*)')
+
+
+VIM_FILES = ['placeholder.vim']
+
+
+def _inject_vim_files():
+    for f in VIM_FILES:
+        filename = os.path.join(path, f)
+        vim.command('source {}'.format(filename))
 
 
 def _utf8(b):
@@ -30,7 +40,13 @@ def sanitize(menu):
     menu = menu.replace(b'[#', b'').replace(b'#]', b' ')
     # argument
     menu = menu.replace(b'<#', b'').replace(b'#>', b'')
+    # optional
+    menu = menu.replace(b'{#', b'').replace(b'#}', b'')
     return menu
+
+
+def strip_optional(menu):
+    return re.sub('{#.*#}|\[#.*#\]', '', menu)
 
 
 def get_token_path(line, column, word):
@@ -105,6 +121,10 @@ class Clang(Completor):
     filetype = 'cpp'
 
     args_file = ['.clang_complete', '.clang']
+
+    def __init__(self, *args, **kwargs):
+        Completor.__init__(self, *args, **kwargs)
+        _inject_vim_files()
 
     def _gen_args(self):
         binary = self.get_option('clang_binary') or 'clang'
@@ -188,6 +208,7 @@ class Clang(Completor):
 
         res = []
         for item in items:
+            logger.info(item)
             if not item.startswith(b'COMPLETION:'):
                 continue
 
@@ -205,6 +226,8 @@ class Clang(Completor):
                 else:
                     data['menu'] = b':'.join(parts[2:])
             func_sig = sanitize(data['menu'])
+            data['abbr'] = data['word']
+            data['word'] = strip_optional(data['menu'])
             data['menu'] = func_sig
 
             # Show function signature in the preview window

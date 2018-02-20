@@ -60,6 +60,9 @@ class Vim(object):
     def Dictionary(self, **kwargs):
         return kwargs
 
+    def command(self, cmd):
+        pass
+
 
 class UltiSnips(object):
     def _snips(self, base, other):

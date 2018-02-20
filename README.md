@@ -109,6 +109,14 @@ should be in a single line in the file. This is an example file:
 -I/Users/maralla/Workspace/src/dji-sdk/Onboard-SDK/sample/Linux/inc
 ```
 
+The key mapping `<Plug>CompletorCppJumpToPlaceholder` can be defined
+to jump to placeholders:
+
+```vim
+map <buffer> <tab> <Plug>CompletorCppJumpToPlaceholder
+imap <buffer> <tab> <Plug>CompletorCppJumpToPlaceholder
+```
+
 #### go
 Use [gocode](https://github.com/nsf/gocode) to provide omni completions.
 To specify the gocode executable path:
