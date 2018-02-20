@@ -46,7 +46,7 @@ def sanitize(menu):
 
 
 def strip_optional(menu):
-    return re.sub('{#.*#}|\[#.*#\]', '', menu)
+    return re.sub(b'{#.*#}|\[#.*#\]', b'', menu)
 
 
 def get_token_path(line, column, word):
