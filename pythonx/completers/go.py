@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import vim
-
-from completor import Completor
+from completor import Completor, vim
 
 
 class Go(Completor):

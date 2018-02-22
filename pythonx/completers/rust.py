@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import vim
 try:
     from pipes import quote
 except ImportError:
     from shlex import quote
 
-from completor import Completor, get_encoding
+from completor import Completor, get_encoding, vim
 from completor.compat import to_bytes
 
 ACTION_MAP = {

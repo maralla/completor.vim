@@ -2,10 +2,9 @@
 
 import json
 import os
-import vim
 import logging
 
-from completor import Completor
+from completor import Completor, vim
 from completor.compat import to_unicode
 
 DIRNAME = os.path.dirname(__file__)
