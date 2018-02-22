@@ -1,8 +1,7 @@
 import threading
 import functools
-import vim
 
-from . import load_completer, get, load as _load
+from . import load_completer, get, load as _load, vim
 
 ctx = threading.local()
 ctx.current_completer = None

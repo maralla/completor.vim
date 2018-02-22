@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from completor import Completor, get_encoding
+from completor import Completor, get_encoding, vim
 from completor.compat import to_unicode, to_bytes
 
-import vim
 import re
 import logging
 

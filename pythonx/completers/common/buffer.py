@@ -3,9 +3,8 @@
 import collections
 import itertools
 import re
-import vim
 
-from completor import Completor
+from completor import Completor, vim
 from completor.compat import to_unicode
 
 from .utils import test_subseq, LIMIT

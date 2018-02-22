@@ -3,9 +3,8 @@
 import re
 import os
 import logging
-import vim
 import functools
-from completor import Completor
+from completor import Completor, vim
 from completor.compat import to_bytes
 
 path = os.path.dirname(__file__)

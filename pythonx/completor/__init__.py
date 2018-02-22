@@ -4,16 +4,12 @@ import importlib
 import json
 import os
 import re
-import vim
 import shlex
 from os.path import expanduser
 
-from .patch import patch_nvim
-if hasattr(vim, 'from_nvim'):
-    patch_nvim(vim)
-
-from .compat import integer_types, to_bytes, to_unicode  # noqa
-from ._log import config_logging  # noqa
+from ._vim import vim_obj as vim
+from .compat import integer_types, to_bytes, to_unicode
+from ._log import config_logging
 
 
 class LogFilter(object):
