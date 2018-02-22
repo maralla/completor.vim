@@ -216,7 +216,7 @@ class Clang(Completor):
             if len(parts) < 2 or not parts[1].startswith(prefix):
                 continue
 
-            data = {'word': parts[1], 'dup': 1, 'menu': ''}
+            data = {'word': parts[1], 'dup': 1, 'menu': b''}
             if len(parts) > 2:
                 if parts[1] == b'Pattern':
                     subparts = parts[2].split(b' ', 1)
