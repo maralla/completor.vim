@@ -94,12 +94,12 @@ c/c++                                                   *completor-cpp*
             -std=c++11
             -I/Users/maralla/Workspace/src/dji-sdk/Onboard-SDK/lib/inc
             -I/Users/maralla/Workspace/src/dji-sdk/Onboard-SDK/sample/Linux/inc
-
+<
         The key mapping `<Plug>CompletorCppJumpToPlaceholder` can be defined
         to jump to placeholders:
-
-            map <buffer> <tab> <Plug>CompletorCppJumpToPlaceholder
-            imap <buffer> <tab> <Plug>CompletorCppJumpToPlaceholder
+>
+            map <tab> <Plug>CompletorCppJumpToPlaceholder
+            imap <tab> <Plug>CompletorCppJumpToPlaceholder
 <
 go                                                      *completor-go*
         Use [gocode](https://github.com/nsf/gocode) to provide omni completions.

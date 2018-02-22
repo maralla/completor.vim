@@ -113,8 +113,8 @@ The key mapping `<Plug>CompletorCppJumpToPlaceholder` can be defined
 to jump to placeholders:
 
 ```vim
-map <buffer> <tab> <Plug>CompletorCppJumpToPlaceholder
-imap <buffer> <tab> <Plug>CompletorCppJumpToPlaceholder
+map <tab> <Plug>CompletorCppJumpToPlaceholder
+imap <tab> <Plug>CompletorCppJumpToPlaceholder
 ```
 
 #### go
