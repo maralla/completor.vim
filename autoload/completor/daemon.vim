@@ -48,11 +48,12 @@ endfunction
 
 if has('nvim')
   " neovim
-  function! s:job_start_daemon(cmd)
+  function! s:job_start_daemon(cmd, cwd)
     return jobstart(a:cmd, {
           \   'on_stdout': function('s:nvim_daemon_handler'),
           \   'on_stderr': function('s:nvim_daemon_handler'),
           \   'on_exit': function('s:nvim_daemon_handler'),
+          \   'cwd': a:cwd,
           \ })
   endfunction
 
@@ -65,11 +66,12 @@ if has('nvim')
   endfunction
 else
   " vim8
-  function! s:job_start_daemon(cmd)
+  function! s:job_start_daemon(cmd, cwd)
     return job_start(a:cmd, {
           \   'out_cb': {c,m->s:vim_daemon_handler(m)},
           \   'err_io': 'out',
-          \   'mode': 'nl'
+          \   'mode': 'nl',
+          \   'cwd': a:cwd,
           \ })
   endfunction
 
@@ -83,11 +85,11 @@ else
 endif
 
 
-function! s:daemon.respawn(cmd, name)
+function! s:daemon.respawn(cmd, cwd, name)
   if self.status(a:name) == 'run'
     call completor#compat#job_stop(self.job)
   endif
-  let self.job = s:job_start_daemon(a:cmd)
+  let self.job = s:job_start_daemon(a:cmd, a:cwd)
   let self.type = a:name
   let self.cmd = a:cmd
   let self.requested = v:false
@@ -119,12 +121,12 @@ function s:daemon.kill()
 endfunction
 
 
-function! completor#daemon#process(action, cmd, name)
+function! completor#daemon#process(action, cmd, cwd, name)
   let s:daemon.msgs = []
 
   " Daemon not running
   if s:daemon.status(a:name) != 'run'
-    call s:daemon.respawn(a:cmd, a:name)
+    call s:daemon.respawn(a:cmd, a:cwd, a:name)
   endif
 
   if s:daemon.status(a:name) != 'run'
