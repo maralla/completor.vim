@@ -200,10 +200,11 @@ function! completor#action#do(action, info)
   if a:info.is_sync
     call completor#action#callback(s:status.input)
   elseif !empty(a:info.cmd)
+    let l:cwd = get(a:info, 'cwd', getcwd())
     if a:info.is_daemon
-      call completor#daemon#process(a:action, a:info.cmd, a:info.ftype)
+      call completor#daemon#process(a:action, a:info.cmd, l:cwd, a:info.ftype)
     else
-      let s:job = completor#compat#job_start_oneshot(a:info.cmd)
+      let s:job = completor#compat#job_start_oneshot(a:info.cmd, l:cwd)
     endif
   endif
 endfunction
