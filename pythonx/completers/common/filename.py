@@ -15,7 +15,9 @@ PAT = re.compile('(\w+:(//?[^\s]*)?)|(</[^\s>]*>?)')
 
 
 def gen_entry(pat, dirname, basename):
-    prefix = len(dirname) + len(os.path.sep)
+    prefix = len(dirname)
+    if os.path.dirname(dirname) != dirname:
+        prefix += 1
     for fname in glob.iglob(pat):
         entry = fname[prefix:]
         score = test_subseq(basename, entry)
