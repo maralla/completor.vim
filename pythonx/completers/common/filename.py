@@ -4,6 +4,7 @@ import os
 import re
 import logging
 import glob
+import itertools
 from completor import Completor
 
 from .utils import test_subseq, LIMIT
@@ -13,23 +14,10 @@ logger = logging.getLogger('completor')
 PAT = re.compile('(\w+:(//?[^\s]*)?)|(</[^\s>]*>?)')
 
 
-def find(current_dir, input_data):
-    path_dir = os.path.expanduser(os.path.expandvars(input_data))
-    if not path_dir:
-        return []
-
-    dirname, basename = os.path.split(path_dir)
-    if not dirname:
-        dirname = '.'
-
-    if not os.path.isabs(dirname):
-        dirname = os.path.join(current_dir, dirname)
-
-    dir_spec = os.path.join(dirname, '*')
-    dir_len = len(dir_spec) - 1
-    entries = []
-    for fname in glob.iglob(dir_spec):
-        entry = fname[dir_len:]
+def gen_entry(pat, dirname, basename):
+    prefix = len(dirname) + len(os.path.sep)
+    for fname in glob.iglob(pat):
+        entry = fname[prefix:]
         score = test_subseq(basename, entry)
         if score is None:
             continue
@@ -44,9 +32,27 @@ def find(current_dir, input_data):
             'abbr': abbr,
             'menu': '[F]',
         }
-        entries.append((entry, score))
-        if len(entries) >= LIMIT:
-            break
+        yield entry, score
+
+
+def find(current_dir, input_data):
+    path_dir = os.path.expanduser(os.path.expandvars(input_data))
+    if not path_dir:
+        return []
+
+    dirname, basename = os.path.split(path_dir)
+    if not dirname:
+        dirname = '.'
+
+    if not os.path.isabs(dirname):
+        dirname = os.path.join(current_dir, dirname)
+
+    def _pat(p):
+        return os.path.join(dirname, p)
+
+    entries = list(itertools.islice(itertools.chain(
+        gen_entry(_pat('*'), dirname, basename),
+        gen_entry(_pat('.*'), dirname, basename)), LIMIT))
     entries.sort(key=lambda x: x[1])
     return entries
 
