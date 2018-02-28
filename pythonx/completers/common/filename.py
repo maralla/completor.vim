@@ -28,7 +28,7 @@ def gen_entry(pat, dirname, basename):
         if os.path.isdir(os.path.join(dirname, entry)):
             abbr = ''.join([entry, os.sep])
         if entry.startswith('.'):
-            score += 1000
+            score += 100000
         entry = {
             'word': entry,
             'abbr': abbr,
