@@ -190,11 +190,6 @@ class Completor(Base):
 
     def do_complete(self, data):
         ret = []
-        filename = get('filename')
-        if not isinstance(self, filename.__class__) and \
-                filename.match(self.input_data) and not filename.disabled:
-            ret.extend(filename.parse(self.input_data))
-
         if callable(getattr(self, 'parse', None)):
             ret.extend(self.parse(data))
         else:
@@ -354,7 +349,10 @@ def load_completer(ft, input_data):
     if 'common' not in _completor._registry:
         import completers.common  # noqa
 
-    if not ft:
+    filename = get('filename')
+    if filename.match(input_data) and not filename.disabled:
+        c = filename
+    elif not ft:
         c = get('common')
     else:
         c = None

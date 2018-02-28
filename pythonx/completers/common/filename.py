@@ -52,9 +52,10 @@ def find(current_dir, input_data):
     def _pat(p):
         return os.path.join(dirname, p)
 
-    entries = list(itertools.islice(itertools.chain(
-        gen_entry(_pat('*'), dirname, basename),
-        gen_entry(_pat('.*'), dirname, basename)), LIMIT))
+    hidden = gen_entry(_pat('.*'), dirname, basename)
+    chain = gen_entry(_pat('*'), dirname, basename), hidden
+
+    entries = list(itertools.islice(itertools.chain(*chain), LIMIT))
     entries.sort(key=lambda x: x[1])
     return entries
 
