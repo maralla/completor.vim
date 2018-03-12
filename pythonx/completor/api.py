@@ -1,7 +1,7 @@
 import functools
 
-from . import load_completer, get, load as _load, vim, \
-    set_current_completer, get_current_completer
+from . import load_completer, load as _load, vim, set_current_completer, \
+    get_current_completer
 
 
 def _api(func):
@@ -47,12 +47,3 @@ def prepare_request(args):
 def is_message_end(args):
     c = get_current_completer()
     return c.is_message_end(args['msg']) if c else False
-
-
-@_api
-def fallback_to_common(args):
-    c = get_current_completer()
-    if c and c.filetype != 'common':
-        c = get('common', c.ft, c.input_data)
-        set_current_completer(c)
-        return c.get_cmd_info(b'complete')

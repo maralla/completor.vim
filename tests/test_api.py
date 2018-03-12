@@ -45,7 +45,3 @@ def test_prepare_request(vim_mod, create_buffer):
 def test_is_message_end(vim_mod):
     vim_mod.var_map['a:'] = {'msg': ''}
     assert api.is_message_end()
-
-
-def test_fallback_to_common():
-    assert not api.fallback_to_common()
