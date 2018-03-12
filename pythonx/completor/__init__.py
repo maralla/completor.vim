@@ -5,11 +5,15 @@ import json
 import os
 import re
 import shlex
+import threading
+import logging
 from os.path import expanduser
 
 from ._vim import vim_obj as vim
 from .compat import integer_types, to_bytes, to_unicode
 from ._log import config_logging
+
+_ctx = threading.local()
 
 
 class LogFilter(object):
@@ -18,6 +22,7 @@ class LogFilter(object):
 
 
 config_logging('completor.LogFilter')
+logger = logging.getLogger('completor')
 
 
 def get_encoding():
@@ -197,9 +202,12 @@ class Completor(Base):
 
         common = get('common')
         if not common.is_common(self):
-            common.ft = self.ft
-            common.input_data = self.input_data
-            ret.extend(common.parse(self.input_data))
+            if not ret:
+                set_current_completer(common)
+            if not ret or self.ident == common.ident:
+                common.ft = self.ft
+                common.input_data = self.input_data
+                ret.extend(common.parse(self.input_data))
         return ret
 
     def on_data(self, action, data):
@@ -378,3 +386,15 @@ def get(filetype, ft=None, input_data=None):
         if input_data is not None:
             completer.input_data = _unicode(input_data)
     return completer
+
+
+def set_current_completer(comp):
+    _ctx.current_completer = comp
+
+
+# Set current completer to None
+set_current_completer(None)
+
+
+def get_current_completer():
+    return _ctx.current_completer
