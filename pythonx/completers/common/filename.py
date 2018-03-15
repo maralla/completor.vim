@@ -11,7 +11,7 @@ from .utils import test_subseq, LIMIT
 
 
 logger = logging.getLogger('completor')
-PAT = re.compile('(\w+:(//?[^\s]*)?)|(</[^\s>]*>?)')
+PAT = re.compile('(\w+:(//?[^\s]*)?)|(</[^\s>]*>?)|(//)')
 
 
 def gen_entry(pat, dirname, basename):
