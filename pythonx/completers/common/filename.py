@@ -77,7 +77,7 @@ class Filename(Completor):
         # Tail part
         (?:
         # any alphanumeric, symbol or space literal
-        [/a-zA-Z0-9(){}$ +_~.'"\x80-\xff-\[\]]|
+        [/@a-zA-Z0-9(){}$ +_~.'"\x80-\xff-\[\]]|
 
         # skip any special symbols
         [^\x20-\x7E]|
@@ -86,7 +86,7 @@ class Filename(Completor):
         \\.
         )*$""", re.U | re.X)
 
-    ident = r"""[a-zA-Z0-9(){}$ +_~.'"\x80-\xff-\[\]]*"""
+    ident = r"""[@a-zA-Z0-9(){}$ +_~.'"\x80-\xff-\[\]]*"""
 
     def parse(self, base):
         """
