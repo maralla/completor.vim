@@ -193,16 +193,32 @@ function! completor#action#completefunc(findstart, base)
 endfunction
 
 
+function! s:must_contain(dct)
+  let keys = ['cmd', 'ftype', 'is_sync', 'is_daemon']
+  for key in keys
+    if !has_key(a:dct, key)
+      return v:false
+    endif
+  endfor
+  return v:true
+endfunction
+
+
 function! completor#action#do(action, info)
-  if empty(a:info) || !s:status.consistent() | return | endif
+  if empty(a:info) || !s:must_contain(a:info) || !s:status.consistent()
+    return
+  endif
   call s:reset()
   let s:action = a:action
+  let options = get(a:info, 'options', {})
+
   if a:info.is_sync
     call completor#action#callback(s:status.input)
   elseif !empty(a:info.cmd)
     if a:info.is_daemon
-      call completor#daemon#process(a:action, a:info.cmd, a:info.ftype)
+      call completor#daemon#process(a:action, a:info.cmd, a:info.ftype, options)
     else
+      " TODO Add job options
       let s:job = completor#compat#job_start_oneshot(a:info.cmd)
     endif
   endif
