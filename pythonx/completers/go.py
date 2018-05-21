@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from completor import Completor, vim
+
+logger = logging.getLogger('completor')
 
 
 class Go(Completor):
@@ -14,7 +17,7 @@ class Go(Completor):
 
     def format_cmd(self):
         binary = self.get_option('gocode_binary') or 'gocode'
-        return [binary, '-f=csv', '--in={}'.format(self.tempname),
+        return [binary, '-f=csv', '-in={}'.format(self.tempname),
                 'autocomplete', self.filename, self.offset()]
 
     def parse(self, items):
@@ -25,6 +28,7 @@ class Go(Completor):
                 continue
             res.append({
                 'word': parts[1],
-                'menu': parts[2]
+                'menu': parts[2],
+                'info': parts[2]
             })
         return res
