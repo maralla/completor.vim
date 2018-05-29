@@ -16,7 +16,7 @@ def test_format_cmd(vim_mod):
     go = completor.get('go')
     go.input_data = to_unicode('self.', 'utf-8')
     assert go.format_cmd() == [
-        'gocode', '-f=csv', '--in=/tmp/vJBio2A/2.vim', 'autocomplete',
+        'gocode', '-f=csv-with-package', '--in=/tmp/vJBio2A/2.vim', 'autocomplete',
         '/home/vagrant/bench.vim', 24]
 
 
