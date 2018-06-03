@@ -86,12 +86,15 @@ class Filename(Completor):
         \\.
         )*$""", re.U | re.X)
 
-    ident = r"""[@a-zA-Z0-9(){}$ +_~.'"\x80-\xff-\[\]]*"""
+    # Ingore whitespace.
+    ident = r"""[@a-zA-Z0-9(){}$+_~.'"\x80-\xff-\[\]]*"""
 
     def parse(self, base):
         """
         :param base: type unicode
         """
+        # Ignore white space.
+        base = base.split()[-1]
         logger.info('start filename parse: %s', base)
         pat = list(PAT.finditer(base))
         if pat:
