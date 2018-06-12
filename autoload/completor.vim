@@ -52,13 +52,23 @@ function! s:on_insert_char_pre()
 endfunction
 
 
+function! s:on_complete_done()
+  if pumvisible() == 0
+    try
+      pclose
+    catch
+    endtry
+  endif
+endfunction
+
+
 function! s:set_events()
   augroup completor
     autocmd!
     autocmd TextChangedI * call s:on_text_change()
     autocmd InsertCharPre * call s:on_insert_char_pre()
     if get(g:, 'completor_auto_close_doc', 1)
-      autocmd! CompleteDone * if pumvisible() == 0 | pclose | endif
+      autocmd! CompleteDone * call s:on_complete_done()
     endif
   augroup END
   if get(g:, 'completor_set_options', 1)
