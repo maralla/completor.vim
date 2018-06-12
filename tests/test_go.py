@@ -16,7 +16,7 @@ def test_format_cmd(vim_mod):
     go = completor.get('go')
     go.input_data = to_unicode('self.', 'utf-8')
     assert go.format_cmd() == [
-        'gocode', '-f=csv', '--in=/tmp/vJBio2A/2.vim', 'autocomplete',
+        'gocode', '-f=csv', '-in=/tmp/vJBio2A/2.vim', 'autocomplete',
         '/home/vagrant/bench.vim', 24]
 
 
@@ -28,8 +28,10 @@ def test_parse():
     go = completor.get('go')
     assert go.parse(data) == [{
         'word': b'Errorf',
-        'menu': b'func(format string, a ...interface{}) error'
+        'menu': b'func(format string, a ...interface{}) error',
+        'info': b'func(format string, a ...interface{}) error'
     }, {
         'word': b'Fprint',
-        'menu': b'func(w io.Writer, a ...interface{}) (n int, err error)'
+        'menu': b'func(w io.Writer, a ...interface{}) (n int, err error)',
+        'info': b'func(w io.Writer, a ...interface{}) (n int, err error)'
     }]
