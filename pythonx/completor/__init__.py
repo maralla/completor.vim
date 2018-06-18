@@ -321,6 +321,8 @@ _completor = Completor()
 
 # ft: unicode
 def _load(ft):
+    if not ft:
+        return
     if ft not in _completor._registry:
         try:
             importlib.import_module("completers.{}".format(ft))
