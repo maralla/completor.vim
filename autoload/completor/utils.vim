@@ -1,14 +1,21 @@
 let s:py = has('python3') ? 'py3' : 'py'
 let s:pyeval = function(has('python3') ? 'py3eval' : 'pyeval')
 
+let s:slash = (exists('+shellslash') && !&shellslash) ? '\' : '/'
+let s:tempname = escape(tempname(), ' ')
+
 
 function! completor#utils#tempname()
-  let tmp = escape(tempname(), ' ')
+  if !isdirectory(s:tempname)
+    call mkdir(s:tempname)
+  endif
+
   let ext = expand('%:p:e')
-  let ext = empty(ext) ? '' : '.'.ext
-  let tmp .= ext
-  call writefile(getline(1, '$'), tmp)
-  return tmp
+  let ext_part = empty(ext) ? '' : '.'.ext
+  let fname = 'completor__temp'.ext_part
+  let path = s:tempname . s:slash . fname
+  call writefile(getline(1, '$'), path)
+  return path
 endfunction
 
 

@@ -3,6 +3,7 @@
 import mock
 import pytest
 import completor
+import os.path
 from completers.go import Go  # noqa
 
 
@@ -20,7 +21,7 @@ class TestGetCmdInfo(object):
         },
         b'doc': {
             'is_sync': False,
-            'cmd': ['gogetdoc', '-modified', '-json', '-pos',
+            'cmd': ['gogetdoc', '-json', '-u', '-modified', '-pos',
                     '/home/vagrant/bench.vim:#24'],
             'ftype': 'go',
             'is_daemon': False,
@@ -29,7 +30,7 @@ class TestGetCmdInfo(object):
     }
 
     @pytest.mark.parametrize('action', [b'complete', b'doc'])
-    def test_get_cmd_info(self, vim_mod, create_buffer, action):
+    def test_get_cmd_info(self, vim_mod, create_buffer, action, monkeypatch):
         vim_mod.funcs['line2byte'] = mock.Mock(return_value=20)
         vim_mod.current.buffer = buf = create_buffer(1)
         vim_mod.current.buffer.name = '/home/vagrant/bench.vim'
@@ -37,6 +38,7 @@ class TestGetCmdInfo(object):
         buf[:] = ['package', 'main']
 
         go = completor.get('go')
+        monkeypatch.setattr(os.path, 'exists', mock.Mock(return_value=True))
         info = go.get_cmd_info(action)
         assert info == self.expected[action]
 

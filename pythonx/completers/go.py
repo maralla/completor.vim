@@ -2,6 +2,7 @@
 
 import logging
 import json
+import os.path
 from completor import Completor, vim
 from completor.compat import to_unicode
 from completor.utils import ignore_exception
@@ -13,7 +14,7 @@ class Go(Completor):
     filetype = 'go'
     trigger = r'(?:\w{2,}\w*|\.\w*)$'
 
-    def offset(self):
+    def get_offset(self):
         line, col = vim.current.window.cursor
         line2byte = vim.Function('line2byte')
         return line2byte(line) + col - 1
@@ -21,15 +22,21 @@ class Go(Completor):
     def _complete_cmd(self):
         binary = self.get_option('gocode_binary') or 'gocode'
         cmd = [binary, '-f=csv',
-               'autocomplete', self.filename, self.offset()]
+               'autocomplete', self.filename, self.get_offset()]
         return cmd, '\n'.join(vim.current.buffer[:])
 
     def _doc_cmd(self):
+        fname = self.filename
         binary = self.get_option('gogetdoc_binary') or 'gogetdoc'
-        cmd = [binary, '-modified', '-json', '-pos',
-               '{}:#{}'.format(self.filename, self.offset())]
-        content = '\n'.join(vim.current.buffer[:])
-        archive = '\n'.join([self.filename, str(len(content)), content])
+        cmd = [binary, '-json', '-u']
+        if not os.path.exists(fname):
+            fname = self.tempname
+            archive = ''
+        else:
+            cmd.append('-modified')
+            content = '\n'.join(vim.current.buffer[:])
+            archive = '\n'.join([fname, str(len(content)), content])
+        cmd.extend(['-pos', '{}:#{}'.format(fname, self.get_offset())])
         return cmd, archive
 
     def get_cmd_info(self, action):
