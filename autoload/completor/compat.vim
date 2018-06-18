@@ -39,7 +39,7 @@ endfunction
 
 if has('nvim')
   " neovim
-  function! completor#compat#job_start_oneshot(cmd)
+  function! completor#compat#job_start_oneshot(cmd, ...)
     let s:nvim_oneshot_msg = []
     let s:nvim_last_msg = ''
     return jobstart(a:cmd, {
@@ -65,12 +65,17 @@ if has('nvim')
       return 'dead'
     endtry
   endfunction
+
+  function! completor#compat#job_send(job, data)
+    call jobsend(a:job, a:data)
+    call jobclose(a:job, 'stdin')
+  endfunction
 else
   " vim8
-  function! completor#compat#job_start_oneshot(cmd)
+  function! completor#compat#job_start_oneshot(cmd, use_stdin)
     return job_start(a:cmd, {
           \   'close_cb': function('s:vim_oneshot_handler'),
-          \   'in_io': 'null',
+          \   'in_io': a:use_stdin ? 'pipe' : 'null',
           \   'err_io': 'out'
           \ })
   endfunction
@@ -85,5 +90,13 @@ else
 
   function! completor#compat#job_status(job)
     return job_status(a:job)
+  endfunction
+
+  function! completor#compat#job_send(job, data)
+    let ch = job_getchannel(a:job)
+    if ch_status(ch) ==# 'open'
+      call ch_sendraw(ch, a:data)
+      call ch_close_in(ch)
+    endif
   endfunction
 endif

@@ -71,6 +71,7 @@ class UltiSnips(object):
 
         return [mock.Mock(trigger='urt', description='mock snips')]
 
+
 sys.path.append('./pythonx')
 sys.modules['vim'] = Vim()
 sys.modules['UltiSnips'] = mock.Mock(UltiSnips_Manager=UltiSnips())

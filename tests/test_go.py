@@ -1,23 +1,46 @@
 # -*- coding: utf-8 -*-
 
 import mock
+import pytest
 import completor
-from completor.compat import to_unicode
+import os.path
 from completers.go import Go  # noqa
 
 
-def test_format_cmd(vim_mod):
-    vim_mod.funcs['line2byte'] = mock.Mock(return_value=20)
-    vim_mod.funcs['completor#utils#tempname'] = mock.Mock(
-        return_value=b'/tmp/vJBio2A/2.vim')
-    vim_mod.current.buffer.name = '/home/vagrant/bench.vim'
-    vim_mod.current.window.cursor = (1, 5)
+class TestGetCmdInfo(object):
+    expected = {
+        b'complete': {
+            'is_sync': False,
+            'input_content': 'package\nmain',
+            'cmd': [
+                'gocode', '-f=csv', 'autocomplete',
+                '/home/vagrant/bench.vim', 24
+            ],
+            'ftype': 'go',
+            'is_daemon': False,
+        },
+        b'doc': {
+            'is_sync': False,
+            'cmd': ['gogetdoc', '-json', '-u', '-modified', '-pos',
+                    '/home/vagrant/bench.vim:#24'],
+            'ftype': 'go',
+            'is_daemon': False,
+            'input_content': '/home/vagrant/bench.vim\n12\npackage\nmain'
+        }
+    }
 
-    go = completor.get('go')
-    go.input_data = to_unicode('self.', 'utf-8')
-    assert go.format_cmd() == [
-        'gocode', '-f=csv', '-in=/tmp/vJBio2A/2.vim', 'autocomplete',
-        '/home/vagrant/bench.vim', 24]
+    @pytest.mark.parametrize('action', [b'complete', b'doc'])
+    def test_get_cmd_info(self, vim_mod, create_buffer, action, monkeypatch):
+        vim_mod.funcs['line2byte'] = mock.Mock(return_value=20)
+        vim_mod.current.buffer = buf = create_buffer(1)
+        vim_mod.current.buffer.name = '/home/vagrant/bench.vim'
+        vim_mod.current.window.cursor = (1, 5)
+        buf[:] = ['package', 'main']
+
+        go = completor.get('go')
+        monkeypatch.setattr(os.path, 'exists', mock.Mock(return_value=True))
+        info = go.get_cmd_info(action)
+        assert info == self.expected[action]
 
 
 def test_parse():
@@ -26,7 +49,7 @@ def test_parse():
         b'func,,Fprint,,func(w io.Writer, a ...interface{}) (n int, err error)',  # noqa
     ]
     go = completor.get('go')
-    assert go.parse(data) == [{
+    assert go.on_complete(data) == [{
         'word': b'Errorf',
         'menu': b'func(format string, a ...interface{}) error',
         'info': b'func(format string, a ...interface{}) error'
@@ -35,3 +58,29 @@ def test_parse():
         'menu': b'func(w io.Writer, a ...interface{}) (n int, err error)',
         'info': b'func(w io.Writer, a ...interface{}) (n int, err error)'
     }]
+
+
+class TestDoc(object):
+    data = [
+        '{"name": "RuneCountInString", "import": "unicode/utf8", "pkg": '
+        '"utf8", "decl": "func RuneCountInString(s string) (n int)", "doc": '
+        '"RuneCountInString is like RuneCount but its input is a string.\\n", '
+        '"pos": "/usr/local/Cellar/go/1.9/libexec/src/unicode/utf8/utf8.go:'
+        '412:6"}'
+    ]
+
+    expected = {
+        'on_doc': ['import "unicode/utf8"\n\nfunc RuneCountInString'
+                   '(s string) (n int)\n\nRuneCountInString is like '
+                   'RuneCount but its input is a string.\n'],
+        'on_definition': [{
+            'col': '6',
+            'filename': '/usr/local/Cellar/go/1.9/libexec/src/unicode/utf8/utf8.go',  # noqa
+            'lnum': '412', 'name': 'RuneCountInString'}]
+    }
+
+    @pytest.mark.parametrize('action', ['on_doc', 'on_definition'])
+    def test_doc(self, action):
+        go = completor.get('go')
+        ret = getattr(go, action)(self.data)
+        assert ret == self.expected[action]
