@@ -2,11 +2,12 @@ let s:py = has('python3') ? 'py3' : 'py'
 let s:pyeval = function(has('python3') ? 'py3eval' : 'pyeval')
 
 let s:slash = (exists('+shellslash') && !&shellslash) ? '\' : '/'
-let s:tempname = escape(tempname(), ' ')
+let s:tempname = ''
 
 
 function! completor#utils#tempname()
-  if !isdirectory(s:tempname)
+  if empty(s:tempname)
+    let s:tempname = tempname()
     call mkdir(s:tempname)
   endif
 
