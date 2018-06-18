@@ -50,8 +50,6 @@ class Jedi(Completor):
             data = to_unicode(data[0], 'utf-8') \
                 .replace('\\u', '\\\\\\u') \
                 .replace('\\U', '\\\\\\U')
-            items = json.loads(data)
-            logger.info('%r => %r', self.input_data, items)
             return [i for i in json.loads(data)
                     if not self.input_data.endswith(i['word'])]
         except Exception as e:

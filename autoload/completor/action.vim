@@ -211,6 +211,7 @@ function! completor#action#do(action, info)
   call s:reset()
   let s:action = a:action
   let options = get(a:info, 'options', {})
+  let input_content = get(a:info, 'input_content', '')
 
   if a:info.is_sync
     call completor#action#callback(s:status.input)
@@ -219,7 +220,11 @@ function! completor#action#do(action, info)
       call completor#daemon#process(a:action, a:info.cmd, a:info.ftype, options)
     else
       " TODO Add job options
-      let s:job = completor#compat#job_start_oneshot(a:info.cmd)
+      let sending_content = !empty(input_content)
+      let s:job = completor#compat#job_start_oneshot(a:info.cmd, sending_content)
+      if sending_content
+        call completor#compat#job_send(s:job, input_content)
+      endif
     endif
   endif
 endfunction
