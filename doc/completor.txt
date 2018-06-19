@@ -210,6 +210,14 @@ Other                                                   *completor-other*
 
         Default: bottom
 
+*g:completor_def_split*
+        Show definition result in split window, default in current window.
+
+        Available values:
+
+            split: same as :split.
+            vsplit: same as :vsplit.
+
 
 ==============================================================================
 5. Write a new completer                                *completor-writing*
