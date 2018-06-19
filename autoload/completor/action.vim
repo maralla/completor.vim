@@ -63,6 +63,15 @@ function! s:jump(items)
     return
   endif
 
+  " Split window if the target is not the current file.
+  if item.filename != fnamemodify(expand('%'), ':p')
+    if g:completor_def_split ==? 'split'
+      split
+    elseif g:completor_def_split ==? 'vsplit'
+      vsplit
+    endif
+  endif
+
   call writefile(content, tmp)
   let tags = &tags
   let wildignore = &wildignore

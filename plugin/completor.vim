@@ -35,6 +35,7 @@ let g:completor_min_chars = get(g:, 'completor_min_chars', 2)
 let g:completor_completion_delay = get(g:, 'completor_completion_delay', 80)
 let g:completor_refresh_always = get(g:, 'completor_refresh_always', 1)
 let g:completor_doc_position = get(g:, 'completor_doc_position', 'bottom')
+let g:completor_def_split = get(g:, 'completor_def_split', '')
 
 
 augroup completor
