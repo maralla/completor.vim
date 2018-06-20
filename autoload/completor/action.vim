@@ -1,5 +1,6 @@
 let s:status = {'pos': [], 'nr': -1, 'input': '', 'ft': ''}
 let s:action = ''
+let s:completeopt = ''
 let s:completions = []
 
 let s:DOC_POSITION = {
@@ -32,6 +33,28 @@ function! s:reset()
 endfunction
 
 
+function! s:restore_completeopt()
+  if !empty(s:completeopt)
+    let &cot = s:completeopt
+  endif
+endfunction
+
+
+function! completor#action#_on_complete_done()
+  if pumvisible() == 0
+    try
+      pclose
+    catch
+    endtry
+  endif
+
+  if exists('s:restore_timer') && !empty(timer_info(s:restore_timer))
+    call timer_stop(s:restore_timer)
+  endif
+  let s:restore_timer = timer_start(500, {->s:restore_completeopt()})
+endfunction
+
+
 function! s:trigger_complete(msg)
   if !s:status.consistent()
     let s:completions = []
@@ -39,6 +62,10 @@ function! s:trigger_complete(msg)
     let s:completions = completor#utils#on_data('complete', a:msg)
   endif
   if empty(s:completions) | return | endif
+  if empty(s:completeopt)
+    let s:completeopt = &cot
+  endif
+  let &cot = get(g:, 'completor_complete_options', &cot)
   setlocal completefunc=completor#action#completefunc
   call feedkeys("\<Plug>CompletorTrigger")
 endfunction

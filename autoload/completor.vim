@@ -68,17 +68,9 @@ function! s:set_events()
     autocmd TextChangedI * call s:on_text_change()
     autocmd InsertCharPre * call s:on_insert_char_pre()
     if get(g:, 'completor_auto_close_doc', 1)
-      autocmd! CompleteDone * call s:on_complete_done()
+      autocmd! CompleteDone * call completor#action#_on_complete_done()
     endif
   augroup END
-  if get(g:, 'completor_set_options', 1)
-    set completeopt-=longest
-    set completeopt+=menuone
-    set completeopt-=menu
-    if &completeopt !~# 'noinsert\|noselect'
-      set completeopt+=noselect
-    endif
-  endif
 endfunction
 
 
