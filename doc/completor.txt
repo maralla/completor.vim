@@ -179,11 +179,12 @@ Other                                                   *completor-other*
 
         Default: 80
 
-*g:completor_set_options*
-        Set general complete options. Set the value to 0 to disable setting
-        the default options.
+*g:completor_complete_options*
+        Set complete options for completor. The config `completeopt` will be 
+        overwritten by the value when the completion is triggered and restored
+        after completion done.
 
-        Defaut: 1
+        Defaut: menuone,noselect,preview
 
 *g:completor_refresh_always*
         Set to 1 to refresh the completion menu whenever a key is pressed. If

@@ -182,20 +182,13 @@ inoremap <expr> <Tab> pumvisible() ? "<C-N>" : "<C-R>=completor#do('complete')<C
 
 #### Complete Options (completeopt)
 
-By default completor.vim set some options to the `completeopt`.
-If you don't want these options you can use the following config to disable it:
+Completor try its best to not overwrite the config `completeopt`, so the config
+`g:completor_complete_options` is introduced to be the complete option when completor
+is triggered.
 
 ```vim
-let g:completor_set_options = 0
+let g:completor_complete_options = 'menuone,noselect,preview'
 ```
 
-The default options:
-
-```vim
-set completeopt-=longest
-set completeopt+=menuone
-set completeopt-=menu
-if &completeopt !~# 'noinsert\|noselect'
-  set completeopt+=noselect
-endif
-```
+If you explicitly set `completeopt` completor will **not** use this value for complete
+options.
