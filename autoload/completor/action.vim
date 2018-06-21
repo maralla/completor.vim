@@ -106,7 +106,11 @@ function! s:jump(items)
   try
     set wildignore=
     let &tags = tmp
-    exe action . ' ' . name
+    try
+      exe action . ' ' . name
+    catch /E426/
+      return
+    endtry
     redraw
   finally
     let &tags = tags
