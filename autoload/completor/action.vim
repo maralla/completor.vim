@@ -107,7 +107,7 @@ function! s:jump(items)
     set wildignore=
     let &tags = tmp
     try
-      exe action . ' ' . name
+      exe action . ' ' . escape(name, '"')
     catch /E426/
       return
     endtry
