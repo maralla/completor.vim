@@ -62,11 +62,11 @@ def test_parse():
 
 class TestDoc(object):
     data = [
-        '{"name": "RuneCountInString", "import": "unicode/utf8", "pkg": '
-        '"utf8", "decl": "func RuneCountInString(s string) (n int)", "doc": '
-        '"RuneCountInString is like RuneCount but its input is a string.\\n", '
-        '"pos": "/usr/local/Cellar/go/1.9/libexec/src/unicode/utf8/utf8.go:'
-        '412:6"}'
+        b'{"name": "RuneCountInString", "import": "unicode/utf8", "pkg": '
+        b'"utf8", "decl": "func RuneCountInString(s string) (n int)", "doc": '
+        b'"RuneCountInString is like RuneCount but its input is a string'
+        b'.\\n", "pos": "/usr/local/Cellar/go/1.9/libexec/src/unicode/utf8'
+        b'/utf8.go:412:6"}'
     ]
 
     expected = {
@@ -78,6 +78,14 @@ class TestDoc(object):
             'filename': '/usr/local/Cellar/go/1.9/libexec/src/unicode/utf8/utf8.go',  # noqa
             'lnum': '412', 'name': 'RuneCountInString'}]
     }
+
+    @pytest.fixture(autouse=True)
+    def reset_guru(self):
+        go = completor.get('go')
+        status = go.use_guru_for_def
+        go.use_guru_for_def = False
+        yield
+        go.use_guru_for_def = status
 
     @pytest.mark.parametrize('action', ['on_doc', 'on_definition'])
     def test_doc(self, action):
