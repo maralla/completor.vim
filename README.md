@@ -129,6 +129,10 @@ let g:completor_gocode_binary = '/path/to/gocode'
 
 Use [completor-swift](https://github.com/maralla/completor-swift).
 
+#### elixir
+
+Use [alchemist.vim](https://github.com/slashmili/alchemist.vim).
+
 #### other languages
 
 For other omni completions completor not natively implemented, auto completion
