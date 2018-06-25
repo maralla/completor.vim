@@ -13,6 +13,11 @@ from ._vim import vim_obj as vim
 from .compat import integer_types, to_bytes, to_unicode
 from ._log import config_logging
 
+# Type alias collector.
+_type_map = {}
+# Cache for command arguments.
+_arg_cache = {}
+
 _ctx = threading.local()
 
 
@@ -48,11 +53,17 @@ def _read_args(path):
 
 
 class Meta(type):
-    def __init__(cls, name, bases, attrs):
-        if name not in ('Completor', 'Base'):
-            Completor._registry[to_unicode(cls.filetype, 'utf-8')] = cls()
+    # Completor registry.
+    _registry = {}
 
-        return super(Meta, cls).__init__(name, bases, attrs)
+    def __new__(mcls, name, bases, attrs):
+        cls = type.__new__(mcls, name, bases, attrs)
+        if name not in ('Completor', 'Base'):
+            comp = cls()
+            for alias in comp.aliases:
+                _type_map[to_bytes(alias)] = comp.filetype
+            mcls._registry[to_unicode(cls.filetype, 'utf-8')] = comp
+        return cls
 
 
 Base = Meta('Base', (object,), {})
@@ -64,8 +75,6 @@ class Unusable(object):
 
 
 class Completor(Base):
-    _registry = {}
-
     filetype = Unusable()
 
     daemon = False
@@ -73,14 +82,8 @@ class Completor(Base):
     trigger = None
     ident = re.compile(r'\w+', re.U)
 
-    _type_map = {
-        b'c': b'cpp',
-        b'javascript.jsx': b'javascript',
-        b'typescript.jsx': b'typescript',
-        b'python.django': b'python',
-    }
-
-    _arg_cache = {}
+    # Type alias.
+    aliases = []
 
     def __init__(self):
         self.input_data = ''
@@ -141,13 +144,6 @@ class Completor(Base):
     @cursor.setter
     def cursor(self, value):
         vim.current.window.cursor = value
-
-    # use cached property
-    @property
-    def filetype_map(self):
-        m = self.get_option('filetype_map') or {}
-        self._type_map.update(m)
-        return self._type_map
 
     @staticmethod
     def get_option(key):
@@ -244,14 +240,14 @@ class Completor(Base):
             files = [files]
         for f in files:
             key = '{}-{}'.format(self.filetype, f)
-            arg = self._arg_cache.get(key)
+            arg = _arg_cache.get(key)
             if arg:
                 return arg
             if arg is not None:
                 continue
             path = self.find_config_file(f)
             arg = [] if path is None else _read_args(path)
-            self._arg_cache[key] = arg
+            _arg_cache[key] = arg
             if arg:
                 return arg
         return []
@@ -316,14 +312,20 @@ class Completor(Base):
         return vim.Function('completor#utils#in_comment_or_string')()
 
 
-_completor = Completor()
+
+def _resolve_ft(ft):
+    """
+    :param ft: file type (bytes)
+    """
+    m = Completor.get_option('filetype_map') or {}
+    return to_unicode(m.get(ft, _type_map.get(ft, ft)), 'utf-8')
 
 
 # ft: unicode
 def _load(ft):
     if not ft:
         return
-    if ft not in _completor._registry:
+    if ft not in Meta._registry:
         try:
             importlib.import_module("completers.{}".format(ft))
         except ImportError:
@@ -331,7 +333,7 @@ def _load(ft):
                 importlib.import_module("completor_{}".format(ft))
             except ImportError:
                 return
-    return _completor._registry.get(ft)
+    return Meta._registry.get(ft)
 
 
 def load(ft, input_data=b''):
@@ -341,7 +343,7 @@ def load(ft, input_data=b''):
     :param input_data: input data (bytes)
     """
     input_data = _unicode(input_data)
-    ft = to_unicode(_completor.filetype_map.get(ft, ft), 'utf-8')
+    ft = _resolve_ft(ft)
     c = _load(ft)
     if c:
         c.input_data = input_data
@@ -354,9 +356,9 @@ def load_completer(ft, input_data):
     input_data = _unicode(input_data)
     if not input_data.strip():
         return
-    ft = to_unicode(_completor.filetype_map.get(ft, ft), 'utf-8')
+    ft = _resolve_ft(ft)
 
-    if 'common' not in _completor._registry:
+    if 'common' not in Meta._registry:
         import completers.common  # noqa
 
     filename = get('filename')
@@ -381,7 +383,7 @@ def load_completer(ft, input_data):
 
 # filetype: str, ft: bytes, input_data: bytes
 def get(filetype, ft=None, input_data=None):
-    completer = _completor._registry.get(filetype)
+    completer = Meta._registry.get(filetype)
     if completer:
         if ft is not None:
             completer.ft = _unicode(ft)
