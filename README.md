@@ -129,7 +129,7 @@ let g:completor_gocode_binary = '/path/to/gocode'
 
 Use [completor-swift](https://github.com/maralla/completor-swift).
 
-#### elixir
+#### Elixir
 
 Use [alchemist.vim](https://github.com/slashmili/alchemist.vim).
 
