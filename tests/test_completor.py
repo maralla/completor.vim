@@ -20,11 +20,11 @@ def test_disabled(vim_mod):
 
 
 def test_load(vim_mod, monkeypatch):
-    from completor import _completor
+    from completor import Meta
     vim_mod.eval = mock.Mock(return_value={})
     vim_mod.vars = {}
 
-    with mock.patch.object(_completor, '_type_map',
+    with mock.patch.object(Meta, 'type_map',
                            {b'python.django': b'python'}):
         assert load_completer(b'hello', b'') is None
         assert get('python') is None

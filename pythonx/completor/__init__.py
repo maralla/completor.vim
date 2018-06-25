@@ -13,8 +13,6 @@ from ._vim import vim_obj as vim
 from .compat import integer_types, to_bytes, to_unicode
 from ._log import config_logging
 
-# Type alias collector.
-_type_map = {}
 # Cache for command arguments.
 _arg_cache = {}
 
@@ -54,15 +52,17 @@ def _read_args(path):
 
 class Meta(type):
     # Completor registry.
-    _registry = {}
+    registry = {}
+    # Type alias collector.
+    type_map = {}
 
     def __new__(mcls, name, bases, attrs):
         cls = type.__new__(mcls, name, bases, attrs)
         if name not in ('Completor', 'Base'):
             comp = cls()
             for alias in comp.aliases:
-                _type_map[to_bytes(alias)] = comp.filetype
-            mcls._registry[to_unicode(cls.filetype, 'utf-8')] = comp
+                mcls.type_map[to_bytes(alias)] = comp.filetype
+            mcls.registry[to_unicode(cls.filetype, 'utf-8')] = comp
         return cls
 
 
@@ -312,20 +312,19 @@ class Completor(Base):
         return vim.Function('completor#utils#in_comment_or_string')()
 
 
-
 def _resolve_ft(ft):
     """
     :param ft: file type (bytes)
     """
     m = Completor.get_option('filetype_map') or {}
-    return to_unicode(m.get(ft, _type_map.get(ft, ft)), 'utf-8')
+    return to_unicode(m.get(ft, Meta.type_map.get(ft, ft)), 'utf-8')
 
 
 # ft: unicode
 def _load(ft):
     if not ft:
         return
-    if ft not in Meta._registry:
+    if ft not in Meta.registry:
         try:
             importlib.import_module("completers.{}".format(ft))
         except ImportError:
@@ -333,7 +332,7 @@ def _load(ft):
                 importlib.import_module("completor_{}".format(ft))
             except ImportError:
                 return
-    return Meta._registry.get(ft)
+    return Meta.registry.get(ft)
 
 
 def load(ft, input_data=b''):
@@ -358,7 +357,7 @@ def load_completer(ft, input_data):
         return
     ft = _resolve_ft(ft)
 
-    if 'common' not in Meta._registry:
+    if 'common' not in Meta.registry:
         import completers.common  # noqa
 
     filename = get('filename')
@@ -383,7 +382,7 @@ def load_completer(ft, input_data):
 
 # filetype: str, ft: bytes, input_data: bytes
 def get(filetype, ft=None, input_data=None):
-    completer = Meta._registry.get(filetype)
+    completer = Meta.registry.get(filetype)
     if completer:
         if ft is not None:
             completer.ft = _unicode(ft)
