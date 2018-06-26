@@ -81,7 +81,6 @@ class Go(Completor):
             res.append({
                 'word': parts[1],
                 'menu': parts[2],
-                'info': parts[2]
             })
         return res
 
