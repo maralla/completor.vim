@@ -3,7 +3,6 @@
 import mock
 import pytest
 import completor
-import os.path
 from completers.go import Go  # noqa
 
 
@@ -11,7 +10,7 @@ class TestGetCmdInfo(object):
     expected = {
         b'complete': {
             'is_sync': False,
-            'input_content': 'package\nmain',
+            'input_content': 'package main\nvar _ = "哦"',
             'cmd': [
                 'gocode', '-f=csv', 'autocomplete',
                 '/home/vagrant/bench.vim', 24
@@ -25,7 +24,8 @@ class TestGetCmdInfo(object):
                     '/home/vagrant/bench.vim:#24'],
             'ftype': 'go',
             'is_daemon': False,
-            'input_content': '/home/vagrant/bench.vim\n12\npackage\nmain'
+            'input_content': ('/home/vagrant/bench.vim\n26\n'
+                              'package main\nvar _ = "哦"')
         }
     }
 
@@ -34,11 +34,12 @@ class TestGetCmdInfo(object):
         vim_mod.funcs['line2byte'] = mock.Mock(return_value=20)
         vim_mod.current.buffer = buf = create_buffer(1)
         vim_mod.current.buffer.name = '/home/vagrant/bench.vim'
+        vim_mod.current.buffer.options = {'fileencoding': 'utf-8'}
         vim_mod.current.window.cursor = (1, 5)
-        buf[:] = ['package', 'main']
+        vim_mod.eval = mock.Mock(return_value='1')
+        buf[:] = ['package main', 'var _ = "哦"']
 
         go = completor.get('go')
-        monkeypatch.setattr(os.path, 'exists', mock.Mock(return_value=True))
         info = go.get_cmd_info(action)
         assert info == self.expected[action]
 
