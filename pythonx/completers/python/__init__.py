@@ -13,7 +13,6 @@ logger = logging.getLogger('completor')
 
 class Jedi(Completor):
     filetype = 'python'
-    aliases = ['python.django']
     trigger = (r'\w{3,}$|'
                r'[\w\)\]\}\'\"]+\.\w*$|'
                r'^\s*from\s+[\w\.]*(?:\s+import\s+(?:\w*(?:,\s*)?)*)?|'

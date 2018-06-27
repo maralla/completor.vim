@@ -54,15 +54,18 @@ class Meta(type):
     # Completor registry.
     registry = {}
     # Type alias collector.
-    type_map = {}
+    type_map = {
+        b'c': 'cpp',
+        b'javascript.jsx': 'javascript',
+        b'python.django': 'python',
+        b'typescript.tsx': 'typescript',
+        b'typescript.jsx': 'typescript',
+    }
 
     def __new__(mcls, name, bases, attrs):
         cls = type.__new__(mcls, name, bases, attrs)
         if name not in ('Completor', 'Base'):
-            comp = cls()
-            for alias in comp.aliases:
-                mcls.type_map[to_bytes(alias)] = comp.filetype
-            mcls.registry[to_unicode(cls.filetype, 'utf-8')] = comp
+            mcls.registry[to_unicode(cls.filetype, 'utf-8')] = cls()
         return cls
 
 
@@ -81,9 +84,6 @@ class Completor(Base):
     sync = False
     trigger = None
     ident = re.compile(r'\w+', re.U)
-
-    # Type alias.
-    aliases = []
 
     def __init__(self):
         self.input_data = ''

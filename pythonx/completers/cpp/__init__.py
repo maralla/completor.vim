@@ -118,7 +118,6 @@ def parse_ast_dump(data, word, line, column):
 
 class Clang(Completor):
     filetype = 'cpp'
-    aliases = ['c']
 
     args_file = ['.clang_complete', '.clang']
 
