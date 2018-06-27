@@ -52,11 +52,9 @@ def test_parse():
     assert go.on_complete(data) == [{
         'word': b'Errorf',
         'menu': b'func(format string, a ...interface{}) error',
-        'info': b'func(format string, a ...interface{}) error'
     }, {
         'word': b'Fprint',
         'menu': b'func(w io.Writer, a ...interface{}) (n int, err error)',
-        'info': b'func(w io.Writer, a ...interface{}) (n int, err error)'
     }]
 
 
