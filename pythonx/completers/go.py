@@ -2,9 +2,8 @@
 
 import logging
 import json
-import os.path
-from completor import Completor, vim
-from completor.compat import to_unicode
+from completor import Completor, vim, get_encoding
+from completor.compat import to_unicode, to_bytes
 from completor.utils import ignore_exception
 
 logger = logging.getLogger('completor')
@@ -22,9 +21,12 @@ class Go(Completor):
         line2byte = vim.Function('line2byte')
         return line2byte(line) + col - 1
 
-    def _gen_archive(self, fname):
+    def _gen_archive(self):
+        if not int(vim.eval('&modified')):
+            return ''
         content = '\n'.join(vim.current.buffer[:])
-        return '\n'.join([fname, str(len(content)), content])
+        n = len(to_bytes(content, get_encoding()))
+        return '\n'.join([self.filename, str(n), content])
 
     def _complete_cmd(self):
         binary = self.get_option('gocode_binary') or 'gocode'
@@ -33,27 +35,27 @@ class Go(Completor):
         return cmd, '\n'.join(vim.current.buffer[:])
 
     def _doc_cmd(self):
-        fname = self.filename
         binary = self.get_option('gogetdoc_binary') or 'gogetdoc'
+        archive = self._gen_archive()
         cmd = [binary, '-json', '-u']
-        if not os.path.exists(fname):
-            fname = self.tempname
-            archive = ''
-        else:
+        if archive:
             cmd.append('-modified')
-            archive = self._gen_archive(fname)
-        cmd.extend(['-pos', '{}:#{}'.format(fname, self.get_offset())])
+        cmd.extend(['-pos', '{}:#{}'.format(self.filename, self.get_offset())])
         return cmd, archive
 
     def _def_cmd(self):
         guru = self.get_option('go_guru_binary')
         if not guru:
             return self._doc_cmd()
-        fname = self.filename
+
         self.use_guru_for_def = True
-        cmd = [guru, '-json', '-modified', 'definition',
-               '{}:#{}'.format(fname, self.get_offset())]
-        return cmd, self._gen_archive(fname)
+        cmd = [guru, '-json']
+        archive = self._gen_archive()
+        if archive:
+            cmd.append('-modified')
+        pos = '{}:#{}'.format(self.filename, self.get_offset())
+        cmd.extend(['definition', pos])
+        return cmd, archive
 
     def get_cmd_info(self, action):
         if action == b'complete':
