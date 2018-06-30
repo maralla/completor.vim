@@ -21,8 +21,9 @@ class Go(Completor):
         line2byte = vim.Function('line2byte')
         return line2byte(line) + col - 1
 
+
     def _gen_archive(self):
-        if not int(vim.eval('&modified')):
+        if not vim.current.buffer.options['modified']:
             return ''
         content = '\n'.join(vim.current.buffer[:])
         n = len(to_bytes(content, get_encoding()))

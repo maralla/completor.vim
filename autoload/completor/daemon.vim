@@ -88,7 +88,7 @@ endif
 
 
 function! s:daemon.respawn(cmd, name, options)
-  if self.status(a:name) == 'run'
+  if self.status(a:name) ==# 'run'
     call completor#compat#job_stop(self.job)
   endif
   let self.job = s:job_start_daemon(a:cmd, a:options)
@@ -127,12 +127,12 @@ function! completor#daemon#process(action, cmd, name, options)
   let s:daemon.msgs = []
 
   " Daemon not running
-  if s:daemon.status(a:name) != 'run'
+  if s:daemon.status(a:name) !=# 'run'
     call s:daemon.respawn(a:cmd, a:name, a:options)
   endif
 
-  if s:daemon.status(a:name) != 'run'
-    return
+  if s:daemon.status(a:name) !=# 'run'
+    return v:false
   endif
 
   " Already requested
@@ -140,23 +140,24 @@ function! completor#daemon#process(action, cmd, name, options)
     if localtime() - s:daemon.t > 5
       call s:daemon.kill()
     endif
-    return
+    return v:false
   endif
 
   let req = completor#utils#prepare_request(a:action)
   if empty(req)
-    return
+    return v:false
   endif
 
   call s:daemon.write(req)
 
   let s:daemon.requested = v:true
   let s:daemon.t = localtime()
+  return v:true
 endfunction
 
 
 function! s:check_status()
-  if s:daemon.status(s:daemon.type) != 'run'
+  if s:daemon.status(s:daemon.type) !=# 'run'
     echo 'Daemon killed'
   endif
 endfunction

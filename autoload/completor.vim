@@ -100,7 +100,7 @@ function! completor#do(action)
   else
     let info = completor#utils#load(status.ft, a:action, status.input)
   endif
-  call completor#action#do(a:action, info)
+  call completor#action#do(a:action, info, status)
   return ''
 endfunction
 

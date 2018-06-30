@@ -2,11 +2,33 @@ let s:status = {'pos': [], 'nr': -1, 'input': '', 'ft': ''}
 let s:action = ''
 let s:completeopt = ''
 let s:completions = []
+let s:freezed_status = {'pos': [], 'nr': -1, 'ft': ''}
 
 let s:DOC_POSITION = {
       \ 'bottom': 'rightbelow',
       \ 'top': 'topleft',
       \ }
+
+
+function! s:freezed_status.reset()
+  let self.pos = []
+  let self.nr = -1
+  let self.ft = ''
+endfunction
+
+
+function! s:freezed_status.set(status)
+  let self.pos = a:status.pos
+  let self.nr = a:status.nr
+  let self.ft = a:status.ft
+endfunction
+
+
+function! s:freezed_status.consistent()
+  return self.pos == getcurpos() &&
+        \ self.nr == bufnr('') &&
+        \ self.ft == &ft
+endfunction
 
 
 function! s:status.update()
@@ -20,13 +42,9 @@ function! s:status.update()
 endfunction
 
 
-function! s:status.consistent()
-  return self.pos == getcurpos() && self.nr == bufnr('') && self.ft == &ft
-endfunction
-
-
 function! s:reset()
   let s:completions = []
+  call s:freezed_status.reset()
   if exists('s:job') && completor#compat#job_status(s:job) ==# 'run'
     call completor#compat#job_stop(s:job)
   endif
@@ -56,11 +74,7 @@ endfunction
 
 
 function! s:trigger_complete(msg)
-  if !s:status.consistent()
-    let s:completions = []
-  else
-    let s:completions = completor#utils#on_data('complete', a:msg)
-  endif
+  let s:completions = completor#utils#on_data('complete', a:msg)
   if empty(s:completions) | return | endif
   if empty(s:completeopt)
     let s:completeopt = &cot
@@ -202,6 +216,12 @@ endfunction
 
 
 function! completor#action#callback(msg)
+  if !s:freezed_status.consistent()
+    let s:completions = []
+    return
+  endif
+  call s:freezed_status.reset()
+
   if s:action ==# 'complete'
     call s:trigger_complete(a:msg)
   elseif s:action ==# 'definition'
@@ -233,35 +253,36 @@ function! completor#action#completefunc(findstart, base)
 endfunction
 
 
-function! s:must_contain(dct)
-  let keys = ['cmd', 'ftype', 'is_sync', 'is_daemon']
-  for key in keys
-    if !has_key(a:dct, key)
-      return v:false
-    endif
-  endfor
-  return v:true
-endfunction
-
-
-function! completor#action#do(action, info)
-  if empty(a:info) || !s:must_contain(a:info) || !s:status.consistent()
+" :param info: must contain keys: 'cmd', 'ftype', 'is_sync', 'is_daemon'
+function! completor#action#do(action, info, status)
+  if empty(a:info)
     return
   endif
+
   call s:reset()
   let s:action = a:action
   let options = get(a:info, 'options', {})
   let input_content = get(a:info, 'input_content', '')
 
   if a:info.is_sync
+    call s:freezed_status.set(a:status)
     call completor#action#callback(s:status.input)
   elseif !empty(a:info.cmd)
     if a:info.is_daemon
-      call completor#daemon#process(a:action, a:info.cmd, a:info.ftype, options)
+      if completor#daemon#process(a:action, a:info.cmd, a:info.ftype, options)
+        call s:freezed_status.set(a:status)
+      else
+        call s:freezed_status.reset()
+      endif
     else
       " TODO Add job options
       let sending_content = !empty(input_content)
       let s:job = completor#compat#job_start_oneshot(a:info.cmd, sending_content)
+      if completor#compat#job_status(s:job) ==# 'run'
+        call s:freezed_status.set(a:status)
+      else
+        call s:freezed_status.reset()
+      endif
       if sending_content
         call completor#compat#job_send(s:job, input_content)
       endif
