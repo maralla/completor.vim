@@ -39,14 +39,16 @@ endfunction
 
 if has('nvim')
   " neovim
-  function! completor#compat#job_start_oneshot(cmd, ...)
+  function! completor#compat#job_start_oneshot(cmd, options, ...)
     let s:nvim_oneshot_msg = []
     let s:nvim_last_msg = ''
-    return jobstart(a:cmd, {
+    let conf = {
           \   'on_stdout': function('s:nvim_oneshot_handler'),
           \   'on_stderr': function('s:nvim_oneshot_handler'),
           \   'on_exit': function('s:nvim_oneshot_handler')
-          \ })
+          \ }
+    call extend(conf, a:options)
+    return jobstart(a:cmd, conf)
   endfunction
 
   function! completor#compat#job_stop(name, ...)
@@ -72,12 +74,14 @@ if has('nvim')
   endfunction
 else
   " vim8
-  function! completor#compat#job_start_oneshot(cmd, use_stdin)
-    return job_start(a:cmd, {
+  function! completor#compat#job_start_oneshot(cmd, options, use_stdin)
+    let conf = {
           \   'close_cb': function('s:vim_oneshot_handler'),
           \   'in_io': a:use_stdin ? 'pipe' : 'null',
           \   'err_io': 'out'
-          \ })
+          \ }
+    call extend(conf, a:options)
+    return job_start(a:cmd, conf)
   endfunction
 
   function! completor#compat#job_stop(name, ...)

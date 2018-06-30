@@ -275,9 +275,8 @@ function! completor#action#do(action, info, status)
         call s:freezed_status.reset()
       endif
     else
-      " TODO Add job options
       let sending_content = !empty(input_content)
-      let s:job = completor#compat#job_start_oneshot(a:info.cmd, sending_content)
+      let s:job = completor#compat#job_start_oneshot(a:info.cmd, options, sending_content)
       if completor#compat#job_status(s:job) ==# 'run'
         call s:freezed_status.set(a:status)
       else
