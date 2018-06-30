@@ -34,7 +34,8 @@ class TestGetCmdInfo(object):
         vim_mod.funcs['line2byte'] = mock.Mock(return_value=20)
         vim_mod.current.buffer = buf = create_buffer(1)
         vim_mod.current.buffer.name = '/home/vagrant/bench.vim'
-        vim_mod.current.buffer.options = {'fileencoding': 'utf-8'}
+        vim_mod.current.buffer.options = {
+            'fileencoding': 'utf-8', 'modified': True}
         vim_mod.current.window.cursor = (1, 5)
         vim_mod.eval = mock.Mock(return_value='1')
         buf[:] = ['package main', 'var _ = "哦"']
