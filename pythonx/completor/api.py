@@ -22,7 +22,13 @@ def get_completer(args):
 def load(args):
     c = _load(args['ft'], args['inputted'])
     set_current_completer(c)
-    return c.get_cmd_info(args['action']) if c else vim.Dictionary()
+    if not c:
+        return vim.Dictionary()
+    try:
+        c.meta = args['meta']
+        return c.get_cmd_info(args['action'])
+    finally:
+        c.meta = None
 
 
 @_api

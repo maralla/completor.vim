@@ -46,7 +46,7 @@ function! completor#utils#get_completer(ft, inputted)
 endfunction
 
 
-function! completor#utils#load(ft, action, inputted)
+function! completor#utils#load(ft, action, inputted, meta)
   exe s:py 'res = completor_api.load()'
   return s:pyeval('res')
 endfunction

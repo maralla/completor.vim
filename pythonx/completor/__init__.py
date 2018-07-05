@@ -85,6 +85,9 @@ class Completor(Base):
     trigger = None
     ident = re.compile(r'\w+', re.U)
 
+    # Extra data come from vim.
+    meta = None
+
     def __init__(self):
         self.input_data = ''
         self.ft = ''

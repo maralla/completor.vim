@@ -12,8 +12,8 @@ log_file = os.path.join(os.path.dirname(__file__), 'completor_python.log')
 logger = logging.getLogger('python-jedi')
 handler = logging.FileHandler(log_file, delay=1)
 handler.setLevel(logging.INFO)
-handler.setFormatter(logging.Formatter(
-    '%(asctime)s [%(levelname)s][%(module)s] %(message)s'))
+handler.setFormatter(
+    logging.Formatter('%(asctime)s [%(levelname)s][%(module)s] %(message)s'))
 logger.addHandler(handler)
 
 
@@ -24,8 +24,11 @@ def write(msg):
 
 def process_request(args):
     import jedi
-    script = jedi.Script(source=args['content'], line=args['line'] + 1,
-                         column=args['col'], path=args['filename'])
+    script = jedi.Script(
+        source=args['content'],
+        line=args['line'] + 1,
+        column=args['col'],
+        path=args['filename'])
 
     data = []
     if args['action'] == 'complete':

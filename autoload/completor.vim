@@ -89,16 +89,18 @@ function! completor#enable()
 endfunction
 
 
-function! completor#do(action)
+function! completor#do(action) range
   call s:import_python()
   call completor#action#update_status()
 
   let status = completor#action#get_status()
 
+  let meta = {'range': [a:firstline, a:lastline]}
+
   if a:action ==# 'complete'
     let info = completor#utils#get_completer(status.ft, status.input)
   else
-    let info = completor#utils#load(status.ft, a:action, status.input)
+    let info = completor#utils#load(status.ft, a:action, status.input, meta)
   endif
   call completor#action#do(a:action, info, status)
   return ''

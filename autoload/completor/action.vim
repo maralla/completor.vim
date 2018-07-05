@@ -230,6 +230,8 @@ function! completor#action#callback(msg)
     call s:call_signatures(a:msg)
   elseif s:action ==# 'doc'
     call s:show_doc(a:msg)
+  elseif s:action ==# 'format'
+    silent edit!
   endif
 endfunction
 
