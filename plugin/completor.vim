@@ -41,11 +41,11 @@ let g:completor_complete_options = get(g:, 'completor_complete_options', 'menuon
 
 augroup completor
     autocmd!
-    autocmd InsertEnter * call completor#enable()
+    autocmd InsertEnter * call completor#enable_autocomplete()
 augroup END
 
 
-command! CompletorDisable call completor#disable()
-command! CompletorEnable call completor#enable()
+command! CompletorDisable call completor#disable_autocomplete()
+command! CompletorEnable call completor#enable_autocomplete()
 
 call s:restore_cpo()

@@ -22,8 +22,7 @@ def write(msg):
     sys.stdout.flush()
 
 
-def process_request(args):
-    import jedi
+def process_request(jedi, args):
     script = jedi.Script(
         source=args['content'],
         line=args['line'] + 1,
@@ -69,7 +68,7 @@ def process_request(args):
     write(json.dumps(data))
 
 
-def run():
+def run(jedi):
     """
     input data:
     {
@@ -90,13 +89,18 @@ def run():
             continue
 
         try:
-            process_request(args)
+            process_request(jedi, args)
         except Exception as e:
             logger.exception(e)
             write(json.dumps([]))
 
 
 def main():
+    try:
+        import jedi
+    except ImportError:
+        return
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--verbose', action='store_true')
     args = parser.parse_args()
@@ -106,7 +110,7 @@ def main():
             return args.verbose
 
     logger.addFilter(Filter())
-    run()
+    run(jedi)
 
 
 if __name__ == '__main__':

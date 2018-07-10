@@ -74,12 +74,12 @@ function! s:set_events()
 endfunction
 
 
-function! completor#disable()
+function! completor#disable_autocomplete()
   autocmd! completor
 endfunction
 
 
-function! completor#enable()
+function! completor#enable_autocomplete()
   if &diff
     return
   endif
