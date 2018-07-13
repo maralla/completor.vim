@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import argparse
 import json
+import contextlib
 import logging
 import os.path
 import sys
@@ -22,25 +23,51 @@ def write(msg):
     sys.stdout.flush()
 
 
-def process_request(jedi, args):
-    script = jedi.Script(
-        source=args['content'],
-        line=args['line'] + 1,
-        column=args['col'],
-        path=args['filename'])
+class JediProcessor(object):
+    def __init__(self, jedi):
+        self.jedi = jedi
+        self.script = None
 
-    data = []
-    if args['action'] == 'complete':
-        for c in script.completions():
-            res = {
+    @contextlib.contextmanager
+    def jedi_context(self, args):
+        self.script = self.jedi.Script(
+            source=args['content'], line=args['line'] + 1,
+            column=args['col'], path=args['filename'])
+        try:
+            yield
+        finally:
+            self.script = None
+
+    def ignore(self):
+        script = self.script
+        try:
+            node = script._module_node.get_leaf_for_position(script._pos)
+            return not node or node.type in ('string', 'number')
+        except Exception as e:
+            logger.exception(e)
+            return False
+
+    def process(self, args):
+        action = args.get('action')
+        func = getattr(self, 'on_{}'.format(action), None)
+        if not func:
+            return []
+        with self.jedi_context(args):
+            if self.ignore():
+                return []
+            return list(func())
+
+    def on_complete(self):
+        for c in self.script.completions():
+            yield {
                 'word': c.name,
                 'abbr': c.name_with_symbols,
                 'menu': c.description,
                 'info': c.docstring(),
             }
-            data.append(res)
-    elif args['action'] == 'definition':
-        for d in script.goto_assignments(follow_imports=True):
+
+    def on_definition(self):
+        for d in self.script.goto_assignments(follow_imports=True):
             item = {'text': d.description}
             if d.in_builtin_module():
                 item['text'] = 'Builtin {}'.format(item['text'])
@@ -51,21 +78,20 @@ def process_request(jedi, args):
                     'col': d.column + 1,
                     'name': d.name,
                 })
-            data.append(item)
-    elif args['action'] == 'doc':
-        for d in script.goto_assignments(follow_imports=True):
-            data.append(d.docstring(fast=False).strip())
-    elif args['action'] == 'signature':
-        for s in script.call_signatures():
+            yield item
+
+    def on_doc(self):
+        for d in self.script.goto_assignments(follow_imports=True):
+            yield d.docstring(fast=False).strip()
+
+    def on_signature(self):
+        for s in self.script.call_signatures():
             params = [p.description.replace('\n', '')[6:] for p in s.params]
-            item = {
+            yield {
                 'params': params,
                 'func': s.call_name,
                 'index': s.index or 0
             }
-            logger.info(str(item))
-            data.append(item)
-    write(json.dumps(data))
 
 
 def run(jedi):
@@ -78,6 +104,8 @@ def run(jedi):
         "content": <string>,
     }
     """
+    processor = JediProcessor(jedi)
+
     while True:
         data = sys.stdin.readline()
         logger.info(data)
@@ -89,10 +117,11 @@ def run(jedi):
             continue
 
         try:
-            process_request(jedi, args)
+            ret = processor.process(args)
         except Exception as e:
             logger.exception(e)
-            write(json.dumps([]))
+            ret = []
+        write(json.dumps(ret))
 
 
 def main():
