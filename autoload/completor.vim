@@ -83,8 +83,6 @@ function! completor#enable_autocomplete()
   if &diff
     return
   endif
-  noremap  <silent> <Plug>CompletorTrigger <nop>
-  inoremap <silent> <Plug>CompletorTrigger <c-x><c-u>
   call s:set_events()
 endfunction
 

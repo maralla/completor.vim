@@ -1,6 +1,5 @@
 let s:status = {'pos': [], 'nr': -1, 'input': '', 'ft': ''}
 let s:action = ''
-let s:completeopt = ''
 let s:completions = []
 let s:freezed_status = {'pos': [], 'nr': -1, 'ft': ''}
 
@@ -51,13 +50,6 @@ function! s:reset()
 endfunction
 
 
-function! s:restore_completeopt()
-  if !empty(s:completeopt)
-    let &cot = s:completeopt
-  endif
-endfunction
-
-
 function! completor#action#_on_complete_done()
   if pumvisible() == 0
     try
@@ -65,23 +57,23 @@ function! completor#action#_on_complete_done()
     catch
     endtry
   endif
-
-  if exists('s:restore_timer') && !empty(timer_info(s:restore_timer))
-    call timer_stop(s:restore_timer)
-  endif
-  let s:restore_timer = timer_start(500, {->s:restore_completeopt()})
 endfunction
 
 
 function! s:trigger_complete(msg)
   let s:completions = completor#utils#on_data('complete', a:msg)
   if empty(s:completions) | return | endif
-  if empty(s:completeopt)
-    let s:completeopt = &cot
+  let startcol = completor#action#completefunc(1, '')
+  let matches = completor#action#completefunc(0, '')
+  if startcol >= 0
+    try
+      let cot = &cot
+      let &cot = get(g:, 'completor_complete_options', &cot)
+      call complete(startcol + 1, matches.words)
+    finally
+      let &cot = cot
+    endtry
   endif
-  let &cot = get(g:, 'completor_complete_options', &cot)
-  setlocal completefunc=completor#action#completefunc
-  call feedkeys("\<Plug>CompletorTrigger")
 endfunction
 
 
