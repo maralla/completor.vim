@@ -58,6 +58,10 @@ class Go(Completor):
         cmd.extend(['definition', pos])
         return cmd, archive
 
+    def _format(self):
+        gofmt = self.get_option('go_gofmt_binary') or 'gofmt'
+        return [gofmt, '-w', self.filename], ''
+
     def get_cmd_info(self, action):
         if action == b'complete':
             cmd, input_content = self._complete_cmd()
@@ -65,6 +69,8 @@ class Go(Completor):
             cmd, input_content = self._doc_cmd()
         elif action == b'definition':
             cmd, input_content = self._def_cmd()
+        elif action == b'format':
+            cmd, input_content = self._format()
         else:
             cmd, input_content = [], ''
         return vim.Dictionary(
