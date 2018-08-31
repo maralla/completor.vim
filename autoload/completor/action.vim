@@ -70,7 +70,7 @@ function! s:trigger_complete(msg)
       let cot = &cot
       let &cot = get(g:, 'completor_complete_options', &cot)
       call complete(startcol + 1, matches.words)
-    catch /E785/
+    catch /E785\|E685/
     finally
       let &cot = cot
     endtry
