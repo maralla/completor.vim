@@ -1,6 +1,7 @@
 let s:status = {'pos': [], 'nr': -1, 'input': '', 'ft': ''}
 let s:action = ''
 let s:completions = []
+let s:cot = ''
 let s:freezed_status = {'pos': [], 'nr': -1, 'ft': ''}
 
 let s:DOC_POSITION = {
@@ -60,6 +61,18 @@ function! completor#action#_on_complete_done()
 endfunction
 
 
+function! completor#action#_on_insert_enter()
+  let s:cot = &cot
+  let &cot = get(g:, 'completor_complete_options', &cot)
+endfunction
+
+
+function! completor#action#_on_insert_leave()
+  let &cot = s:cot
+  let s:cot = ''
+endfunction
+
+
 function! s:trigger_complete(msg)
   let s:completions = completor#utils#on_data('complete', a:msg)
   if empty(s:completions) | return | endif
@@ -67,12 +80,8 @@ function! s:trigger_complete(msg)
   let matches = completor#action#completefunc(0, '')
   if startcol >= 0
     try
-      let cot = &cot
-      let &cot = get(g:, 'completor_complete_options', &cot)
       call complete(startcol + 1, matches.words)
     catch /E785\|E685/
-    finally
-      let &cot = cot
     endtry
   endif
 endfunction

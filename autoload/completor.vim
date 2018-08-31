@@ -67,6 +67,8 @@ function! s:set_events()
     autocmd!
     autocmd TextChangedI * call s:on_text_change()
     autocmd InsertCharPre * call s:on_insert_char_pre()
+    autocmd InsertEnter * call completor#action#_on_insert_enter()
+    autocmd InsertLeave * call completor#action#_on_insert_leave()
     if get(g:, 'completor_auto_close_doc', 1)
       autocmd! CompleteDone * call completor#action#_on_complete_done()
     endif
