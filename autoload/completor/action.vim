@@ -112,6 +112,8 @@ function! s:jump(items)
       split
     elseif g:completor_def_split ==? 'vsplit'
       vsplit
+    elseif g:completor_def_split ==? 'tab'
+      tab split
     endif
   endif
 

@@ -216,8 +216,9 @@ Other                                                   *completor-other*
 
         Available values:
 
-            split: same as :split.
+            split:  same as :split.
             vsplit: same as :vsplit.
+            tab:    same as :tab split
 
 
 ==============================================================================
