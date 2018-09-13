@@ -187,6 +187,7 @@ function startServer(dir, config) {
       expandWordForward: false,
       inLiteral: false,
       end: {line: line, ch: col},
+      caseInsensitive: true
     };
     var file = {
       type: 'full',
