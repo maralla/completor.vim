@@ -29,7 +29,7 @@ function! s:skip()
   if exists('g:completor_whitelist') && type(g:completor_whitelist) == v:t_list
     let skip = skip || index(g:completor_whitelist, &ft) == -1
   endif
-  return skip || !s:char_inserted
+  return skip || !s:char_inserted || get(b:, 'completor_disabled', v:false)
 endfunction
 
 
