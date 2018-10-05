@@ -11,7 +11,7 @@ from .utils import test_subseq, LIMIT
 
 
 logger = logging.getLogger('completor')
-PAT = re.compile('(\w+:(//?[^\s]*)?)|(</[^\s>]*>?)|(//)')
+PAT = re.compile('(\w{2,}:(//?[^\s]*)?)|(</[^\s>]*>?)|(//)')
 
 
 def gen_entry(pat, dirname, basename):
@@ -71,7 +71,10 @@ class Filename(Completor):
         \.{0,2}/|~|
 
         # '$var/'
-        \$[A-Za-z0-9{}_]+/
+        \$[A-Za-z0-9{}_]+/|
+
+        # 'c:/'
+        (?<![A-Za-z])[A-Za-z]:/
         )+
 
         # Tail part
