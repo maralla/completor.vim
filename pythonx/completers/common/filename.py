@@ -100,8 +100,6 @@ class Filename(Completor):
         """
         :param base: type unicode
         """
-        # Ignore white space.
-        base = base.split()[-1]
         logger.info('start filename parse: %s', base)
         pat = list(PAT.finditer(base))
         if pat:
@@ -116,6 +114,10 @@ class Filename(Completor):
         if not match:
             logger.info('no matches')
             return []
+
+        if match.group()[-1] == ' ':
+            return []
+
         try:
             if START_NO_DIRNAME.search(match.group()):
                 items = find(self.current_directory, match.group())
