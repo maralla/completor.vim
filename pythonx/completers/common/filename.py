@@ -78,7 +78,7 @@ class Filename(Completor):
         (?<![A-Za-z])[A-Za-z]:/|
 
         # 'dirname/'
-        [@a-zA-Z0-9(){}$ +_~.'"\x80-\xff-\[\]]+/
+        [@a-zA-Z0-9(){}+_\x80-\xff-\[\]]+/
         )+
 
         # Tail part
