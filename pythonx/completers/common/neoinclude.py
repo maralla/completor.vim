@@ -34,6 +34,11 @@ class Neoinclude(Completor):
         ft = vim.current.buffer.options['filetype']
         self.trigger_cache[ft] = value
 
+    def has_neoinclude(self):
+        if vim.vars.get('loaded_neoinclude'):
+            return True
+        return False
+
     # input_data: unicode
     def match(self, input_data):
         ft = vim.current.buffer.options['filetype']

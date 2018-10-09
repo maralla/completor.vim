@@ -365,7 +365,8 @@ def load_completer(ft, input_data):
 
     neoinclude = get('neoinclude')
     filename = get('filename')
-    if neoinclude.match(input_data) and not neoinclude.disabled:
+    if neoinclude.has_neoinclude() and neoinclude.match(input_data) \
+    and not neoinclude.disabled:
         c = neoinclude
     elif filename.match(input_data) and not filename.disabled:
         c = filename
