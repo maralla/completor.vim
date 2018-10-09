@@ -8,7 +8,8 @@ import re
 from completor.compat import text_type
 
 from .filename import Filename  # noqa
-from .buffer import Buffer  # noqa
+from .neoinclude import Neoinclude  # noqa
+from .buffer import Buffer  # naoqa
 from .omni import Omni  # noqa
 
 try:
