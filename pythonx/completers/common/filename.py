@@ -11,7 +11,8 @@ from .utils import test_subseq, LIMIT
 
 
 logger = logging.getLogger('completor')
-PAT = re.compile('(\w+:(//?[^\s]*)?)|(</[^\s>]*>?)|(//)')
+PAT = re.compile('(\w{2,}:(//?[^\s]*)?)|(</[^\s>]*>?)|(//)')
+START_NO_DIRNAME = re.compile("^(\.{0,2}/|~/|[a-zA-Z]:/|\$)")
 
 
 def gen_entry(pat, dirname, basename):
@@ -71,7 +72,13 @@ class Filename(Completor):
         \.{0,2}/|~|
 
         # '$var/'
-        \$[A-Za-z0-9{}_]+/
+        \$[A-Za-z0-9{}_]+/|
+
+        # 'c:/'
+        (?<![A-Za-z])[A-Za-z]:/|
+
+        # 'dirname/'
+        [@a-zA-Z0-9(){}+_\x80-\xff-\[\]]+/
         )+
 
         # Tail part
@@ -93,8 +100,6 @@ class Filename(Completor):
         """
         :param base: type unicode
         """
-        # Ignore white space.
-        base = base.split()[-1]
         logger.info('start filename parse: %s', base)
         pat = list(PAT.finditer(base))
         if pat:
@@ -109,8 +114,15 @@ class Filename(Completor):
         if not match:
             logger.info('no matches')
             return []
+
+        if match.group()[-1] == ' ':
+            return []
+
         try:
-            items = find(self.current_directory, match.group())
+            if START_NO_DIRNAME.search(match.group()):
+                items = find(self.current_directory, match.group())
+            else:
+                items = find(self.current_directory, './' + match.group())
         except Exception as e:
             logger.exception(e)
             return []
