@@ -367,8 +367,12 @@ def load_completer(ft, input_data):
     if 'common' not in Meta.registry:
         import completers.common  # noqa
 
+    neoinclude = get('neoinclude')
     filename = get('filename')
-    if filename.match(input_data) and not filename.disabled:
+    if neoinclude.has_neoinclude() and neoinclude.match(input_data) \
+    and not neoinclude.disabled:
+        c = neoinclude
+    elif filename.match(input_data) and not filename.disabled:
         c = filename
     elif not ft:
         c = get('common')
