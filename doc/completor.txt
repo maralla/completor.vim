@@ -162,6 +162,17 @@ Other                                                   *completor-other*
 <
         Default: unset
 
+*g:completor_enable_{filetype}*
+        Used to explicitly allow {filetype} completions. If this
+        option is set, only file types in this list can be allowd for
+        {filetype} completion.
+
+        For example enable neosnippet completion for only vim:
+>
+            let g:completor_enable_neosnippet = ['vim']
+<
+        Default: unset
+
 *g:completor_min_chars*
         Set the minimum characters to trigger completions for buffer and
         ultisnips completers.
