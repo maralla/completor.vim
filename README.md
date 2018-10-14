@@ -57,6 +57,11 @@ the snips candidates will show on the completion popup menu.
 
 Use this plugin [completor-neosnippet](https://github.com/maralla/completor-neosnippet) for neosnippet support.
 
+#### Neoinclude
+
+Neoinclude is supported by default. If [neoinclude](https://github.com/Shougo/neoinclude.vim) is installed,
+the include candidates will show on the completion popup menu.
+
 #### Python
 Use [jedi](https://github.com/davidhalter/jedi) for completion. jedi should be
 installed for semantic completion.  Install jedi to global environment or in virtualenv:
