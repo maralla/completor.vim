@@ -101,6 +101,10 @@ c/c++                                                   *completor-cpp*
             map <tab> <Plug>CompletorCppJumpToPlaceholder
             imap <tab> <Plug>CompletorCppJumpToPlaceholder
 <
+        To disable generation of placeholders on completion, use:
+>
+            let g:completor_clang_disable_placeholders = 1
+<
 go                                                      *completor-go*
         Use [gocode](https://github.com/nsf/gocode) to provide omni completions.
         To specify the gocode executable path:
