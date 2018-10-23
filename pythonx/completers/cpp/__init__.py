@@ -124,6 +124,9 @@ class Clang(Completor):
     def __init__(self, *args, **kwargs):
         Completor.__init__(self, *args, **kwargs)
         _inject_vim_files()
+        self.disable_placeholders = self.get_option(
+            'clang_disable_placeholders'
+        ) or 0
 
     def _gen_args(self):
         binary = self.get_option('clang_binary') or 'clang'
@@ -226,7 +229,8 @@ class Clang(Completor):
                     data['menu'] = b':'.join(parts[2:])
             func_sig = sanitize(data['menu'])
             data['abbr'] = data['word']
-            data['word'] = strip_optional(data['menu'])
+            if self.disable_placeholders != 1:
+                data['word'] = strip_optional(data['menu'])
             data['menu'] = func_sig
 
             # Show function signature in the preview window
