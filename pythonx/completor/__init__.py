@@ -158,12 +158,16 @@ class Completor(Base):
 
     @property
     def disabled(self):
-        types = self.get_option('disable_{}'.format(self.filetype))
-        if isinstance(types, integer_types):
-            return bool(types)
-        if isinstance(types, (list, vim.List)):
-            return to_bytes(self.ft) in types
-        return False
+        enable_types = self.get_option('enable_{}'.format(self.filetype))
+        if isinstance(enable_types, (list, vim.List)):
+            return to_bytes(self.ft) not in enable_types
+        else:
+            disable_types = self.get_option('disable_{}'.format(self.filetype))
+            if isinstance(disable_types, integer_types):
+                return bool(disable_types)
+            if isinstance(disable_types, (list, vim.List)):
+                return to_bytes(self.ft) in disable_types
+            return False
 
     # input_data: unicode
     def match(self, input_data):
@@ -363,8 +367,12 @@ def load_completer(ft, input_data):
     if 'common' not in Meta.registry:
         import completers.common  # noqa
 
+    neoinclude = get('neoinclude')
     filename = get('filename')
-    if filename.match(input_data) and not filename.disabled:
+    if neoinclude.has_neoinclude() and neoinclude.match(input_data) \
+    and not neoinclude.disabled:
+        c = neoinclude
+    elif filename.match(input_data) and not filename.disabled:
         c = filename
     elif not ft:
         c = get('common')

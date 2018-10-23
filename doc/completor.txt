@@ -101,6 +101,10 @@ c/c++                                                   *completor-cpp*
             map <tab> <Plug>CompletorCppJumpToPlaceholder
             imap <tab> <Plug>CompletorCppJumpToPlaceholder
 <
+        To disable generation of placeholders on completion, use:
+>
+            let g:completor_clang_disable_placeholders = 1
+<
 go                                                      *completor-go*
         Use [gocode](https://github.com/nsf/gocode) to provide omni completions.
         To specify the gocode executable path:
@@ -159,6 +163,17 @@ Other                                                   *completor-other*
         To disable for all file types:
 >
             let g:completor_disable_{filename/buffer/ultisnips} = 1
+<
+        Default: unset
+
+*g:completor_enable_{filetype}*
+        Used to explicitly allow {filetype} completions. If this
+        option is set, only file types in this list can be allowd for
+        {filetype} completion.
+
+        For example enable neosnippet completion for only vim:
+>
+            let g:completor_enable_neosnippet = ['vim']
 <
         Default: unset
 

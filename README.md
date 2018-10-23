@@ -57,6 +57,11 @@ the snips candidates will show on the completion popup menu.
 
 Use this plugin [completor-neosnippet](https://github.com/maralla/completor-neosnippet) for neosnippet support.
 
+#### Neoinclude
+
+Neoinclude is supported by default. If [neoinclude](https://github.com/Shougo/neoinclude.vim) is installed,
+the include candidates will show on the completion popup menu.
+
 #### dictionary
 
 Dictionary completion is supported by [completor-dictionary](https://github.com/masawada/completor-dictionary).
