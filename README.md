@@ -62,6 +62,18 @@ Use this plugin [completor-neosnippet](https://github.com/maralla/completor-neos
 Neoinclude is supported by default. If [neoinclude](https://github.com/Shougo/neoinclude.vim) is installed,
 the include candidates will show on the completion popup menu.
 
+#### dictionary
+
+Dictionary completion is supported by [completor-dictionary](https://github.com/masawada/completor-dictionary).
+
+#### shell
+
+You can add some complete functions with shell command by [completor-shell](https://github.com/tokorom/completor-shell).
+
+#### tmux
+
+Completion from words in tmux panes is supported by [completor-tmux](https://github.com/ferreum/completor-tmux).
+
 #### Python
 Use [jedi](https://github.com/davidhalter/jedi) for completion. jedi should be
 installed for semantic completion.  Install jedi to global environment or in virtualenv:
@@ -137,6 +149,14 @@ Use [completor-swift](https://github.com/maralla/completor-swift).
 #### Elixir
 
 Use [alchemist.vim](https://github.com/slashmili/alchemist.vim).
+
+#### vim script
+
+Use [completor-necovim](https://github.com/kyouryuukunn/completor-necovim).
+
+#### type script
+
+Use [completor-typescript](https://github.com/maralla/completor-typescript).
 
 #### other languages
 
