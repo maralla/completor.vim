@@ -21,7 +21,6 @@ class Go(Completor):
         line2byte = vim.Function('line2byte')
         return line2byte(line) + col - 1
 
-
     def _gen_archive(self):
         if not vim.current.buffer.options['modified']:
             return ''
@@ -111,6 +110,8 @@ class Go(Completor):
         else:
             pos = spec['pos']
             name = spec['name']
+        if ' ' in name:
+            name = self.cursor_word
         path, lnum, col = pos.rsplit(':', 2)
         return [{
             'filename': path,
