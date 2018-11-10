@@ -89,21 +89,29 @@ function! completor#enable_autocomplete()
 endfunction
 
 
-function! completor#do(action) range
+func s:do_action(action, meta)
   call s:import_python()
   call completor#action#update_status()
 
   let status = completor#action#get_status()
 
-  let meta = {'range': [a:firstline, a:lastline]}
-
   if a:action ==# 'complete'
     let info = completor#utils#get_completer(status.ft, status.input)
   else
-    let info = completor#utils#load(status.ft, a:action, status.input, meta)
+    let info = completor#utils#load(status.ft, a:action, status.input, a:meta)
   endif
   call completor#action#do(a:action, info, status)
   return ''
+endfunction
+
+
+function! completor#do(action) range
+  let meta = {'range': [a:firstline, a:lastline]}
+  try
+    return s:do_action(a:action, meta)
+  catch /\(E858\|\(py\(thon\|3\)\)\)/
+    return ''
+  endtry
 endfunction
 
 
