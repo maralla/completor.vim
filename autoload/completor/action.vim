@@ -2,6 +2,7 @@ let s:status = {'pos': [], 'nr': -1, 'input': '', 'ft': ''}
 let s:action = ''
 let s:completions = []
 let s:freezed_status = {'pos': [], 'nr': -1, 'ft': ''}
+let s:trigger_count = 0
 
 let s:DOC_POSITION = {
       \ 'bottom': 'rightbelow',
@@ -51,7 +52,8 @@ endfunction
 
 
 function! completor#action#_on_complete_done()
-  if exists('s:cot')
+  let s:trigger_count -= 1
+  if exists('s:cot') && s:trigger_count <= 0
     " Restore cot.
     let &cot = s:cot
   endif
@@ -77,6 +79,7 @@ function! s:trigger_complete(msg)
     " Change cot.
     let &cot = get(g:, 'completor_complete_options', &cot)
     try
+      let s:trigger_count += 1
       call complete(startcol + 1, matches.words)
     catch /E785\|E685/
     endtry
