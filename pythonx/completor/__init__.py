@@ -360,8 +360,6 @@ def load(ft, input_data=b''):
 # ft: bytes, input_data: bytes
 def load_completer(ft, input_data):
     input_data = _unicode(input_data)
-    if not input_data.strip():
-        return
     ft = _resolve_ft(ft)
 
     if 'common' not in Meta.registry:

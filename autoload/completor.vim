@@ -36,11 +36,6 @@ endfunction
 function! s:on_text_change()
   if s:skip() | return | endif
   let s:char_inserted = v:false
-
-  if !get(g:, 'completor_auto_trigger', 1)
-    return
-  endif
-
   if !(exists('s:timer') && !empty(timer_info(s:timer)))
     let s:timer = timer_start(g:completor_completion_delay, {t->completor#do('complete')})
   endif
@@ -52,23 +47,13 @@ function! s:on_insert_char_pre()
 endfunction
 
 
-function! s:on_complete_done()
-  if pumvisible() == 0
-    try
-      pclose
-    catch
-    endtry
-  endif
-endfunction
-
-
 function! s:set_events()
   augroup completor
     autocmd!
-    autocmd TextChangedI * call s:on_text_change()
-    autocmd InsertCharPre * call s:on_insert_char_pre()
-    autocmd InsertEnter * call completor#action#_on_insert_enter()
-    autocmd InsertLeave * call completor#action#_on_insert_leave()
+    if get(g:, 'completor_auto_trigger', 1)
+      autocmd TextChangedI * call s:on_text_change()
+      autocmd InsertCharPre * call s:on_insert_char_pre()
+    endif
     if get(g:, 'completor_auto_close_doc', 1)
       autocmd! CompleteDone * call completor#action#_on_complete_done()
     endif
@@ -109,7 +94,7 @@ function! completor#do(action) range
   let meta = {'range': [a:firstline, a:lastline]}
   try
     return s:do_action(a:action, meta)
-  catch /\(E858\|\(py\(thon\|3\)\)\)/
+  catch /\(E858\|\(py\(thon\|3\|x\)\)\)/
     return ''
   endtry
 endfunction

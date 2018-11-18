@@ -6,3 +6,4 @@ node_modules
 doc/tags
 __pycache__
 .pytest_cache
+package-lock.json
