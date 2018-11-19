@@ -3,8 +3,8 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-let s:char_inserted = v:false
 let s:python_imported = v:false
+let s:prev = []
 
 
 function! s:import_python()
@@ -29,21 +29,34 @@ function! s:skip()
   if exists('g:completor_whitelist') && type(g:completor_whitelist) == v:t_list
     let skip = skip || index(g:completor_whitelist, &ft) == -1
   endif
-  return skip || !s:char_inserted || get(b:, 'completor_disabled', v:false)
+  return skip || get(b:, 'completor_disabled', v:false)
+endfunction
+
+
+function! s:key_ignore(pos)
+  if a:pos[:1] != s:prev[:1]
+    return v:false
+  endif
+  return a:pos[2] <= s:prev[2]
 endfunction
 
 
 function! s:on_text_change()
-  if s:skip() | return | endif
-  let s:char_inserted = v:false
-  if !(exists('s:timer') && !empty(timer_info(s:timer)))
-    let s:timer = timer_start(g:completor_completion_delay, {t->completor#do('complete')})
+  let pos = getcurpos()
+  if !s:key_ignore(pos) && !s:skip()
+    if !(exists('s:timer') && !empty(timer_info(s:timer)))
+      let s:timer = timer_start(g:completor_completion_delay, {t->completor#do('complete')})
+    endif
   endif
+  let s:prev = pos
 endfunction
 
 
 function! s:on_insert_char_pre()
-  let s:char_inserted = v:true
+  if pumvisible()
+    let s:prev = getcurpos()
+    let s:prev[2] += 1
+  endif
 endfunction
 
 
