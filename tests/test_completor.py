@@ -26,7 +26,6 @@ def test_load(vim_mod, monkeypatch):
 
     with mock.patch.object(Meta, 'type_map',
                            {b'python.django': b'python'}):
-        assert load_completer(b'hello', b'') is None
         assert get('python') is None
         c = load_completer(b'python', b'os.')
         assert c.input_data == 'os.'
