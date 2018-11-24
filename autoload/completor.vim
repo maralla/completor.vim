@@ -5,6 +5,7 @@ set cpo&vim
 
 let s:python_imported = v:false
 let s:prev = []
+let s:inputted = v:false
 
 
 function! s:import_python()
@@ -34,19 +35,22 @@ endfunction
 
 
 function! s:key_ignore(pos)
+  let inputted = s:inputted
+  let s:inputted = v:false
   if a:pos[:1] != s:prev[:1]
     return v:false
   endif
-  return a:pos[2] <= s:prev[2]
+  if !inputted
+    return v:true
+  endif
+  return a:pos[2] < s:prev[2]
 endfunction
 
 
 function! s:on_text_change()
   let pos = getcurpos()
   if !s:key_ignore(pos) && !s:skip()
-    if !(exists('s:timer') && !empty(timer_info(s:timer)))
-      let s:timer = timer_start(g:completor_completion_delay, {t->completor#do('complete')})
-    endif
+    call completor#do('complete')
   endif
   let s:prev = pos
 endfunction
@@ -54,9 +58,17 @@ endfunction
 
 function! s:on_insert_char_pre()
   if pumvisible()
-    let s:prev = getcurpos()
+    let pos = getcurpos()
+    let s:prev = pos
     let s:prev[2] += 1
   endif
+  let s:inputted = v:true
+  call timer_start(0, {t->s:clear_inputted()})
+endfunction
+
+
+function! s:clear_inputted()
+  let s:inputted = v:false
 endfunction
 
 
@@ -70,6 +82,8 @@ function! s:set_events()
     if get(g:, 'completor_auto_close_doc', 1)
       autocmd! CompleteDone * call completor#action#_on_complete_done()
     endif
+    autocmd InsertEnter * call completor#action#_on_insert_enter()
+    autocmd InsertLeave * call completor#action#_on_insert_leave()
   augroup END
 endfunction
 
@@ -87,29 +101,28 @@ function! completor#enable_autocomplete()
 endfunction
 
 
-func s:do_action(action, meta)
-  call s:import_python()
-  call completor#action#update_status()
-
-  let status = completor#action#get_status()
-
-  if a:action ==# 'complete'
-    let info = completor#utils#get_completer(status.ft, status.input)
-  else
-    let info = completor#utils#load(status.ft, a:action, status.input, a:meta)
-  endif
-  call completor#action#do(a:action, info, status)
+func s:do_action(action, meta, status)
+  try
+    call s:import_python()
+    if a:action ==# 'complete'
+      let info = completor#utils#get_completer(a:status.ft, a:status.input)
+    else
+      let info = completor#utils#load(a:status.ft, a:action, a:status.input, a:meta)
+    endif
+    call completor#action#do(a:action, info, a:status)
+  catch /\(E858\|\(py\(thon\|3\|x\)\)\)/
+  endtry
   return ''
 endfunction
 
 
 function! completor#do(action) range
+  if exists('s:timer') && !empty(timer_info(s:timer))
+    call timer_stop(s:timer)
+  endif
   let meta = {'range': [a:firstline, a:lastline]}
-  try
-    return s:do_action(a:action, meta)
-  catch /\(E858\|\(py\(thon\|3\|x\)\)\)/
-    return ''
-  endtry
+  let status = completor#action#current_status()
+  let s:timer = timer_start(g:completor_completion_delay, {t->s:do_action('complete', meta, status)})
 endfunction
 
 

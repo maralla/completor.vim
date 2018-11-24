@@ -1,8 +1,6 @@
-let s:status = {'pos': [], 'nr': -1, 'input': '', 'ft': ''}
+let s:freezed_status = {'pos': [], 'nr': -1, 'ft': '', 'mode': ''}
 let s:action = ''
 let s:completions = []
-let s:freezed_status = {'pos': [], 'nr': -1, 'ft': ''}
-let s:trigger_count = 0
 
 let s:DOC_POSITION = {
       \ 'bottom': 'rightbelow',
@@ -10,41 +8,8 @@ let s:DOC_POSITION = {
       \ }
 
 
-function! s:freezed_status.reset()
-  let self.pos = []
-  let self.nr = -1
-  let self.ft = ''
-endfunction
-
-
-function! s:freezed_status.set(status)
-  let self.pos = a:status.pos
-  let self.nr = a:status.nr
-  let self.ft = a:status.ft
-endfunction
-
-
-function! s:freezed_status.consistent()
-  return self.pos == getcurpos() &&
-        \ self.nr == bufnr('') &&
-        \ self.ft == &ft
-endfunction
-
-
-function! s:status.update()
-  let e = col('.') - 2
-  let inputted = e >= 0 ? getline('.')[:e] : ''
-
-  let self.pos = getcurpos()
-  let self.input = inputted
-  let self.nr = bufnr('')
-  let self.ft = &ft
-endfunction
-
-
 function! s:reset()
   let s:completions = []
-  call s:freezed_status.reset()
   if exists('s:job') && completor#compat#job_status(s:job) ==# 'run'
     call completor#compat#job_stop(s:job)
   endif
@@ -52,11 +17,6 @@ endfunction
 
 
 function! completor#action#_on_complete_done()
-  let s:trigger_count -= 1
-  if exists('s:cot') && s:trigger_count <= 0
-    " Restore cot.
-    let &cot = s:cot
-  endif
   if pumvisible() == 0
     try
       pclose
@@ -66,20 +26,30 @@ function! completor#action#_on_complete_done()
 endfunction
 
 
-function! s:trigger_complete(msg)
+function! completor#action#_on_insert_enter()
   if !exists('s:cot')
     " Record cot.
     let s:cot = &cot
   endif
+  let &cot = get(g:, 'completor_complete_options', &cot)
+endfunction
+
+
+function! completor#action#_on_insert_leave()
+  if exists('s:cot')
+    " Restore cot.
+    let &cot = s:cot
+  endif
+endfunction
+
+
+function! s:trigger_complete(msg)
   let s:completions = completor#utils#on_data('complete', a:msg)
   if empty(s:completions) | return | endif
   let startcol = completor#action#completefunc(1, '')
   let matches = completor#action#completefunc(0, '')
   if startcol >= 0
-    " Change cot.
-    let &cot = get(g:, 'completor_complete_options', &cot)
     try
-      let s:trigger_count += 1
       call complete(startcol + 1, matches.words)
     catch /E785\|E685/
     endtry
@@ -219,12 +189,19 @@ function! s:show_doc(msg)
 endfunction
 
 
+function! s:is_status_consistent()
+  return s:freezed_status.pos == getcurpos() &&
+        \ s:freezed_status.nr == bufnr('') &&
+        \ s:freezed_status.ft == &ft &&
+        \ s:freezed_status.mode == mode()
+endfunction
+
+
 function! completor#action#callback(msg)
-  if !s:freezed_status.consistent()
+  if !s:is_status_consistent()
     let s:completions = []
     return
   endif
-  call s:freezed_status.reset()
 
   if s:action ==# 'complete'
     call s:trigger_complete(a:msg)
@@ -261,8 +238,10 @@ endfunction
 
 " :param info: must contain keys: 'cmd', 'ftype', 'is_sync', 'is_daemon'
 function! completor#action#do(action, info, status)
+  let s:freezed_status = a:status
+
   if empty(a:info)
-    return
+    return v:false
   endif
 
   call s:reset()
@@ -271,36 +250,33 @@ function! completor#action#do(action, info, status)
   let input_content = get(a:info, 'input_content', '')
 
   if a:info.is_sync
-    call s:freezed_status.set(a:status)
-    call completor#action#callback(s:status.input)
+    call completor#action#callback(a:status.input)
+    return v:true
   elseif !empty(a:info.cmd)
     if a:info.is_daemon
-      if completor#daemon#process(a:action, a:info.cmd, a:info.ftype, options)
-        call s:freezed_status.set(a:status)
-      else
-        call s:freezed_status.reset()
-      endif
-    else
-      let sending_content = !empty(input_content)
-      let s:job = completor#compat#job_start_oneshot(a:info.cmd, options, sending_content)
-      if completor#compat#job_status(s:job) ==# 'run'
-        call s:freezed_status.set(a:status)
-      else
-        call s:freezed_status.reset()
-      endif
+      return completor#daemon#process(a:action, a:info.cmd, a:info.ftype, options)
+    endif
+    let sending_content = !empty(input_content)
+    let s:job = completor#compat#job_start_oneshot(a:info.cmd, options, sending_content)
+    if completor#compat#job_status(s:job) ==# 'run'
       if sending_content
         call completor#compat#job_send(s:job, input_content)
       endif
+      return v:true
     endif
   endif
+  return v:false
 endfunction
 
 
-function! completor#action#get_status()
-  return s:status
-endfunction
-
-
-function! completor#action#update_status()
-  call s:status.update()
+function! completor#action#current_status()
+  let e = col('.') - 2
+  let inputted = e >= 0 ? getline('.')[:e] : ''
+  return {
+        \ 'pos': getcurpos(),
+        \ 'input': inputted,
+        \ 'nr': bufnr(''),
+        \ 'ft': &ft,
+        \ 'mode': mode(),
+        \ }
 endfunction

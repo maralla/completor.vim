@@ -39,9 +39,15 @@ let g:completor_def_split = get(g:, 'completor_def_split', '')
 let g:completor_complete_options = get(g:, 'completor_complete_options', 'menuone,noselect,preview')
 
 
+func s:init()
+  call completor#enable_autocomplete()
+  call completor#action#_on_insert_enter()
+endfunc
+
+
 augroup completor
     autocmd!
-    autocmd InsertEnter * call completor#enable_autocomplete()
+    autocmd InsertEnter * call s:init()
 augroup END
 
 
