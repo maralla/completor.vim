@@ -35,15 +35,10 @@ endfunction
 
 
 function! s:key_ignore(pos)
-  let inputted = s:inputted
-  let s:inputted = v:false
   if a:pos[:1] != s:prev[:1]
     return v:false
   endif
-  if !inputted
-    return v:true
-  endif
-  return a:pos[2] < s:prev[2]
+  return !s:inputted
 endfunction
 
 
@@ -112,7 +107,6 @@ func s:do_action(action, meta, status)
     call completor#action#do(a:action, info, a:status)
   catch /\(E858\|\(py\(thon\|3\|x\)\)\)/
   endtry
-  return ''
 endfunction
 
 
@@ -122,7 +116,8 @@ function! completor#do(action) range
   endif
   let meta = {'range': [a:firstline, a:lastline]}
   let status = completor#action#current_status()
-  let s:timer = timer_start(g:completor_completion_delay, {t->s:do_action('complete', meta, status)})
+  let s:timer = timer_start(g:completor_completion_delay, {t->s:do_action(a:action, meta, status)})
+  return ''
 endfunction
 
 
