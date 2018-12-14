@@ -29,7 +29,7 @@ def get_encoding(nr):
 
 
 class TokenStore(object):
-    pat = re.compile(r'[^\W\d]{3,}\w*', re.U)
+    pat = re.compile(r'[^\W\d]{3}\w{0,45}', re.U)
 
     def __init__(self):
         self.cache = {}
