@@ -2,6 +2,7 @@
 
 import json
 import os.path
+import re
 
 from completor import Completor
 from completor.compat import to_unicode
@@ -12,7 +13,8 @@ dirname = os.path.dirname(__file__)
 class Tern(Completor):
     filetype = 'javascript'
     daemon = True
-    trigger = r'\w+$|[\w\)\]\}\'\"]+\.\w*$'
+    ident = re.compile(r"""(\w+)|(('|").+)""", re.U)
+    trigger = r"""\w+$|[\w\)\]\}\'\"]+\.\w*$|('|").*$"""
 
     def format_cmd(self):
         binary = self.get_option('node_binary') or 'node'
