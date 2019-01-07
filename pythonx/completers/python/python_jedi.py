@@ -32,7 +32,7 @@ class JediProcessor(object):
     def jedi_context(self, args):
         self.script = self.jedi.Script(
             source=args['content'], line=args['line'] + 1,
-            column=args['col'], path=args['filename'])
+            column=args['col'] + 1, path=args['filename'])
         try:
             yield
         finally:
@@ -89,7 +89,7 @@ class JediProcessor(object):
             params = [p.description.replace('\n', '')[6:] for p in s.params]
             yield {
                 'params': params,
-                'func': s.call_name,
+                'func': None,
                 'index': s.index or 0
             }
 
