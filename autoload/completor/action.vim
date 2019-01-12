@@ -192,8 +192,7 @@ endfunction
 function! s:is_status_consistent()
   return s:freezed_status.pos == getcurpos() &&
         \ s:freezed_status.nr == bufnr('') &&
-        \ s:freezed_status.ft == &ft &&
-        \ s:freezed_status.mode == mode()
+        \ s:freezed_status.ft == &ft
 endfunction
 
 
@@ -205,6 +204,7 @@ function! completor#action#callback(msg)
 
   if s:action ==# 'complete'
     call s:trigger_complete(a:msg)
+    call completor#do('signature')
   elseif s:action ==# 'definition'
     call s:goto_definition(a:msg)
   elseif s:action ==# 'signature'
