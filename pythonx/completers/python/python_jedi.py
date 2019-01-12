@@ -9,7 +9,7 @@ import logging
 import os.path
 import sys
 
-log_file = os.path.join(os.path.dirname(__file__), 'completor_python.log')
+log_file = '/tmp/completor_python.log'
 logger = logging.getLogger('python-jedi')
 handler = logging.FileHandler(log_file, delay=1)
 handler.setLevel(logging.INFO)

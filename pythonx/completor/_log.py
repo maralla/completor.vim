@@ -3,7 +3,7 @@
 import os
 
 _dir = os.path.dirname(__file__)
-_file = os.path.join(os.path.dirname(_dir), 'completor.log')
+_file = '/tmp/completor.log'
 
 
 _log_filter = {}
