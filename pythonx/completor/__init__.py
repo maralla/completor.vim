@@ -225,6 +225,8 @@ class Completor(Base):
             data = _unicode(data)
         if action == 'complete':
             return self.do_complete(data)
+        if 'signature' in action:
+            action = 'signature'
         try:
             return getattr(self, 'on_' + action)(data)
         except AttributeError:

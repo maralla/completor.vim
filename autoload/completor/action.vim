@@ -152,6 +152,48 @@ function! s:call_signatures(msg)
 endfunction
 
 
+function! s:insert_signatures(msg)
+  let items = completor#utils#on_data('signature', a:msg)
+
+  if empty(items)
+    return
+  endif
+  let item = items[0]
+  let text = ''
+  if !empty(item.params)
+    let params = item.params
+  else
+    let params = []
+  endif
+  let i = 0
+  while i < len(params)
+      let params[i] = substitute(params[i], '=\s*\w*\s*', '', 'g')
+      let params[i] = substitute(params[i], ':\s*\w*\s*', '', 'g')
+      let i += 1
+  endwhile
+  let text = text . join(params, ', ')
+  execute ":normal i" . text
+endfunction
+
+
+function! s:insert_signatures_with_attributes(msg)
+  let items = completor#utils#on_data('signature', a:msg)
+
+  if empty(items)
+    return
+  endif
+  let item = items[0]
+  let text = ''
+  if !empty(item.params)
+    let params = item.params
+  else
+    let params = []
+  endif
+  let text = text . join(params, ', ')
+  execute ":normal i" . text
+endfunction
+
+
 function! s:open_doc_window()
   let n = bufnr('__doc__')
   let direction = get(s:DOC_POSITION, g:completor_doc_position, s:DOC_POSITION.bottom)
@@ -209,6 +251,10 @@ function! completor#action#callback(msg)
     call s:goto_definition(a:msg)
   elseif s:action ==# 'signature'
     call s:call_signatures(a:msg)
+  elseif s:action ==# 'signature_insert'
+    call s:insert_signatures(a:msg)
+  elseif s:action ==# 'signature_insert_with_attributes'
+    call s:insert_signatures_with_attributes(a:msg)
   elseif s:action ==# 'doc'
     call s:show_doc(a:msg)
   elseif s:action ==# 'format'
@@ -246,6 +292,10 @@ function! completor#action#do(action, info, status)
 
   call s:reset()
   let s:action = a:action
+  let action = a:action
+  if a:action =~ 'signature'
+      let action = 'signature'
+  endif
   let options = get(a:info, 'options', {})
   let input_content = get(a:info, 'input_content', '')
 
@@ -254,7 +304,7 @@ function! completor#action#do(action, info, status)
     return v:true
   elseif !empty(a:info.cmd)
     if a:info.is_daemon
-      return completor#daemon#process(a:action, a:info.cmd, a:info.ftype, options)
+      return completor#daemon#process(action, a:info.cmd, a:info.ftype, options)
     endif
     let sending_content = !empty(input_content)
     let s:job = completor#compat#job_start_oneshot(a:info.cmd, options, sending_content)
