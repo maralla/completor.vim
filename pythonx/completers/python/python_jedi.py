@@ -89,7 +89,7 @@ class JediProcessor(object):
             params = [p.description.replace('\n', '')[6:] for p in s.params]
             yield {
                 'params': params,
-                'func': None,
+                'func': s.full_name,
                 'index': s.index or 0
             }
 
