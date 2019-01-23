@@ -13,8 +13,8 @@ dirname = os.path.dirname(__file__)
 class Tern(Completor):
     filetype = 'javascript'
     daemon = True
-    ident = re.compile(r"""(\w+)|(('|").+)""", re.U)
-    trigger = r"""\w+$|[\w\)\]\}\'\"]+\.\w*$|('|").*$"""
+    ident = re.compile(r"""(\w+)|(["'][^"']*)""", re.U)
+    trigger = r"""\w+$|[\w\)\]\}\'\"]+\.\w*$|["']\w*$"""
 
     def format_cmd(self):
         binary = self.get_option('node_binary') or 'node'
