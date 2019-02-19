@@ -139,7 +139,7 @@ Other                                                   *completor-other*
 
 *g:completor_whitelist* (list)
         Explicitly allow completions for file types in this list. If this
-        option is set, only file types in this list can be allowd for
+        option is set, only file types in this list can be allowed for
         completion.
 
         Default: unset.
@@ -216,7 +216,7 @@ Other                                                   *completor-other*
         Default: 0
 
 *g:completor_doc_position*
-        This option controls the position of the doc window triggerred by
+        This option controls the position of the doc window triggered by
         executing `:call completor#do('doc')`.
 
         Available values:
