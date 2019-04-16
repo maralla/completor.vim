@@ -29,8 +29,9 @@ logger = logging.getLogger('completor')
 
 
 def get_encoding():
-    return to_unicode(vim.current.buffer.options['fileencoding'] or
-                      vim.options['encoding'] or 'utf-8', 'utf-8')
+    return to_unicode(
+        vim.current.buffer.options['fileencoding'] or vim.options['encoding']
+        or 'utf-8', 'utf-8')
 
 
 def _unicode(text):
@@ -69,7 +70,7 @@ class Meta(type):
         return cls
 
 
-Base = Meta('Base', (object,), {})
+Base = Meta('Base', (object, ), {})
 
 
 class Unusable(object):
@@ -123,8 +124,8 @@ class Completor(Base):
         :rtype: unicode
         """
         try:
-            return to_unicode(vim.Function('expand')('<cword>'),
-                              get_encoding())
+            return to_unicode(
+                vim.Function('expand')('<cword>'), get_encoding())
         except vim.error:
             pass
 
@@ -192,8 +193,7 @@ class Completor(Base):
                 cmd=self.format_cmd(),
                 ftype=self.filetype,
                 is_daemon=self.daemon,
-                is_sync=self.sync
-            )
+                is_sync=self.sync)
         return vim.Dictionary()
 
     def do_complete(self, data):
@@ -212,6 +212,18 @@ class Completor(Base):
                 common.input_data = self.input_data
                 ret.extend(common.parse(self.input_data))
         return ret
+
+    def on_stream(self, action, msg):
+        pass
+
+    def handle_stream(self, action, msg):
+        res = self.on_stream(action, msg)
+        if not res:
+            return
+        try:
+            vim.Function('completor#action#trigger')(res)
+        except vim.error as e:
+            logger.exception(e)
 
     def on_data(self, action, data):
         """Callback when received data.
@@ -318,6 +330,9 @@ class Completor(Base):
         """
         return vim.Function('completor#utils#in_comment_or_string')()
 
+    def reset(self):
+        pass
+
 
 def _resolve_ft(ft):
     """
@@ -331,6 +346,19 @@ def _resolve_ft(ft):
 def _load(ft):
     if not ft:
         return
+    lsp_server = Completor.get_option('lsp_{}_server'.format(ft))
+    logger.info("aaaaaaaaaaaaa")
+    if lsp_server:
+        try:
+            if 'lsp' not in Meta.registry:
+                import completers.lsp # noqa
+            lsp = Meta.registry.get('lsp')
+            lsp.set_server_cmd(lsp_server)
+        except Exception as e:
+            logger.exception(e)
+            raise
+        return lsp
+    logger.info("bbbbbbbbbbbbb")
     if ft not in Meta.registry:
         try:
             importlib.import_module("completers.{}".format(ft))

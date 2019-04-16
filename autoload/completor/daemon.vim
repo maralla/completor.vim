@@ -2,11 +2,13 @@ let s:daemon = {'msgs': [], 'requested': v:false, 't': 0}
 
 
 function! s:vim_daemon_handler(msg)
-  call add(s:daemon.msgs, a:msg)
-  if completor#utils#is_message_end(a:msg)
-    let s:daemon.requested = v:false
-    call completor#action#callback(s:daemon.msgs)
-  endif
+  call Log(string(a:msg))
+  call completor#action#stream(a:msg)
+  " call completor#action#callback(a:msg)
+  " call add(s:daemon.msgs, a:msg)
+  " if completor#utils#is_message_end(a:msg)
+  "   let s:daemon.requested = v:false
+  " endif
 endfunction
 
 
@@ -61,7 +63,7 @@ if has('nvim')
   function! s:daemon.write(data)
     let s:nvim_last_msg = ''
     try
-      call jobsend(self.job, a:data."\n")
+      call jobsend(self.job, a:data)
     catch /E900/
     endtry
   endfunction
@@ -71,7 +73,7 @@ else
     let conf = {
           \   'out_cb': {c,m->s:vim_daemon_handler(m)},
           \   'err_io': 'out',
-          \   'mode': 'nl',
+          \   'mode': 'raw',
           \ }
     call extend(conf, a:options)
     return job_start(a:cmd, conf)
@@ -79,7 +81,7 @@ else
 
   function! s:daemon.write(data)
     try
-      call ch_sendraw(job_getchannel(self.job), a:data."\n")
+      call ch_sendraw(job_getchannel(self.job), a:data)
     catch /E631/
       call self.kill()
     endtry
@@ -92,6 +94,7 @@ function! s:daemon.respawn(cmd, name, options)
     call completor#compat#job_stop(self.job)
   endif
   let self.job = s:job_start_daemon(a:cmd, a:options)
+  call completor#utils#reset()
   let self.type = a:name
   let self.cmd = a:cmd
   let self.requested = v:false
@@ -136,12 +139,12 @@ function! completor#daemon#process(action, cmd, name, options)
   endif
 
   " Already requested
-  if s:daemon.requested
-    if localtime() - s:daemon.t > 5
-      call s:daemon.kill()
-    endif
-    return v:false
-  endif
+  " if s:daemon.requested
+  "   if localtime() - s:daemon.t > 5
+  "     call s:daemon.kill()
+  "   endif
+  "   return v:false
+  " endif
 
   let req = completor#utils#prepare_request(a:action)
   if empty(req)

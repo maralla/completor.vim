@@ -43,8 +43,8 @@ function! completor#action#_on_insert_leave()
 endfunction
 
 
-function! s:trigger_complete(msg)
-  let s:completions = completor#utils#on_data('complete', a:msg)
+function! s:trigger_complete(completions)
+  let s:completions = a:completions
   if empty(s:completions) | return | endif
   let startcol = completor#action#completefunc(1, '')
   let matches = completor#action#completefunc(0, '')
@@ -107,11 +107,10 @@ function! s:jump(items)
 endfunction
 
 
-function! s:goto_definition(msg)
-  let items = completor#utils#on_data('definition', a:msg)
-  if len(items) > 0
+function! s:goto_definition(items)
+  if len(a:items) > 0
     try
-      call s:jump(items)
+      call s:jump(a:items)
     catch /E37/
       echohl ErrorMsg
       echomsg '`hidden` should be set (set hidden)'
@@ -122,15 +121,13 @@ function! s:goto_definition(msg)
 endfunction
 
 
-function! s:call_signatures(msg)
-  let items = completor#utils#on_data('signature', a:msg)
-
+function! s:call_signatures(items)
   hi def CompletorCallCurrentArg term=bold,underline cterm=bold,underline
 
-  if empty(items)
+  if empty(a:items)
     return
   endif
-  let item = items[0]
+  let item = a:items[0]
   if !empty(item.params)
     let prefix = item.index == 0 ? [] : item.params[:item.index - 1]
     let suffix = item.params[item.index + 1:]
@@ -169,12 +166,11 @@ function! s:open_doc_window()
 endfunction
 
 
-function! s:show_doc(msg)
-  let items = completor#utils#on_data('doc', a:msg)
-  if empty(items)
+function! s:show_doc(items)
+  if empty(a:items)
     return
   endif
-  let doc = split(items[0], "\n")
+  let doc = split(a:items[0], "\n")
   if empty(doc)
     return
   endif
@@ -198,22 +194,32 @@ endfunction
 
 
 function! completor#action#callback(msg)
+  let items = completor#utils#on_data(s:action, a:msg)
+  call completor#action#trigger(items)
+endfunction
+
+
+function! completor#action#trigger(items)
   if !s:is_status_consistent()
     let s:completions = []
     return
   endif
-
   if s:action ==# 'complete'
-    call s:trigger_complete(a:msg)
+    call s:trigger_complete(a:items)
   elseif s:action ==# 'definition'
-    call s:goto_definition(a:msg)
+    call s:goto_definition(a:items)
   elseif s:action ==# 'signature'
-    call s:call_signatures(a:msg)
+    call s:call_signatures(a:items)
   elseif s:action ==# 'doc'
-    call s:show_doc(a:msg)
+    call s:show_doc(a:items)
   elseif s:action ==# 'format'
     silent edit!
   endif
+endfunction
+
+
+function! completor#action#stream(msg)
+  call completor#utils#on_stream(s:action, a:msg)
 endfunction
 
 

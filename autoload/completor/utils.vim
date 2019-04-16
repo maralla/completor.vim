@@ -74,3 +74,13 @@ function! completor#utils#is_message_end(msg)
   exe s:py 'res = completor_api.is_message_end()'
   return s:pyeval('res')
 endfunction
+
+
+function! completor#utils#reset()
+  exe s:py 'completor_api.reset()'
+endfunction
+
+
+function! completor#utils#on_stream(action, msg)
+  exe s:py 'completor_api.on_stream()'
+endfunction
