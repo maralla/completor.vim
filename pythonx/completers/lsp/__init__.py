@@ -6,17 +6,22 @@ import logging
 import os
 import json
 import re
-from io import BytesIO
-from completor import Completor, vim, lsp
-from completor.lsp.models import Initialize, DidOpen, Completion, DidChange
+import io
+from completor import Completor, vim, import_completer, get
+
+from .models import Initialize, DidOpen, Completion, DidChange, DidSave, \
+    Definition, Format, Rename
+from .action import gen_definition
+from .utils import gen_uri
 
 logger = logging.getLogger('completor')
 
-word_pat = re.compile('([\d\w]+)', re.U)
+word_pat = re.compile(r'([\d\w]+)', re.U)
 
 
 class Lsp(Completor):
     filetype = 'lsp'
+    trigger = r'(?:\w{2,}\w*|\.\w*)$'
 
     def __init__(self, *args, **kwargs):
         Completor.__init__(self, *args, **kwargs)
@@ -24,13 +29,13 @@ class Lsp(Completor):
         self.initialized = False
         self.current_id = None
         self.open_file_map = {}
-        self.buf = BytesIO()
+        self.buf = io.BytesIO()
 
     def get_version(self, f):
         args = self.open_file_map.get(f)
         if args is None:
             return 0
-        args['version'] += 1
+        # args['version'] += 1
         return args['version']
 
     def set_server_cmd(self, cmd):
@@ -40,11 +45,10 @@ class Lsp(Completor):
     def initialize_request(self, project_name, project_path):
         pid = os.getpid()
         i = Initialize(pid, [{
-            'uri': lsp.gen_uri(project_path),
+            'uri': gen_uri(project_path),
             'name': project_name
         }])
         _, req = i.to_request()
-        logger.info("******** %r", req)
         return req
 
     @property
@@ -52,7 +56,7 @@ class Lsp(Completor):
         return '\n'.join(vim.current.buffer[:])
 
     def open_request(self):
-        f = lsp.gen_uri(self.filename)
+        f = gen_uri(self.filename)
         if f in self.open_file_map:
             return
         o = DidOpen(f, self.ft, 0, self.file_content)
@@ -61,20 +65,43 @@ class Lsp(Completor):
         return req
 
     def change_request(self):
-        f = lsp.gen_uri(self.filename)
+        f = gen_uri(self.filename)
         c = DidChange(f, self.get_version(f), self.file_content)
         _, req = c.to_request()
         return req
 
-    def completion_request(self):
+    def save_request(self):
+        f = gen_uri(self.filename)
+        c = DidSave(f, self.get_version(f), self.file_content)
+        _, req = c.to_request()
+        return req
+
+    def gen_position_request(self, category):
         line, _ = self.cursor
         offset = len(self.input_data)
-        c = Completion(lsp.gen_uri(self.filename), line, offset)
+        return category(gen_uri(self.filename), line - 1, offset)
+
+    def position_request(self, category):
+        c = self.gen_position_request(category)
         req_id, req = c.to_request()
         self.current_id = req_id
         return req
 
-    def prepare_request(self, action):
+    def format_request(self):
+        f = gen_uri(self.filename)
+        c = Format(f)
+        req_id, req = c.to_request()
+        self.current_id = req_id
+        return req
+
+    def rename_request(self, name):
+        c = self.gen_position_request(Rename)
+        c.set_name(name)
+        req_id, req = c.to_request()
+        self.current_id = req_id
+        return req
+
+    def prepare_request(self, action, args):
         try:
             pwd = os.getcwd()
             project_name = os.path.basename(pwd)
@@ -86,9 +113,17 @@ class Lsp(Completor):
             req = self.open_request()
             if req:
                 items.append(req)
+            items.append(self.change_request())
             if action == b'complete':
-                items.append(self.change_request())
-                items.append(self.completion_request())
+                items.append(self.position_request(Completion))
+            elif action == b'definition':
+                items.append(self.position_request(Definition))
+            elif action == b'format':
+                items.append(self.format_request())
+            elif action == b'rename':
+                if not args:
+                    return ''
+                items.append(self.rename_request(args[0]))
             logger.info('data: %r', items)
             return ''.join(items)
         except Exception as e:
@@ -96,51 +131,64 @@ class Lsp(Completor):
             raise
 
     def get_cmd_info(self, action):
-        try:
-            logger.info("********* %s, %s", action, self.server_cmd.split())
-            if not self.server_cmd:
-                return vim.Dictionary()
-            return vim.Dictionary(
-                cmd=self.server_cmd.split(),
-                is_daemon=True,
-                ftype=self.filetype,
-                is_sync=False)
-        except Exception as e:
-            logger.exception(e)
-            raise
+        if action == b'format':
+            import_completer(self.ft)
+            c = get(self.ft, self.ft, self.input_data)
+            if not c:
+                return ''
+            return c.get_cmd_info(action)
+        if not self.server_cmd:
+            return vim.Dictionary()
+        return vim.Dictionary(
+            cmd=self.server_cmd.split(),
+            is_daemon=True,
+            ftype=self.filetype,
+            is_sync=False)
 
     def reset(self):
         self.initialized = False
         self.current_id = None
         self.open_file_map = {}
-        self.buf = BytesIO()
+        self.buf = io.BytesIO()
 
     def parse_data(self):
         remain = self.buf.getvalue()
         while True:
-            parts = remain.split('\r\n\r\n', 1)
-            if len(parts) != 2:
-                break
-            header = parts[0]
-            body = parts[1]
-            length = content_length(header)
-            if length is None:
-                logger.warning('no content-length')
-                break
-            if len(body) < length:
-                break
-            data = body[:length]
-            remain = body[length:]
-            yield json.loads(data)
-        self.buf = BytesIO(remain)
+            try:
+                parts = remain.split('\r\n\r\n', 1)
+                if len(parts) != 2:
+                    break
+                header = parts[0]
+                body = parts[1]
+                length = content_length(header)
+                logger.info("%r, %r, %r", header, body, length)
+                if length is None:
+                    logger.warning('no content-length')
+                    break
+                if len(body) < length:
+                    break
+                data = body[:length]
+                remain = body[length:]
+                yield json.loads(data)
+            except Exception as e:
+                logger.exception(e)
+                logger.info("%s, %r, %r", length, remain, data)
+                raise
+        self.buf = io.BytesIO(remain)
+        # Seek to end.
+        self.buf.seek(0, 2)
 
     def on_complete(self, data):
         if not data:
             return []
         res = []
-        if 'items' not in data[0]:
-            return []
-        for item in data[0]['items']:
+        candidates = data[0]
+        items = []
+        if isinstance(candidates, list):
+            items = candidates
+        elif 'items' in candidates:
+            items = candidates['items']
+        for item in items:
             label = item['label']
             match = word_pat.match(label)
             word = match.groups()[0] if match else ''
@@ -150,9 +198,15 @@ class Lsp(Completor):
             res.append(d)
         return vim.List(res)
 
+    def on_definition(self, data):
+        return gen_definition(data)
+
+    def on_rename(self, data):
+        logger.info("rename -> %r", data)
+        return []
+
     def on_stream(self, action, data):
         try:
-            logger.info('%s: %s', action, data)
             self.buf.write(data)
             res = []
             for item in self.parse_data():

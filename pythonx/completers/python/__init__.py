@@ -64,15 +64,13 @@ class Jedi(Completor):
             return ''
         line, _ = self.cursor
         col = len(self.input_data)
-        self.request_emmited = True
         return json.dumps({
             'action': action.decode('ascii'),
             'line': line - 1,
             'col': col,
             'filename': self.filename,
-            'input': self.input_data,
             'content': '\n'.join(vim.current.buffer[:])
-        }) + '\n'
+        })
 
     def on_definition(self, data):
         return json.loads(to_unicode(data[0], 'utf-8'))
@@ -81,12 +79,14 @@ class Jedi(Completor):
     on_doc = on_definition
 
     def on_complete(self, data):
-        return data
-
-    def on_stream(self, action, data):
         try:
-            v = json.loads(data)
+            data = to_unicode(data[0], 'utf-8') \
+                .replace('\\u', '\\\\\\u') \
+                .replace('\\U', '\\\\\\U')
+            return [
+                i for i in json.loads(data)
+                if not self.input_data.endswith(i['word'])
+            ]
         except Exception as e:
             logger.exception(e)
-            return
-        return self.on_data(action, v)
+            return []

@@ -126,7 +126,7 @@ function s:daemon.kill()
 endfunction
 
 
-function! completor#daemon#process(action, cmd, name, options)
+function! completor#daemon#process(action, cmd, name, options, args)
   let s:daemon.msgs = []
 
   " Daemon not running
@@ -146,12 +146,18 @@ function! completor#daemon#process(action, cmd, name, options)
   "   return v:false
   " endif
 
-  let req = completor#utils#prepare_request(a:action)
+  let req = completor#utils#gen_request(a:action, a:args)
   if empty(req)
     return v:false
   endif
 
-  call s:daemon.write(req)
+  if type(req) == v:t_list
+    for d in req
+      call s:daemon.write(d)
+    endfor
+  else
+    call s:daemon.write(req)
+  endif
 
   let s:daemon.requested = v:true
   let s:daemon.t = localtime()

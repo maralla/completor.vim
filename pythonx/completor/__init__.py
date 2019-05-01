@@ -92,6 +92,7 @@ class Completor(Base):
     def __init__(self):
         self.input_data = ''
         self.ft = ''
+        self.stream_buf = []
 
     @property
     def current_directory(self):
@@ -205,8 +206,8 @@ class Completor(Base):
 
         common = get('common')
         if not common.is_common(self):
-            if not ret:
-                set_current_completer(common)
+            # if not ret:
+            #     set_current_completer(common)
             if not ret or self.ident == common.ident:
                 common.ft = self.ft
                 common.input_data = self.input_data
@@ -214,7 +215,14 @@ class Completor(Base):
         return ret
 
     def on_stream(self, action, msg):
-        pass
+        for line in msg.split(b'\n'):
+            if not line:
+                continue
+            self.stream_buf.append(line)
+            if self.is_message_end(line):
+                data = self.stream_buf
+                self.stream_buf = []
+                return self.on_data(action, data)
 
     def handle_stream(self, action, msg):
         res = self.on_stream(action, msg)
@@ -312,6 +320,14 @@ class Completor(Base):
             return self.request()
         return ''
 
+    def gen_request(self, action=b'complete', args=None):
+        """Internal wrapper for preparing a request.
+        """
+        req = self.prepare_request(action=action)
+        if req and req[-1] != '\n':
+            req += '\n'
+        return req
+
     def is_message_end(self, msg):
         """Test the end of daemon response
 
@@ -342,12 +358,21 @@ def _resolve_ft(ft):
     return to_unicode(m.get(ft, Meta.type_map.get(ft, ft)), 'utf-8')
 
 
+def import_completer(ft):
+    try:
+        importlib.import_module("completers.{}".format(ft))
+    except ImportError:
+        try:
+            importlib.import_module("completor_{}".format(ft))
+        except ImportError:
+            return
+
+
 # ft: unicode
 def _load(ft):
     if not ft:
         return
     lsp_server = Completor.get_option('lsp_{}_server'.format(ft))
-    logger.info("aaaaaaaaaaaaa")
     if lsp_server:
         try:
             if 'lsp' not in Meta.registry:
@@ -358,15 +383,8 @@ def _load(ft):
             logger.exception(e)
             raise
         return lsp
-    logger.info("bbbbbbbbbbbbb")
     if ft not in Meta.registry:
-        try:
-            importlib.import_module("completers.{}".format(ft))
-        except ImportError:
-            try:
-                importlib.import_module("completor_{}".format(ft))
-            except ImportError:
-                return
+        import_completer(ft)
     return Meta.registry.get(ft)
 
 
@@ -396,7 +414,7 @@ def load_completer(ft, input_data):
     neoinclude = get('neoinclude')
     filename = get('filename')
     if neoinclude.has_neoinclude() and neoinclude.match(input_data) \
-    and not neoinclude.disabled:
+            and not neoinclude.disabled:
         c = neoinclude
     elif filename.match(input_data) and not filename.disabled:
         c = filename

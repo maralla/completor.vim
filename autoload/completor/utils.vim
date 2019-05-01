@@ -64,8 +64,8 @@ function! completor#utils#get_start_column()
 endfunction
 
 
-function! completor#utils#prepare_request(action)
-  exe s:py 'res = completor_api.prepare_request()'
+function! completor#utils#gen_request(action, args)
+  exe s:py 'res = completor_api.gen_request()'
   return s:pyeval('res')
 endfunction
 

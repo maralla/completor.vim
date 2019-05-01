@@ -243,7 +243,7 @@ endfunction
 
 
 " :param info: must contain keys: 'cmd', 'ftype', 'is_sync', 'is_daemon'
-function! completor#action#do(action, info, status)
+function! completor#action#do(action, info, status, args)
   let s:freezed_status = a:status
 
   if empty(a:info)
@@ -260,7 +260,7 @@ function! completor#action#do(action, info, status)
     return v:true
   elseif !empty(a:info.cmd)
     if a:info.is_daemon
-      return completor#daemon#process(a:action, a:info.cmd, a:info.ftype, options)
+      return completor#daemon#process(a:action, a:info.cmd, a:info.ftype, options, a:args)
     endif
     let sending_content = !empty(input_content)
     let s:job = completor#compat#job_start_oneshot(a:info.cmd, options, sending_content)

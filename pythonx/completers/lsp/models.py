@@ -45,8 +45,12 @@ class Initialize(Base):
     def to_dict(self):
         return {
             'processId': self.ppid,
-            'capabilities': {},
-            'workspaceFolders': self.workspace,
+            'capabilities': {
+                'workspace': {},
+                'textDocument': {}
+            },
+            'rootUri': self.workspace[0]['uri'],
+            # 'workspaceFolders': self.workspace,
         }
 
 
@@ -98,26 +102,6 @@ class DidSave(Base):
         }
 
 
-class Completion(Base):
-    method = 'textDocument/completion'
-
-    def __init__(self, uri, line, offset):
-        self.uri = uri
-        self.line = line
-        self.offset = offset
-
-    def to_dict(self):
-        return {
-            'textDocument': {
-                'uri': self.uri,
-            },
-            'position': {
-                'line': self.line,
-                'character': self.offset
-            }
-        }
-
-
 class DidChange(Base):
     method = 'textDocument/didChange'
     notify = True
@@ -139,3 +123,57 @@ class DidChange(Base):
                 }
             ]
         }
+
+
+class Completion(Base):
+    method = 'textDocument/completion'
+
+    def __init__(self, uri, line, offset):
+        self.uri = uri
+        self.line = line
+        self.offset = offset
+
+    def to_dict(self):
+        return {
+            'textDocument': {
+                'uri': self.uri,
+            },
+            'position': {
+                'line': self.line,
+                'character': self.offset
+            }
+        }
+
+
+class Definition(Completion):
+    method = 'textDocument/definition'
+
+
+class Format(Base):
+    method = 'textDocument/formatting'
+
+    def __init__(self, uri):
+        self.uri = uri
+
+    def to_dict(self):
+        return {
+            'textDocument': {
+                'uri': self.uri
+            }
+        }
+
+
+class Rename(Completion):
+    method = 'textDocument/rename'
+
+    def __init__(self, *args, **kwargs):
+        Completion.__init__(self, *args, **kwargs)
+        self.name = ''
+
+    def set_name(self, name):
+        self.name = name
+
+    def to_dict(self):
+        ret = Completion.to_dict(self)
+        ret['newName'] = self.name
+        return ret

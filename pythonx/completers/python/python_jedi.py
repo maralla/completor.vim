@@ -26,19 +26,16 @@ def write(msg):
 class JediProcessor(object):
     def __init__(self, jedi):
         self.jedi = jedi
-        self.args = {}
         self.script = None
 
     @contextlib.contextmanager
     def jedi_context(self, args):
-        self.args = args
         self.script = self.jedi.Script(
             source=args['content'], line=args['line'] + 1,
             column=args['col'], path=args['filename'])
         try:
             yield
         finally:
-            self.args = {}
             self.script = None
 
     def ignore(self):
@@ -62,9 +59,6 @@ class JediProcessor(object):
 
     def on_complete(self):
         for c in self.script.completions():
-            input_data = self.args.get('input', '')
-            if input_data.endswith(c.name):
-                continue
             yield {
                 'word': c.name,
                 'abbr': c.name_with_symbols,
@@ -106,7 +100,6 @@ def run(jedi):
     {
         "line": <int>,
         "col": <int>,
-        "input": <string>,
         "filename": <string>,
         "content": <string>,
     }

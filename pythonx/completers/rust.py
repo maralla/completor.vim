@@ -5,8 +5,6 @@ try:
 except ImportError:
     from shlex import quote
 
-import logging
-from io import BytesIO
 from completor import Completor, get_encoding, vim
 from completor.compat import to_bytes
 
@@ -16,21 +14,10 @@ ACTION_MAP = {
     b'doc': 'complete-with-snippet'
 }
 
-logger = logging.getLogger('completor')
-
 
 class Racer(Completor):
     filetype = 'rust'
     trigger = r'(?:\w{2,}\w*|\.\w*|::\w*)$'
-
-    def __init__(self, *args, **kwargs):
-        Completor.__init__(self, *args, **kwargs)
-        self.processed = []
-        self.unprocessed = BytesIO()
-
-    def reset_buffer(self):
-        self.processed = []
-        self.unprocessed = BytesIO()
 
     def get_cmd_info(self, action):
         binary = self.get_option('racer_binary') or 'racer'
@@ -42,7 +29,6 @@ class Racer(Completor):
         )
 
     def prepare_request(self, action):
-        self.reset_buffer()
         line, _ = self.cursor
         col = len(self.input_data)
         if action == b'doc':
@@ -51,7 +37,7 @@ class Racer(Completor):
         if not action:
             return ''
         return ' '.join([action, str(line), str(col),
-                         quote(self.filename), quote(self.tempname)]) + '\n'
+                         quote(self.filename), quote(self.tempname)])
 
     def is_message_end(self, msg):
         return msg == b'END'
@@ -103,26 +89,13 @@ class Racer(Completor):
             spec = b'mod' if kind == b'module' else b', '.join(parts[5:])
             if spec.startswith(b'pub '):
                 spec = spec[4:]
+
             if spec.startswith(input_data):
                 continue
-            completions.append(vim.Dictionary(word=name, menu=spec, dup=0))
-        return vim.List(completions)
 
-    def on_stream(self, action, data):
-        self.unprocessed.write(data)
-        data = self.unprocessed.getvalue()
-        items = data.split('\n')
-        if not items:
-            return
-        if items[-1] == '':
-            processed = items
-            buf = BytesIO()
-        else:
-            processd = items[:-1]
-            buf = BytesIO(items[-1])
-        self.unprocessed = buf
-        self.processed.extend(processed)
-        if len(self.processed) > 2 and self.processed[-2].lower() == 'end':
-            res = self.on_data(action, self.processed)
-            self.reset_buffer()
-            return res
+            completions.append({
+                'word': name,
+                'menu': spec,
+                'dup': 0
+            })
+        return completions
