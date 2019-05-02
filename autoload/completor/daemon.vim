@@ -3,11 +3,6 @@ let s:daemon = {'msgs': [], 'requested': v:false, 't': 0}
 
 function! s:vim_daemon_handler(msg)
   call completor#action#stream(a:msg)
-  " call completor#action#callback(a:msg)
-  " call add(s:daemon.msgs, a:msg)
-  " if completor#utils#is_message_end(a:msg)
-  "   let s:daemon.requested = v:false
-  " endif
 endfunction
 
 
@@ -136,14 +131,6 @@ function! completor#daemon#process(action, cmd, name, options, args)
   if s:daemon.status(a:name) !=# 'run'
     return v:false
   endif
-
-  " Already requested
-  " if s:daemon.requested
-  "   if localtime() - s:daemon.t > 5
-  "     call s:daemon.kill()
-  "   endif
-  "   return v:false
-  " endif
 
   let req = completor#utils#gen_request(a:action, a:args)
   if empty(req)
