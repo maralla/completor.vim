@@ -21,7 +21,7 @@ word_pat = re.compile(r'([\d\w]+)', re.U)
 
 class Lsp(Completor):
     filetype = 'lsp'
-    trigger = r'(?:\w{2,}\w*|\.\w*)$'
+    trigger = r'(?:\w{2,}\w*|\.\w*|:\w*|->\w*)$'
 
     def __init__(self, *args, **kwargs):
         Completor.__init__(self, *args, **kwargs)
@@ -35,7 +35,7 @@ class Lsp(Completor):
         args = self.open_file_map.get(f)
         if args is None:
             return 0
-        # args['version'] += 1
+        args['version'] += 1
         return args['version']
 
     def set_server_cmd(self, cmd):
@@ -105,7 +105,6 @@ class Lsp(Completor):
         try:
             pwd = os.getcwd()
             project_name = os.path.basename(pwd)
-            logger.info(project_name)
             items = []
             if not self.initialized:
                 items.append(self.initialize_request(project_name, pwd))
@@ -145,7 +144,7 @@ class Lsp(Completor):
         return vim.Dictionary(
             cmd=lsp_cmd.split(),
             is_daemon=True,
-            ftype=self.filetype,
+            ftype=self.filetype + '_' + ft,
             is_sync=False)
 
     def reset(self):
@@ -164,7 +163,6 @@ class Lsp(Completor):
                 header = parts[0]
                 body = parts[1]
                 length = content_length(header)
-                logger.info("%r, %r, %r", header, body, length)
                 if length is None:
                     logger.warning('no content-length')
                     break
@@ -175,7 +173,6 @@ class Lsp(Completor):
                 yield json.loads(data)
             except Exception as e:
                 logger.exception(e)
-                logger.info("%s, %r, %r", length, remain, data)
                 raise
         self.buf = io.BytesIO(remain)
         # Seek to end.
@@ -192,7 +189,7 @@ class Lsp(Completor):
         elif 'items' in candidates:
             items = candidates['items']
         for item in items:
-            label = item['label']
+            label = item['label'].strip()
             match = word_pat.match(label)
             word = match.groups()[0] if match else ''
             d = vim.Dictionary(abbr=label, word=word)
@@ -209,21 +206,19 @@ class Lsp(Completor):
         return []
 
     def on_stream(self, action, data):
-        try:
-            self.buf.write(data)
-            res = []
-            for item in self.parse_data():
-                if item.get('id') == self.current_id:
-                    res.append(item.get('result', {}))
+        self.buf.write(data)
+        res = []
+        for item in self.parse_data():
+            if item.get('id') == self.current_id:
+                res.append(item.get('result', {}))
+        if res:
             return self.on_data(action, res)
-        except Exception as e:
-            logger.exception(e)
-            raise
 
 
 def content_length(header):
-    parts = header.split('\r\n')
+    parts = header.split('\n')
     for part in parts:
+        part = part.strip('\r')
         try:
             name, value = part.split(':')
         except ValueError:

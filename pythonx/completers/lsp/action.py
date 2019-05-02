@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from .utils import parse_uri
-from completor import vim
 
 # [
 #   [{
