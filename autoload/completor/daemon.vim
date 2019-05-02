@@ -2,7 +2,6 @@ let s:daemon = {'msgs': [], 'requested': v:false, 't': 0}
 
 
 function! s:vim_daemon_handler(msg)
-  call Log(string(a:msg))
   call completor#action#stream(a:msg)
   " call completor#action#callback(a:msg)
   " call add(s:daemon.msgs, a:msg)

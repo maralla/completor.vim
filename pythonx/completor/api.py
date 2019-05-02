@@ -72,7 +72,6 @@ def reset(args):
 
 @_api
 def on_stream(args):
-    logger.info("%r", args['msg'])
     c = get_current_completer()
     if not c:
         return

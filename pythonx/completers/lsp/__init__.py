@@ -101,7 +101,7 @@ class Lsp(Completor):
         self.current_id = req_id
         return req
 
-    def prepare_request(self, action, args):
+    def gen_request(self, action, args):
         try:
             pwd = os.getcwd()
             project_name = os.path.basename(pwd)
@@ -131,16 +131,19 @@ class Lsp(Completor):
             raise
 
     def get_cmd_info(self, action):
-        if action == b'format':
-            import_completer(self.ft)
-            c = get(self.ft, self.ft, self.input_data)
+        ft = self.ft_orig
+        args = self.ft_args
+        lsp_cmd = args.get('cmd')
+        if not lsp_cmd:
+            return vim.Dictionary()
+        if action == b'format' and ft != self.ft:
+            import_completer(ft)
+            c = get(ft, ft, self.input_data)
             if not c:
                 return ''
             return c.get_cmd_info(action)
-        if not self.server_cmd:
-            return vim.Dictionary()
         return vim.Dictionary(
-            cmd=self.server_cmd.split(),
+            cmd=lsp_cmd.split(),
             is_daemon=True,
             ftype=self.filetype,
             is_sync=False)
