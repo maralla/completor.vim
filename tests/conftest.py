@@ -57,8 +57,9 @@ class Vim(object):
     def Function(self, func_name):
         return self.funcs.get(func_name)
 
-    def Dictionary(self, **kwargs):
-        return kwargs
+    class Dictionary(object):
+        def __new__(self, **kwargs):
+            return dict(kwargs)
 
     def command(self, cmd):
         pass

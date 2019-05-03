@@ -20,29 +20,29 @@ def test_disabled(vim_mod):
 
 
 def test_load(vim_mod, monkeypatch):
-    from completor import Meta
     vim_mod.eval = mock.Mock(return_value={})
-    vim_mod.vars = {}
-
-    with mock.patch.object(Meta, 'type_map',
-                           {b'python.django': b'python'}):
-        assert get('python') is None
-        c = load_completer(b'python', b'os.')
-        assert c.input_data == 'os.'
-        assert get('python') is c
-
-        c = load_completer(b'python', b'#')
-        assert c is get('common')
-
-        c = load_completer(b'python.django', b'os.')
-        assert c is get('python')
-
-        vim_mod.current.buffer.options.update({
-            'omnifunc': b'csscomplete#CompleteCSS'})
-        vim_mod.vars = {
-            'completor_css_omni_trigger': b'([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$'
+    vim_mod.vars = {
+        'completor_filetype_map': {
+            b'python.django': b'python'
         }
-        assert load_completer(b'css', b'text') is get('omni')
+    }
+    assert get('python') is None
+    c = load_completer(b'python', b'os.')
+    assert c.input_data == 'os.'
+    assert get('python') is c
+
+    c = load_completer(b'python', b'#')
+    assert c is get('common')
+
+    c = load_completer(b'python.django', b'os.')
+    assert c is get('python')
+
+    vim_mod.current.buffer.options.update({
+        'omnifunc': b'csscomplete#CompleteCSS'})
+    vim_mod.vars = {
+        'completor_css_omni_trigger': b'([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$'
+    }
+    assert load_completer(b'css', b'text') is get('omni')
 
 
 def test_parse_config():
