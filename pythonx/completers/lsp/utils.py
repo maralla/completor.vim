@@ -9,7 +9,3 @@ def parse_uri(uri):
     if uri.startswith('file://'):
         return uri[7:]
     return uri
-
-
-def parse_response(data):
-    pass

@@ -2,13 +2,14 @@
 
 from .utils import parse_uri
 
+
 # [
 #   [{
 #       u'range': {
 #           u'start': {u'line': 273, u'character': 5},
 #           u'end': {u'line': 273, u'character': 12}
 #       },
-#       u'uri': u'file:///home/linuxbrew/.linuxbrew/Cellar/go/1.12.4/libexec/src/fmt/print.go'
+#       u'uri': u'file:///home/linuxbrew/.linuxbrew/Cellar/go/1.12.4/libexec/src/fmt/print.go'  # noqa
 #   }]
 # ]
 def gen_definition(data):

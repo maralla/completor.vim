@@ -200,8 +200,6 @@ class Completor(Base):
 
         common = get('common')
         if not common.is_common(self):
-            # if not ret:
-            #     set_current_completer(common)
             if not ret or self.ident == common.ident:
                 common.ft = self.ft
                 common.input_data = self.input_data
