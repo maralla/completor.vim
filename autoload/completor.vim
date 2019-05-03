@@ -96,7 +96,7 @@ function! completor#enable_autocomplete()
 endfunction
 
 
-func s:do_action(action, meta, status)
+func s:do_action(action, meta, status, args)
   try
     call s:import_python()
     if a:action ==# 'complete'
@@ -104,19 +104,20 @@ func s:do_action(action, meta, status)
     else
       let info = completor#utils#load(a:status.ft, a:action, a:status.input, a:meta)
     endif
-    call completor#action#do(a:action, info, a:status)
+    call completor#action#do(a:action, info, a:status, a:args)
   catch /\(E858\|\(py\(thon\|3\|x\)\)\)/
   endtry
 endfunction
 
 
-function! completor#do(action) range
+function! completor#do(action, ...) range
   if exists('s:timer') && !empty(timer_info(s:timer))
     call timer_stop(s:timer)
   endif
   let meta = {'range': [a:firstline, a:lastline]}
   let status = completor#action#current_status()
-  let s:timer = timer_start(g:completor_completion_delay, {t->s:do_action(a:action, meta, status)})
+  let args = a:000
+  let s:timer = timer_start(g:completor_completion_delay, {t->s:do_action(a:action, meta, status, args)})
   return ''
 endfunction
 

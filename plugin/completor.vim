@@ -26,8 +26,16 @@ endif
 
 let g:loaded_completor_plugin = 1
 
-
 let s:default_blacklist = ['tagbar', 'qf', 'netrw', 'unite', 'vimwiki']
+
+let s:default_type_map = {
+        \ 'c': 'cpp',
+        \ 'javascript.jsx': 'javascript',
+        \ 'python.django': 'python',
+        \ 'typescript.tsx': 'typescript',
+        \ 'typescript.jsx': 'typescript',
+        \ }
+
 let g:completor_blacklist = get(g:, 'completor_blacklist', s:default_blacklist)
 " file size limit in KB
 let g:completor_filesize_limit = get(g:, 'completor_filesize_limit', 1024) * 1024
@@ -37,6 +45,7 @@ let g:completor_refresh_always = get(g:, 'completor_refresh_always', 1)
 let g:completor_doc_position = get(g:, 'completor_doc_position', 'bottom')
 let g:completor_def_split = get(g:, 'completor_def_split', '')
 let g:completor_complete_options = get(g:, 'completor_complete_options', 'menuone,noselect,preview')
+let g:completor_filetype_map = extend(s:default_type_map, get(g:, 'completor_filetype_map', {}))
 
 
 func s:init()

@@ -30,11 +30,12 @@ def test_get_start_column(vim_mod):
 
 def test_prepare_request(vim_mod, create_buffer):
     vim_mod.var_map['a:'] = {
-        'action': b'complete'
+        'action': b'complete',
+        'args': {},
     }
     vim_mod.current.window.cursor = (1, 2)
     vim_mod.current.buffer = create_buffer(1, name='test')
-    assert json.loads(api.prepare_request()) == {
+    assert json.loads(api.gen_request()) == {
         "content": "",
         "line": 0,
         "col": 3,
