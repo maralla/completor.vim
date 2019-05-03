@@ -132,7 +132,7 @@ class Lsp(Completor):
     def get_cmd_info(self, action):
         ft = self.ft_orig
         args = self.ft_args
-        lsp_cmd = args.get('cmd')
+        lsp_cmd = args.get(b'cmd')
         if not lsp_cmd:
             return vim.Dictionary()
         if action == b'format' and ft != self.ft:
@@ -157,7 +157,7 @@ class Lsp(Completor):
         remain = self.buf.getvalue()
         while True:
             try:
-                parts = remain.split('\r\n\r\n', 1)
+                parts = remain.split(b'\r\n\r\n', 1)
                 if len(parts) != 2:
                     break
                 header = parts[0]
@@ -170,6 +170,7 @@ class Lsp(Completor):
                     break
                 data = body[:length]
                 remain = body[length:]
+                logger.info("parsing %r", data)
                 yield json.loads(data)
             except Exception as e:
                 logger.exception(e)
@@ -179,6 +180,7 @@ class Lsp(Completor):
         self.buf.seek(0, 2)
 
     def on_complete(self, data):
+        logger.info("complete %r", data)
         if not data:
             return []
         res = []
@@ -206,6 +208,7 @@ class Lsp(Completor):
         return []
 
     def on_stream(self, action, data):
+        logger.info('received %r', data)
         self.buf.write(data)
         res = []
         for item in self.parse_data():
@@ -216,14 +219,14 @@ class Lsp(Completor):
 
 
 def content_length(header):
-    parts = header.split('\n')
+    parts = header.split(b'\n')
     for part in parts:
-        part = part.strip('\r')
+        part = part.strip(b'\r')
         try:
-            name, value = part.split(':')
+            name, value = part.split(b':')
         except ValueError:
             continue
-        if name.strip().lower() != 'content-length':
+        if name.strip().lower() != b'content-length':
             continue
         try:
             length = int(value.strip())

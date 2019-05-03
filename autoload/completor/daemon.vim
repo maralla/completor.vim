@@ -6,39 +6,8 @@ function! s:vim_daemon_handler(msg)
 endfunction
 
 
-let s:nvim_last_msg = ''
-function! s:nvim_read(data)
-  let data = a:data
-
-  if !empty(s:nvim_last_msg) && !empty(data)
-    let s:nvim_last_msg .= data[0]
-    let data = data[1:]
-    if !empty(data)
-      call add(s:daemon.msgs, s:nvim_last_msg)
-      let s:nvim_last_msg = ''
-    endif
-  endif
-
-  if !empty(data)
-    let s:nvim_last_msg = data[-1]
-    call extend(s:daemon.msgs, data[0:-2])
-  endif
-endfunction
-
-
 function! s:nvim_daemon_handler(job_id, data, event)
-  if a:event ==# 'exit'
-    return
-  endif
-
-  call s:nvim_read(a:data)
-
-  if empty(s:nvim_last_msg) && !empty(s:daemon.msgs)
-    if completor#utils#is_message_end(s:daemon.msgs[-1])
-      let s:daemon.requested = v:false
-      call completor#action#callback(s:daemon.msgs)
-    endif
-  endif
+  call completor#action#stream(join(a:data, "\n"))
 endfunction
 
 
@@ -47,8 +16,6 @@ if has('nvim')
   function! s:job_start_daemon(cmd, options)
     let conf = {
           \   'on_stdout': function('s:nvim_daemon_handler'),
-          \   'on_stderr': function('s:nvim_daemon_handler'),
-          \   'on_exit': function('s:nvim_daemon_handler'),
           \ }
     call extend(conf, a:options)
     return jobstart(a:cmd, conf)
@@ -66,7 +33,7 @@ else
   function! s:job_start_daemon(cmd, options)
     let conf = {
           \   'out_cb': {c,m->s:vim_daemon_handler(m)},
-          \   'err_io': 'out',
+          \   'err_io': 'null',
           \   'mode': 'raw',
           \ }
     call extend(conf, a:options)

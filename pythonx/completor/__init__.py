@@ -379,7 +379,7 @@ class _ft_context(object):
         info = m.get(self.origin, self.origin)
         ft = info
         if isinstance(info, (vim.Dictionary, dict)):
-            ft = info.get('ft', self.origin)
+            ft = info.get(b'ft', self.origin)
             self._ft_args.update(info)
         self.mapped = self._text(ft)
         return self
