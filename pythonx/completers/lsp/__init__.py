@@ -171,7 +171,7 @@ class Lsp(Completor):
                 data = body[:length]
                 remain = body[length:]
                 logger.info("parsing %r", data)
-                yield json.loads(data)
+                yield json.loads(data.decode('utf-8'))
             except Exception as e:
                 logger.exception(e)
                 raise
