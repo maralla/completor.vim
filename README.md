@@ -224,7 +224,7 @@ function! Tab_Or_Complete() abort
     return "\<C-N>"
   " If completor is not open and we are in the middle of typing a word then
   " `tab` opens completor menu.
-  elseif col('.')>1 && strpart( getline('.'), col('.')-2, 3 ) =~ '^\w'
+  elseif col('.')>1 && strpart( getline('.'), col('.')-2, 3 ) =~ '^[[:keyword:][:ident:]]'
     return "\<C-R>=completor#do('complete')\<CR>"
   else
     " If we aren't typing a word and we press `tab` simply do the normal `tab`
