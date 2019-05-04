@@ -21,7 +21,7 @@ word_pat = re.compile(r'([\d\w]+)', re.U)
 
 class Lsp(Completor):
     filetype = 'lsp'
-    trigger = r'(?:\w{2,}\w*|\.\w*|:\w*|->\w*)$'
+    trigger = r'(?:\w{2,}\w*|\.\w*|::\w*|->\w*)$'
 
     def __init__(self, *args, **kwargs):
         Completor.__init__(self, *args, **kwargs)
@@ -123,6 +123,8 @@ class Lsp(Completor):
                 if not args:
                     return ''
                 items.append(self.rename_request(args[0]))
+            else:
+                return ''
             logger.info('data: %r', items)
             return ''.join(items)
         except Exception as e:
