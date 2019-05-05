@@ -31,6 +31,14 @@ function! completor#action#_on_complete_done()
 endfunction
 
 
+function! completor#action#_on_insert_leave()
+  if exists('s:cot')
+    " Restore cot.
+    let &cot = s:cot
+  endif
+endfunction
+
+
 function! s:trigger_complete(completions)
   " Record cot.
   if !exists('s:cot')

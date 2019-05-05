@@ -74,6 +74,7 @@ function! s:set_events()
       autocmd TextChangedI * call s:on_text_change()
       autocmd InsertCharPre * call s:on_insert_char_pre()
     endif
+    autocmd InsertLeave * call completor#action#_on_insert_leave()
     autocmd! CompleteDone * call completor#action#_on_complete_done()
   augroup END
 endfunction
