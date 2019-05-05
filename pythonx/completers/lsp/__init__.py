@@ -10,7 +10,7 @@ import io
 from completor import Completor, vim, import_completer, get
 
 from .models import Initialize, DidOpen, Completion, DidChange, DidSave, \
-    Definition, Format, Rename
+    Definition, Format, Rename, Hover
 from .action import gen_definition
 from .utils import gen_uri
 
@@ -123,6 +123,8 @@ class Lsp(Completor):
                 if not args:
                     return ''
                 items.append(self.rename_request(args[0]))
+            elif action == b'hover':
+                items.append(self.position_request(Hover))
             else:
                 return ''
             logger.info('data: %r', items)
@@ -208,6 +210,16 @@ class Lsp(Completor):
     def on_rename(self, data):
         logger.info("rename -> %r", data)
         return []
+
+    def on_hover(self, data):
+        logger.info("hover -> %r", data)
+        if not data:
+            return []
+        item = data[0]
+        value = item.get('contents', {}).get('value')
+        if not value:
+            return []
+        return [value]
 
     def on_stream(self, action, data):
         logger.info('received %r', data)

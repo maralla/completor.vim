@@ -177,3 +177,11 @@ class Rename(Completion):
         ret = Completion.to_dict(self)
         ret['newName'] = self.name
         return ret
+
+
+class Signature(Completion):
+    method = "textDocument/signatureHelp"
+
+
+class Hover(Completion):
+    method = "textDocument/hover"

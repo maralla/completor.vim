@@ -214,6 +214,10 @@ function! completor#action#trigger(items)
     call s:show_doc(a:items)
   elseif s:action ==# 'format'
     silent edit!
+  elseif s:action ==# 'hover'
+    if !empty(a:items)
+      echo a:items[0]
+    endif
   endif
 endfunction
 
