@@ -8,6 +8,7 @@ import json
 import re
 import io
 from completor import Completor, vim, import_completer, get
+from completor.compat import to_unicode
 
 from .models import Initialize, DidOpen, Completion, DidChange, DidSave, \
     Definition, Format, Rename, Hover
@@ -96,7 +97,7 @@ class Lsp(Completor):
 
     def rename_request(self, name):
         c = self.gen_position_request(Rename)
-        c.set_name(name)
+        c.set_name(to_unicode(name, 'utf-8'))
         req_id, req = c.to_request()
         self.current_id = req_id
         return req
@@ -175,7 +176,7 @@ class Lsp(Completor):
                 data = body[:length]
                 remain = body[length:]
                 logger.info("parsing %r", data)
-                yield json.loads(data.decode('utf-8'))
+                yield json.loads(to_unicode(data, 'utf-8'))
             except Exception as e:
                 logger.exception(e)
                 raise
