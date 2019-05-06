@@ -50,6 +50,7 @@ let g:completor_filetype_map = extend(s:default_type_map, get(g:, 'completor_fil
 
 func s:init()
   call completor#enable_autocomplete()
+  call completor#action#_on_insert_enter()
 endfunc
 
 
