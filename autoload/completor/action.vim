@@ -17,17 +17,21 @@ endfunction
 
 
 function! completor#action#_on_complete_done()
-  " Restore cot.
-  if exists('s:cot')
-    let &cot = s:cot
-  endif
-
-  if get(g:, 'completor_auto_close_doc', 1) && pumvisible() == 0
+  if pumvisible() == 0
     try
       pclose
     catch
     endtry
   endif
+endfunction
+
+
+function! completor#action#_on_insert_enter()
+  if !exists('s:cot')
+    " Record cot.
+    let s:cot = &cot
+  endif
+  let &cot = get(g:, 'completor_complete_options', &cot)
 endfunction
 
 
@@ -40,12 +44,6 @@ endfunction
 
 
 function! s:trigger_complete(completions)
-  " Record cot.
-  if !exists('s:cot')
-    let s:cot = &cot
-  endif
-  let &cot = get(g:, 'completor_complete_options', &cot)
-
   let s:completions = a:completions
   if empty(s:completions) | return | endif
   let startcol = completor#action#completefunc(1, '')
