@@ -373,8 +373,11 @@ class _ft_context(object):
         return to_unicode(ft, 'utf-8')
 
     def __enter__(self):
-        m = Completor.get_option('filetype_map') or {}
-        info = m.get(self.origin, self.origin)
+        if self.origin:
+            m = Completor.get_option('filetype_map') or {}
+            info = m.get(self.origin, self.origin)
+        else:
+            info = b''
         ft = info
         if isinstance(info, (vim.Dictionary, dict)):
             ft = info.get(b'ft', self.origin)
