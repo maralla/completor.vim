@@ -9,8 +9,9 @@ function! s:restore_cpo()
 endfunction
 
 function! s:has_features()
-  return ((has('python') || has('python3'))
-        \ && has('job') && has('timers') && has('lambda')) || has('nvim')
+  return (has('python') || has('python3')) &&
+        \ (has('job') && has('timers') || has('nvim')) &&
+        \ has('lambda')
 endfunction
 
 if exists('g:loaded_completor_plugin')
