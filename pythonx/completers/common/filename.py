@@ -11,8 +11,8 @@ from .utils import test_subseq, LIMIT
 
 
 logger = logging.getLogger('completor')
-PAT = re.compile('(\w{2,}:(//?[^\s]*)?)|(</[^\s>]*>?)|(//)')
-START_NO_DIRNAME = re.compile("^(\.{0,2}/|~/|[a-zA-Z]:/|\$)")
+PAT = re.compile(r'(\w{2,}:(//?[^\s]*)?)|(</[^\s>]*>?)|(//)')
+START_NO_DIRNAME = re.compile(r'^(\.{0,2}/|~/|[a-zA-Z]:/|\$)')
 
 
 def gen_entry(pat, dirname, basename):
@@ -96,11 +96,12 @@ class Filename(Completor):
     # Ingore whitespace.
     ident = r"""[@a-zA-Z0-9(){}$+_~.'"\x80-\xff-\[\]]*"""
 
-    def parse(self, base):
-        """
-        :param base: type unicode
-        """
-        logger.info('start filename parse: %s', base)
+    def match(self, input_data):
+        if self.is_comment_or_string():
+            return bool(self.trigger.search(input_data))
+        return False
+
+    def _path(self, base):
         pat = list(PAT.finditer(base))
         if pat:
             base = base[pat[-1].end():]
@@ -113,16 +114,26 @@ class Filename(Completor):
 
         if not match:
             logger.info('no matches')
-            return []
+            return
 
         if match.group()[-1] == ' ':
+            return
+        return match.group()
+
+    def parse(self, base):
+        """
+        :param base: type unicode
+        """
+        logger.info('start filename parse: %s', base)
+        path = self._path(base)
+        if path is None:
             return []
 
         try:
-            if START_NO_DIRNAME.search(match.group()):
-                items = find(self.current_directory, match.group())
+            if START_NO_DIRNAME.search(path):
+                items = find(self.current_directory, path)
             else:
-                items = find(self.current_directory, './' + match.group())
+                items = find(self.current_directory, './' + path)
         except Exception as e:
             logger.exception(e)
             return []
