@@ -49,7 +49,7 @@ def strip_optional(menu):
 
 
 def get_word(text):
-    parts = re.split(r'[ (\[{<]', text, 1)
+    parts = re.split(b'[ (\[{<]', text, 1)
     if not parts:
         return text
     return parts[0]
