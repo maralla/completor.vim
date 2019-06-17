@@ -191,7 +191,7 @@ class Completor(Base):
                 is_sync=self.sync)
         return vim.Dictionary()
 
-    def do_complete(self, data):
+    def _do_complete(self, data):
         ret = []
         if callable(getattr(self, 'parse', None)):
             ret.extend(self.parse(data))
@@ -207,6 +207,11 @@ class Completor(Base):
         return ret
 
     def on_stream(self, action, msg):
+        """Called when channel message reached.
+
+        :param action: the action which triggered the stream (bytes)
+        :param msg: the message received from the stream (bytes)
+        """
         for line in msg.split(b'\n'):
             if not line:
                 continue
@@ -217,6 +222,10 @@ class Completor(Base):
                 return self.on_data(action, data)
 
     def handle_stream(self, action, msg):
+        """Wrapper around on_stream.
+
+        When `on_stream` returns non-empty action trigger is called.
+        """
         res = self.on_stream(action, msg)
         if not res:
             return
@@ -229,14 +238,14 @@ class Completor(Base):
         """Callback when received data.
 
         :param action: action bind to this data (bytes)
-        :param data: data to process (bytes, list)
+        :param data: data is a complete action item (bytes, list)
         :rtype: list
         """
         action = action.decode('ascii')
         if not isinstance(data, (list, vim.List)):
             data = _unicode(data)
         if action == 'complete':
-            return self.do_complete(data)
+            return self._do_complete(data)
         try:
             return getattr(self, 'on_' + action)(data)
         except AttributeError:
@@ -339,7 +348,10 @@ class Completor(Base):
         return vim.Function('completor#utils#in_comment_or_string')()
 
     def reset(self):
-        pass
+        """Reset completer status.
+
+        This method is called after daemonized completer command spawned.
+        """
 
 
 def _resolve_ft(ft):
