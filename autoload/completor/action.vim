@@ -27,6 +27,9 @@ endfunction
 
 
 function! completor#action#_on_insert_enter()
+  if completor#support_popup()
+    return
+  endif
   if !exists('s:cot')
     " Record cot.
     let s:cot = &cot
@@ -36,6 +39,10 @@ endfunction
 
 
 function! completor#action#_on_insert_leave()
+  if completor#support_popup()
+    call completor#popup#hide()
+    return
+  endif
   if exists('s:cot')
     " Restore cot.
     let &cot = s:cot
@@ -45,14 +52,25 @@ endfunction
 
 function! s:trigger_complete(completions)
   let s:completions = a:completions
-  if empty(s:completions) | return | endif
+  if empty(s:completions)
+    if completor#support_popup()
+      call completor#popup#hide()
+    endif
+    return
+  endif
   let startcol = completor#action#completefunc(1, '')
   let matches = completor#action#completefunc(0, '')
   if startcol >= 0
-    try
-      call complete(startcol + 1, matches.words)
-    catch /E785\|E685/
-    endtry
+    if completor#support_popup()
+      call completor#popup#show(startcol, matches.words)
+    else
+      try
+        call complete(startcol + 1, matches.words)
+      catch /E785\|E685/
+      endtry
+    endif
+  elseif completor#support_popup()
+    call completor#popup#hide()
   endif
 endfunction
 

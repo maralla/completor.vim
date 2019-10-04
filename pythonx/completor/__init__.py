@@ -227,7 +227,7 @@ class Completor(Base):
         When `on_stream` returns non-empty action trigger is called.
         """
         res = self.on_stream(action, msg)
-        if not res:
+        if res is None:
             return
         try:
             vim.Function('completor#action#trigger')(res)
