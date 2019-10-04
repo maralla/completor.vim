@@ -105,7 +105,7 @@ endfunc
 func completor#popup#init()
   let s:popup = popup_create('', #{
         \  zindex: 200,
-        \  mapping: 0,
+        \  mapping: 1,
         \  wrap: 0,
         \  maxwidth: 80,
         \  hidden: v:true,
