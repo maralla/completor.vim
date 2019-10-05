@@ -94,6 +94,8 @@ endfunc
 
 
 func s:define_syntax()
+  setlocal scrolloff=0
+  setlocal scrolljump=1
   setlocal conceallevel=3
   setlocal concealcursor=ncvi
   exec 'syn region CompletionWord matchgroup=indicator start="^" end="' . s:indicator . '" concealends'
@@ -117,36 +119,61 @@ endfunc
 
 func completor#popup#hide()
   call popup_setoptions(s:popup, #{cursorline: 0})
-  call win_execute(s:popup, 'call cursor(1, col(".")) | redraw')
   call popup_hide(s:popup)
+  call win_execute(s:popup, 'call cursor(1, col(".")) | redraw')
 endfunc
 
 
-let s:a = 0
+func s:get_word(item)
+  let word = a:item.word
+  let abbr = get(a:item, 'abbr', '')
+  if abbr != ''
+    let word = abbr
+  endif
+  return word
+endfunc
 
-func s:max_length(items)
+
+func s:max_word_length(items)
   let c = 0
   for v in a:items
-    if len(v.word) > c
-      let c = len(v.word)
+    let word = s:get_word(v)
+    if len(word) > c
+      let c = len(word)
     endif
   endfor
   return c
 endfunc
 
 
-func s:format(v, max_word_length)
-  return ' ' . a:v.word . s:indicator . repeat(' ', a:max_word_length-len(a:v.word)) . a:v.menu
+func s:format(v, max_length)
+  let word = s:get_word(a:v)
+  let menu = get(a:v, 'menu', '')
+  return ' ' . word . s:indicator . repeat(' ', a:max_length-len(word)) . menu
+endfunc
+
+
+func s:format_items(words)
+  let length = s:max_word_length(a:words) + 2
+  let ret = []
+  let item_length = 0
+  for word in a:words
+    let item = s:format(word, length)
+    if len(item) > item_length
+      let item_length = len(item)
+    endif
+    call add(ret, item)
+  endfor
+  return [ret, item_length]
 endfunc
 
 
 func completor#popup#show(startcol, words)
-  let s:a += 1
   let text = getline('.')
   let pos = col('.') - 1
   let base = text[a:startcol:pos-1]
-  let length = s:max_length(a:words) + 2
-  let words = map(copy(a:words), {k,v -> s:format(v, length)})
+  let length = s:max_word_length(a:words) + 2
+  let [words, max_length] = s:format_items(a:words)
 
   let s:current_completions.data = a:words
   let s:current_completions.startcol = a:startcol
@@ -155,9 +182,24 @@ func completor#popup#show(startcol, words)
   let s:current_completions.orig = text
   let s:current_completions.index = 0
 
+  let total = &lines
+  let current = screenrow()
+
+  let pos = 'topleft'
+  let height = min([total - current - 1, 50])
+  let line = 'cursor+1'
+  if current > total / 2
+    let pos = 'botleft'
+    let height = min([current - 1, 50])
+    let line = 'cursor-1'
+  endif
+
   call popup_setoptions(s:popup, #{
-        \ maxheight: &lines - line('.') - 5,
-        \ line: 'cursor+1',
+        \ pos: pos,
+        \ maxheight: height,
+        \ minwidth: min([max_length, 80]),
+        \ fixed: v:true,
+        \ line: line,
         \ col: 'cursor-'.(strlen(base)+1),
         \ })
   call popup_settext(s:popup, words)
