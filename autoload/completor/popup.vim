@@ -11,7 +11,7 @@ let s:current_completions = #{
 let s:indicator = '__|-|__'
 
 
-func s:next()
+func! s:next()
   let cur = s:current_completions.index
   if len(s:current_completions.data) == cur
     call cursor(1, col('.'))
@@ -27,7 +27,7 @@ func s:next()
 endfunc
 
 
-func s:prev()
+func! s:prev()
   let cur = s:current_completions.index
   if cur == 1
     call cursor(len(s:current_completions.data), col('.'))
@@ -40,14 +40,14 @@ func s:prev()
 endfunc
 
 
-func s:hi_cursor()
+func! s:hi_cursor()
   if s:current_completions.index == 0
     call popup_setoptions(s:popup, #{cursorline: 1})
   endif
 endfunc
 
 
-func s:filter(id, key)
+func! s:filter(id, key)
   if a:key == "\<c-n>"
     call s:hi_cursor()
     call win_execute(a:id, "call s:next()")
@@ -70,13 +70,13 @@ func s:filter(id, key)
 endfunc
 
 
-func s:reset()
+func! s:reset()
   call setline('.', s:current_completions.orig)
   call cursor(line('.'), s:current_completions.pos + 1)
 endfunc
 
 
-func s:insert_word(id)
+func! s:insert_word(id)
   let line = s:current_completions.index
   let item = s:current_completions.data[line-1]
   let text = s:current_completions.orig
@@ -93,7 +93,7 @@ func s:insert_word(id)
 endfunc
 
 
-func s:define_syntax()
+func! s:define_syntax()
   setlocal scrolloff=0
   setlocal scrolljump=1
   setlocal conceallevel=3
@@ -104,7 +104,7 @@ func s:define_syntax()
 endfunc
 
 
-func completor#popup#init()
+func! completor#popup#init()
   let s:popup = popup_create('', #{
         \  zindex: 200,
         \  mapping: 1,
@@ -117,14 +117,22 @@ func completor#popup#init()
 endfunc
 
 
-func completor#popup#hide()
+func! completor#popup#hide()
   call popup_setoptions(s:popup, #{cursorline: 0})
   call popup_hide(s:popup)
   call win_execute(s:popup, 'call cursor(1, col(".")) | redraw')
 endfunc
 
 
-func s:get_word(item)
+func! completor#popup#safe_hide()
+  if completor#support_popup()
+    call completor#popup#hide()
+  endif
+endfunc
+
+
+
+func! s:get_word(item)
   let word = a:item.word
   let abbr = get(a:item, 'abbr', '')
   if abbr != ''
@@ -134,7 +142,7 @@ func s:get_word(item)
 endfunc
 
 
-func s:max_word_length(items)
+func! s:max_word_length(items)
   let c = 0
   for v in a:items
     let word = s:get_word(v)
@@ -146,14 +154,14 @@ func s:max_word_length(items)
 endfunc
 
 
-func s:format(v, max_length)
+func! s:format(v, max_length)
   let word = s:get_word(a:v)
   let menu = get(a:v, 'menu', '')
   return ' ' . word . s:indicator . repeat(' ', a:max_length-len(word)) . menu
 endfunc
 
 
-func s:format_items(words)
+func! s:format_items(words)
   let length = s:max_word_length(a:words) + 2
   let ret = []
   let item_length = 0
@@ -168,7 +176,7 @@ func s:format_items(words)
 endfunc
 
 
-func completor#popup#show(startcol, words)
+func! completor#popup#show(startcol, words)
   let text = getline('.')
   let pos = col('.') - 1
   let base = text[a:startcol:pos-1]

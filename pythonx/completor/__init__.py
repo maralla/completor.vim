@@ -81,6 +81,9 @@ class Completor(Base):
     # Extra data come from vim.
     meta = None
 
+    # Flag used to indicate that the completer is exited.
+    _exited = False
+
     def __init__(self):
         self.input_data = ''
         self.ft = ''
@@ -353,6 +356,11 @@ class Completor(Base):
         This method is called after daemonized completer command spawned.
         """
 
+    def on_exit(self):
+        """Handle the completer daemon exit event.
+        """
+        self._exited = True
+
 
 def _resolve_ft(ft):
     """
@@ -448,7 +456,8 @@ def load_completer(ft, input_data):
                 f.c = omni
             if f.c is None:
                 f.c = _load(f.mapped)
-            if f.c is None or not f.c.match(f.input_data) or f.c.disabled:
+            if f.c is None or f.c._exited or not f.c.match(f.input_data) \
+                    or f.c.disabled:
                 f.c = get('common')
     return None if f.c.disabled else f.c
 

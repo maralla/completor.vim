@@ -140,7 +140,7 @@ def main():
     try:
         import jedi
     except ImportError:
-        return
+        exit(1)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--verbose', action='store_true')

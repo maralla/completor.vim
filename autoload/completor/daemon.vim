@@ -11,9 +11,15 @@ function! s:nvim_daemon_handler(job_id, data, event)
 endfunction
 
 
+function! s:on_exit(name, job_id, status)
+  call completor#popup#safe_hide()
+  call completor#utils#on_exit()
+endfunction
+
+
 if has('nvim')
   " neovim
-  function! s:job_start_daemon(cmd, options)
+  function! s:job_start_daemon(name, cmd, options)
     let conf = {
           \   'on_stdout': function('s:nvim_daemon_handler'),
           \ }
@@ -30,9 +36,10 @@ if has('nvim')
   endfunction
 else
   " vim8
-  function! s:job_start_daemon(cmd, options)
+  function! s:job_start_daemon(name, cmd, options)
     let conf = {
-          \   'out_cb': {c,m->s:vim_daemon_handler(m)},
+          \   'out_cb': {c,m -> s:vim_daemon_handler(m)},
+          \   'exit_cb': {i,s -> s:on_exit(a:name, i, s)},
           \   'err_io': 'null',
           \   'mode': 'raw',
           \ }
@@ -54,7 +61,7 @@ function! s:daemon.respawn(cmd, name, options)
   if self.status(a:name) ==# 'run'
     call completor#compat#job_stop(self.job)
   endif
-  let self.job = s:job_start_daemon(a:cmd, a:options)
+  let self.job = s:job_start_daemon(a:name, a:cmd, a:options)
   call completor#utils#reset()
   let self.type = a:name
   let self.cmd = a:cmd

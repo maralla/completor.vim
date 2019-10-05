@@ -76,3 +76,11 @@ def on_stream(args):
     if not c:
         return
     c.handle_stream(args['action'], args['msg'])
+
+
+@_api
+def on_exit(args):
+    c = get_current_completer()
+    if not c:
+        return
+    c.on_exit()
