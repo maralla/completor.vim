@@ -126,7 +126,7 @@ endfunction
 
 
 function! completor#support_popup()
-  return exists('*popup_create') && has('conceal')
+  return g:completor_use_popup_window && exists('*popup_create') && has('conceal')
 endfunction
 
 
