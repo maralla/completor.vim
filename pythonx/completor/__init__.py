@@ -287,13 +287,15 @@ class Completor(Base):
         if not self.input_data:
             return -1
 
+        data = self.input_data
         index = len(self.input_data)
         for i in range(index):
             text = self.input_data[i:]
             matched = pat.match(text)
             if matched and matched.end() == len(text):
-                return len(to_bytes(self.input_data[:i], get_encoding()))
-        return index
+                data = self.input_data[:i]
+                break
+        return len(to_bytes(data, get_encoding()))
 
     def start_column(self):
         if not self.ident:

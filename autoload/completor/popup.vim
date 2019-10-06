@@ -84,12 +84,13 @@ func! s:insert_word(id)
   if startcol == 0
     let pre = ''
   else
-    let pre = text[:startcol-1]
+    let pre = strpart(text, 0, startcol)
   endif
   let pos = s:current_completions.pos
-  let new = pre . item.word . text[pos:]
+  let new = pre . item.word . strpart(text, pos)
   call setline('.', new)
-  call cursor(line('.'), startcol + strlen(item.word) + 1)
+  let idx = startcol + strlen(item.word)
+  call cursor(line('.'), idx + 1)
 endfunc
 
 
@@ -179,15 +180,15 @@ endfunc
 
 func! completor#popup#show(startcol, words)
   let text = getline('.')
-  let pos = col('.') - 1
-  let base = text[a:startcol:pos-1]
+  let colpos = col('.') - 1
+  let base = strpart(text, a:startcol, colpos-a:startcol)
   let length = s:max_word_length(a:words) + 2
   let [words, max_length] = s:format_items(a:words)
 
   let s:current_completions.data = a:words
   let s:current_completions.startcol = a:startcol
   let s:current_completions.base = base
-  let s:current_completions.pos = pos
+  let s:current_completions.pos = colpos
   let s:current_completions.orig = text
   let s:current_completions.index = 0
 
@@ -205,13 +206,20 @@ func! completor#popup#show(startcol, words)
 
   let width = min([max_length, 80])
 
+  let basewidth = strdisplaywidth(base)
+  let col = 'cursor-1'
+  if basewidth > 0
+    let basewidth += 1
+    let col = 'cursor-'.basewidth
+  endif
+
   call popup_setoptions(s:popup, #{
         \ pos: pos,
         \ maxheight: height,
         \ minwidth: width,
         \ fixed: v:true,
         \ line: line,
-        \ col: 'cursor-'.(strlen(base)+1),
+        \ col: col,
         \ })
   call popup_settext(s:popup, words)
   call popup_show(s:popup)
