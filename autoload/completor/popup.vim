@@ -145,9 +145,9 @@ endfunc
 func! s:max_word_length(items)
   let c = 0
   for v in a:items
-    let word = s:get_word(v)
-    if len(word) > c
-      let c = len(word)
+    let width = strdisplaywidth(s:get_word(v))
+    if width > c
+      let c = width
     endif
   endfor
   return c
@@ -157,7 +157,7 @@ endfunc
 func! s:format(v, max_length)
   let word = s:get_word(a:v)
   let menu = get(a:v, 'menu', '')
-  return ' ' . word . s:indicator . repeat(' ', a:max_length-len(word)) . menu
+  return ' ' . word . s:indicator . repeat(' ', a:max_length-strdisplaywidth(word)) . menu
 endfunc
 
 
@@ -167,8 +167,9 @@ func! s:format_items(words)
   let item_length = 0
   for word in a:words
     let item = s:format(word, length)
-    if len(item) > item_length
-      let item_length = len(item)
+    let w = strdisplaywidth(item)
+    if w > item_length
+      let item_length = w
     endif
     call add(ret, item)
   endfor
@@ -196,16 +197,18 @@ func! completor#popup#show(startcol, words)
   let pos = 'topleft'
   let height = min([total - current - 1, 50])
   let line = 'cursor+1'
-  if current > total / 2
+  if current > total / 2 && (total - current) < len(words)
     let pos = 'botleft'
     let height = min([current - 1, 50])
     let line = 'cursor-1'
   endif
 
+  let width = min([max_length, 80])
+
   call popup_setoptions(s:popup, #{
         \ pos: pos,
         \ maxheight: height,
-        \ minwidth: min([max_length, 80]),
+        \ minwidth: width,
         \ fixed: v:true,
         \ line: line,
         \ col: 'cursor-'.(strlen(base)+1),
