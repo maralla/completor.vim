@@ -8,7 +8,7 @@ let s:current_completions = #{
       \ startcol: -1,
       \ index: -1,
       \ }
-let s:indicator = '__|-|__'
+let s:visible = v:false
 
 
 func! s:next()
@@ -97,11 +97,8 @@ endfunc
 func! s:define_syntax()
   setlocal scrolloff=0
   setlocal scrolljump=1
-  setlocal conceallevel=3
-  setlocal concealcursor=ncvi
-  exec 'syn region CompletionWord matchgroup=indicator start="^" end="' . s:indicator . '" concealends'
-  hi link indicator NONE
   hi default CompletionWord gui=bold cterm=bold term=bold
+  call prop_type_add('compword', #{highlight: 'CompletionWord'})
 endfunc
 
 
@@ -115,13 +112,26 @@ func! completor#popup#init()
         \  filter: {id,key -> s:filter(id, key)},
         \ })
   call win_execute(s:popup, "call s:define_syntax()")
+  augroup completor_popup
+    autocmd!
+    autocmd TextChangedI * call s:on_text_change()
+  augroup END
+endfunc
+
+
+func! s:on_text_change()
+  " call completor#popup#hide()
 endfunc
 
 
 func! completor#popup#hide()
+  if !s:visible
+    return
+  endif
   call popup_setoptions(s:popup, #{cursorline: 0})
   call popup_hide(s:popup)
   call win_execute(s:popup, 'call cursor(1, col(".")) | redraw')
+  let s:visible = v:false
 endfunc
 
 
@@ -158,7 +168,7 @@ endfunc
 func! s:format(v, max_length)
   let word = s:get_word(a:v)
   let menu = get(a:v, 'menu', '')
-  return ' ' . word . s:indicator . repeat(' ', a:max_length-strdisplaywidth(word)) . menu
+  return ' ' . word . repeat(' ', a:max_length-strdisplaywidth(word)) . menu . ' '
 endfunc
 
 
@@ -175,6 +185,18 @@ func! s:format_items(words)
     call add(ret, item)
   endfor
   return [ret, item_length]
+endfunc
+
+
+func! s:apply_prop(words)
+  echo winbufnr(s:popup)
+  for i in range(1, len(a:words))
+    call prop_add(i, 2, #{
+          \ length: strlen(s:get_word(a:words[i-1])),
+          \ bufnr: winbufnr(s:popup),
+          \ type: 'compword',
+          \ })
+  endfor
 endfunc
 
 
@@ -222,5 +244,7 @@ func! completor#popup#show(startcol, words)
         \ col: col,
         \ })
   call popup_settext(s:popup, words)
+  call s:apply_prop(a:words)
   call popup_show(s:popup)
+  let s:visible = v:true
 endfunc
