@@ -9,6 +9,7 @@ let s:current_completions = #{
       \ index: -1,
       \ }
 let s:visible = v:false
+let s:max_width = 80
 
 
 func! s:next()
@@ -107,7 +108,7 @@ func! completor#popup#init()
         \  zindex: 200,
         \  mapping: 1,
         \  wrap: 0,
-        \  maxwidth: 80,
+        \  maxwidth: s:max_width,
         \  hidden: v:true,
         \  filter: {id,key -> s:filter(id, key)},
         \ })
@@ -120,7 +121,7 @@ endfunc
 
 
 func! s:on_text_change()
-  " call completor#popup#hide()
+  call completor#popup#hide()
 endfunc
 
 
@@ -226,7 +227,7 @@ func! completor#popup#show(startcol, words)
     let line = 'cursor-1'
   endif
 
-  let width = min([max_length, 80])
+  let width = min([max_length, s:max_width])
 
   let basewidth = strdisplaywidth(base)
   let col = 'cursor-1'
