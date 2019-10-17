@@ -5,19 +5,16 @@
 import logging
 import os
 import json
-import re
 import io
 from completor import Completor, vim, import_completer, get
 from completor.compat import to_unicode
 
 from .models import Initialize, DidOpen, Completion, DidChange, DidSave, \
     Definition, Format, Rename, Hover
-from .action import gen_definition
+from .action import gen_definition, get_completion_word
 from .utils import gen_uri
 
 logger = logging.getLogger('completor')
-
-word_pat = re.compile(r'([\d\w]+)', re.U)
 
 
 class Lsp(Completor):
@@ -146,11 +143,10 @@ class Lsp(Completor):
             if not c:
                 return ''
             return c.get_cmd_info(action)
-        return vim.Dictionary(
-            cmd=lsp_cmd.split(),
-            is_daemon=True,
-            ftype=self.filetype + '_' + ft,
-            is_sync=False)
+        return vim.Dictionary(cmd=lsp_cmd.split(),
+                              is_daemon=True,
+                              ftype=self.filetype + '_' + ft,
+                              is_sync=False)
 
     def reset(self):
         self.initialized = False
@@ -197,8 +193,7 @@ class Lsp(Completor):
             items = candidates['items']
         for item in items:
             label = item['label'].strip()
-            match = word_pat.match(label)
-            word = match.groups()[0] if match else ''
+            word = get_completion_word(item)
             d = vim.Dictionary(abbr=label, word=word)
             if 'detail' in item:
                 d['menu'] = item['detail']
@@ -206,7 +201,7 @@ class Lsp(Completor):
         return vim.List(res)
 
     def on_definition(self, data):
-        return gen_definition(data)
+        return gen_definition(self.ft_orig, data)
 
     def on_rename(self, data):
         logger.info("rename -> %r", data)
