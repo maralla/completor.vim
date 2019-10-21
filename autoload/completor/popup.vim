@@ -190,7 +190,6 @@ endfunc
 
 
 func! s:apply_prop(words)
-  echo winbufnr(s:popup)
   for i in range(1, len(a:words))
     call prop_add(i, 2, #{
           \ length: strlen(s:get_word(a:words[i-1])),
