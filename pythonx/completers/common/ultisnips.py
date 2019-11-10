@@ -9,14 +9,18 @@ class Ultisnips(Completor):
     sync = True
 
     def parse(self, base):
-        token = self.input_data.split()[-1]
+        if not base or base.endswith((' ', '\t')):
+            return []
+        token = base.split()[-1]
         try:
             snips = UltiSnips_Manager._snips(token, True)
         except Exception:
             return []
+        offset = len(base) - len(token)
         candidates = [{
             'word': snip.trigger,
             'dup': 1,
+            'offset': offset,
             'menu': ' '.join(['[snip]', snip.description]),
         } for snip in snips]
 

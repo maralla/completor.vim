@@ -72,9 +72,10 @@ def format_text(data):
 
 def get_completion_word(item):
     try:
-        return item['textEdit']['newText']
+        return item['textEdit']['newText'], \
+            item['textEdit']['range']['start']['character']
     except KeyError:
         pass
     label = item['label'].strip()
     match = word_pat.match(label)
-    return match.groups()[0] if match else ''
+    return match.groups()[0] if match else '', -1

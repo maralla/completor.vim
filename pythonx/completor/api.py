@@ -47,14 +47,7 @@ def on_data(args):
 @_api
 def get_start_column(args):
     c = get_current_completer()
-    column, data = -1, b''
-    if c:
-        column_info = c.start_column()
-        if len(column_info) == 2:
-            data, column = column_info
-        else:
-            column = column_info
-    return vim.Dictionary(column=column, data=data)
+    return c.start_column() if c else -1
 
 
 @_api

@@ -295,9 +295,7 @@ class Completor(Base):
             if matched and matched.end() == len(text):
                 data = self.input_data[:i]
                 break
-        prefix = self.input_data[len(data):]
-        bs = to_bytes(data, get_encoding())
-        return to_bytes(prefix, get_encoding()), len(bs)
+        return len(to_bytes(data, get_encoding()))
 
     def start_column(self):
         if not self.ident:
@@ -443,14 +441,11 @@ def load_completer(ft, input_data):
     if 'common' not in Meta.registry:
         import completers.common  # noqa
     neoinclude = get('neoinclude')
-    filename = get('filename')
 
     with _ft_context(ft, input_data) as f:
         if neoinclude.has_neoinclude() and neoinclude.match(f.input_data) \
                 and not neoinclude.disabled:
             f.c = neoinclude
-        elif filename.match(f.input_data) and not filename.disabled:
-            f.c = filename
         elif not f.origin:
             f.c = get('common')
         else:

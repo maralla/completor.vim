@@ -26,7 +26,7 @@ class Common(completor.Completor):
     filetype = 'common'
     sync = True
 
-    hooks = ['ultisnips', 'buffer']
+    hooks = ['ultisnips', 'buffer', 'filename']
 
     @classmethod
     def is_common(cls, comp):
@@ -49,13 +49,13 @@ class Common(completor.Completor):
     def parse(self, base):
         if not isinstance(base, text_type):
             return []
-        match = word.search(base)
-        if not match:
-            return []
-        base = match.group()
+        # match = word.search(base)
+        # if not match:
+        #     return []
+        # base = match.group()
 
-        if len(base) < self.get_option('min_chars'):
-            return []
+        # if len(base) < self.get_option('min_chars'):
+        #     return []
 
         return list(itertools.chain(
             *[self.completions(n, base) for n in self.hooks]))

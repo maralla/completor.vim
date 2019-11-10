@@ -81,7 +81,7 @@ func! s:insert_word(id)
   let line = s:current_completions.index
   let item = s:current_completions.data[line-1]
   let text = s:current_completions.orig
-  let startcol = s:current_completions.startcol
+  let startcol = get(item, 'offset', s:current_completions.startcol)
   if startcol == 0
     let pre = ''
   else
@@ -200,26 +200,14 @@ func! s:apply_prop(words)
 endfunc
 
 
-func! completor#popup#show(startcol, prefix, words)
+func! completor#popup#show(startcol, words)
   let text = getline('.')
   let colpos = col('.') - 1
   let base = strpart(text, a:startcol, colpos-a:startcol)
   let length = s:max_word_length(a:words) + 2
   let [words, max_length] = s:format_items(a:words)
 
-  let s:current_completions.data = []
-  if a:prefix != ''
-    for i in range(len(a:words))
-      let w = copy(a:words[i])
-      if get(w, 'category', '') == 'lsp'
-        let w.word = a:prefix . a:words[i].word
-      endif
-      call add(s:current_completions.data, w)
-    endfor
-  else
-    let s:current_completions.data = a:words
-  endif
-
+  let s:current_completions.data = a:words
   let s:current_completions.startcol = a:startcol
   let s:current_completions.base = base
   let s:current_completions.pos = colpos
