@@ -129,6 +129,9 @@ func! completor#popup#hide()
   if !s:visible
     return
   endif
+  if exists(':DoMatchParen')
+    :DoMatchParen
+  endif
   call popup_setoptions(s:popup, #{cursorline: 0})
   call popup_hide(s:popup)
   call win_execute(s:popup, 'call cursor(1, col(".")) | redraw')
@@ -247,4 +250,7 @@ func! completor#popup#show(startcol, words)
   call s:apply_prop(a:words)
   call popup_show(s:popup)
   let s:visible = v:true
+  if exists(':NoMatchParen')
+    :NoMatchParen
+  endif
 endfunc
