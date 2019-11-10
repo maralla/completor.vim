@@ -204,7 +204,7 @@ class Lsp(Completor):
             if 'detail' in item:
                 d['menu'] = item['detail']
             if offset != -1:
-                d['offset'] = offset + 1
+                d['offset'] = offset
             res.append(d)
         return vim.List(res)
 
