@@ -295,7 +295,9 @@ class Completor(Base):
             if matched and matched.end() == len(text):
                 data = self.input_data[:i]
                 break
-        return len(to_bytes(data, get_encoding()))
+        prefix = self.input_data[len(data):]
+        bs = to_bytes(data, get_encoding())
+        return to_bytes(prefix, get_encoding()), len(bs)
 
     def start_column(self):
         if not self.ident:

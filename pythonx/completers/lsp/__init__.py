@@ -6,8 +6,8 @@ import logging
 import os
 import json
 import io
-from completor import Completor, vim, import_completer, get
-from completor.compat import to_unicode
+from completor import Completor, vim, import_completer, get, get_encoding
+from completor.compat import to_unicode, to_bytes
 
 from .models import Initialize, DidOpen, Completion, DidChange, DidSave, \
     Definition, Format, Rename, Hover, Initialized
@@ -200,7 +200,7 @@ class Lsp(Completor):
         for item in items:
             label = item['label'].strip()
             word = get_completion_word(item)
-            d = vim.Dictionary(abbr=label, word=word)
+            d = vim.Dictionary(abbr=label, word=word, category='lsp')
             if 'detail' in item:
                 d['menu'] = item['detail']
             res.append(d)

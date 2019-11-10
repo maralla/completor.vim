@@ -58,14 +58,14 @@ function! s:trigger_complete(completions)
     endif
     return
   endif
-  let startcol = completor#action#completefunc(1, '')
+  let start = completor#utils#get_start_column()
   let matches = completor#action#completefunc(0, '')
-  if startcol >= 0
+  if start.column >= 0
     if completor#support_popup()
-      call completor#popup#show(startcol, matches.words)
+      call completor#popup#show(start.column, start.data, matches.words)
     else
       try
-        call complete(startcol + 1, matches.words)
+        call complete(startcol.column + 1, matches.words)
       catch /E785\|E685/
       endtry
     endif
