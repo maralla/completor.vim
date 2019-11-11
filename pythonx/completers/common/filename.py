@@ -106,6 +106,7 @@ class Filename(Completor):
             return bool(self.trigger.search(input_data))
 
     def _path(self, base):
+        log.info("%r", base)
         pat = list(PAT.finditer(base))
         if pat:
             base = base[pat[-1].end():]

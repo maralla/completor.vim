@@ -75,7 +75,11 @@ def on_stream(args):
     c = get_current_completer()
     if not c:
         return
-    c.handle_stream(args['action'], args['msg'])
+    name = args['name'].decode()
+    parts = name.split(':', 1)
+    if parts:
+        name = parts[0]
+    c.handle_stream(name, args['action'], args['msg'])
 
 
 @_api

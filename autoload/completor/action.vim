@@ -240,8 +240,8 @@ function! completor#action#trigger(items)
 endfunction
 
 
-function! completor#action#stream(msg)
-  call completor#utils#on_stream(s:action, a:msg)
+function! completor#action#stream(name, msg)
+  call completor#utils#on_stream(a:name, s:action, a:msg)
 endfunction
 
 

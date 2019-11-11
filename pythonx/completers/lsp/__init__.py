@@ -151,7 +151,7 @@ class Lsp(Completor):
             return c.get_cmd_info(action)
         return vim.Dictionary(cmd=lsp_cmd.split(),
                               is_daemon=True,
-                              ftype=self.filetype + '_' + ft,
+                              ftype=self.filetype + ':' + ft,
                               is_sync=False)
 
     def reset(self):

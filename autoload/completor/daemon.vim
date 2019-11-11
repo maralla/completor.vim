@@ -1,13 +1,13 @@
 let s:daemon = {'msgs': [], 'requested': v:false, 't': 0}
 
 
-function! s:vim_daemon_handler(msg)
-  call completor#action#stream(a:msg)
+function! s:vim_daemon_handler(name, msg)
+  call completor#action#stream(a:name, a:msg)
 endfunction
 
 
-function! s:nvim_daemon_handler(job_id, data, event)
-  call completor#action#stream(join(a:data, "\n"))
+function! s:nvim_daemon_handler(name, job_id, data, event)
+  call completor#action#stream(a:name, join(a:data, "\n"))
 endfunction
 
 
@@ -21,7 +21,7 @@ if has('nvim')
   " neovim
   function! s:job_start_daemon(name, cmd, options)
     let conf = {
-          \   'on_stdout': function('s:nvim_daemon_handler'),
+          \   'on_stdout': {id,data,ev -> s:nvim_daemon_handler(a:name, id, data, ev)},
           \ }
     call extend(conf, a:options)
     return jobstart(a:cmd, conf)
@@ -38,7 +38,7 @@ else
   " vim8
   function! s:job_start_daemon(name, cmd, options)
     let conf = {
-          \   'out_cb': {c,m -> s:vim_daemon_handler(m)},
+          \   'out_cb': {c,m -> s:vim_daemon_handler(a:name, m)},
           \   'exit_cb': {i,s -> s:on_exit(a:name, i, s)},
           \   'err_io': 'null',
           \   'mode': 'raw',

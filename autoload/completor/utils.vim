@@ -81,7 +81,7 @@ function! completor#utils#reset()
 endfunction
 
 
-function! completor#utils#on_stream(action, msg)
+function! completor#utils#on_stream(name, action, msg)
   exe s:py 'completor_api.on_stream()'
 endfunction
 

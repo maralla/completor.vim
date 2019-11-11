@@ -224,11 +224,16 @@ class Completor(Base):
                 self.stream_buf = []
                 return self.on_data(action, data)
 
-    def handle_stream(self, action, msg):
+    def handle_stream(self, name, action, msg):
         """Wrapper around on_stream.
 
         When `on_stream` returns non-empty action trigger is called.
         """
+        c = get_current_completer()
+        logger.info("%s %s", c.filetype, name)
+        if c and c.filetype != name:
+            self.stream_buf = []
+            return
         res = self.on_stream(action, msg)
         if res is None:
             return
