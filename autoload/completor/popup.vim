@@ -98,25 +98,30 @@ endfunc
 func! s:define_syntax()
   setlocal scrolloff=0
   setlocal scrolljump=1
-  hi default CompletionWord gui=bold cterm=bold term=bold
-  call prop_type_add('compword', #{highlight: 'CompletionWord'})
 endfunc
 
 
-func! completor#popup#init()
+func! s:init_popup()
   let s:popup = popup_create('', #{
         \  zindex: 200,
         \  mapping: 1,
         \  wrap: 0,
         \  maxwidth: s:max_width,
         \  hidden: v:true,
-        \  filter: {id,key -> s:filter(id, key)},
+        \  filter: function('s:filter'),
         \ })
   call win_execute(s:popup, "call s:define_syntax()")
+endfunc
+
+
+func! completor#popup#init()
+  call s:init_popup()
   augroup completor_popup
     autocmd!
     autocmd TextChangedI * call s:on_text_change()
   augroup END
+  hi default CompletionWord gui=bold cterm=bold term=bold
+  call prop_type_add('compword', #{highlight: 'CompletionWord'})
 endfunc
 
 
@@ -193,10 +198,11 @@ endfunc
 
 
 func! s:apply_prop(words)
+  let nr = winbufnr(s:popup)
   for i in range(1, len(a:words))
     call prop_add(i, 2, #{
           \ length: strlen(s:get_word(a:words[i-1])),
-          \ bufnr: winbufnr(s:popup),
+          \ bufnr: nr,
           \ type: 'compword',
           \ })
   endfor
@@ -236,6 +242,10 @@ func! completor#popup#show(startcol, words)
   if basewidth > 0
     let basewidth += 1
     let col = 'cursor-'.basewidth
+  endif
+
+  if winbufnr(s:popup) == -1
+    call s:init_popup()
   endif
 
   call popup_setoptions(s:popup, #{

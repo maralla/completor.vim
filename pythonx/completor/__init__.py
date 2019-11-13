@@ -108,6 +108,14 @@ class Completor(Base):
         return to_unicode(vim.Function('completor#utils#tempname')(), 'utf-8')
 
     @property
+    def support_popup(self):
+        """Test whether the popup window is supported
+
+        :rtype: bool
+        """
+        return vim.Function('completor#support_popup')() == 1
+
+    @property
     def filename(self):
         """Get the file name of current buffer
 
@@ -207,6 +215,8 @@ class Completor(Base):
                 common.ft = self.ft
                 common.input_data = self.input_data
                 ret.extend(common.parse(self.input_data))
+        if not self.support_popup and ret:
+            pass
         return ret
 
     def on_stream(self, action, msg):
