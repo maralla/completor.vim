@@ -2,7 +2,6 @@
 let s:popup = -1
 let s:current_completions = #{
       \ data: [],
-      \ base: '',
       \ pos: -1,
       \ orig: '',
       \ startcol: -1,
@@ -81,7 +80,7 @@ func! s:insert_word(id)
   let line = s:current_completions.index
   let item = s:current_completions.data[line-1]
   let text = s:current_completions.orig
-  let startcol = get(item, 'offset', s:current_completions.startcol)
+  let startcol = item.offset
   if startcol == 0
     let pre = ''
   else
@@ -209,19 +208,22 @@ func! s:apply_prop(words)
 endfunc
 
 
-func! completor#popup#show(startcol, words)
-  let text = getline('.')
+func! completor#popup#show(words)
+  if empty(a:words)
+    return
+  endif
   let colpos = col('.') - 1
-  let base = strpart(text, a:startcol, colpos-a:startcol)
-  let length = s:max_word_length(a:words) + 2
-  let [words, max_length] = s:format_items(a:words)
+  let text = getline('.')
 
   let s:current_completions.data = a:words
-  let s:current_completions.startcol = a:startcol
-  let s:current_completions.base = base
   let s:current_completions.pos = colpos
   let s:current_completions.orig = text
   let s:current_completions.index = 0
+
+  let startcol = a:words[0].offset
+  let base = strpart(text, startcol, colpos-startcol)
+  let length = s:max_word_length(a:words) + 2
+  let [words, max_length] = s:format_items(a:words)
 
   let total = &lines
   let current = screenrow()

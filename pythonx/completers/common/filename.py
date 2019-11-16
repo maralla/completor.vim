@@ -5,9 +5,9 @@ import re
 import logging
 import glob
 import itertools
-from completor import Completor
+from completor import Completor, LIMIT
 
-from .utils import test_subseq, LIMIT
+from .utils import test_subseq
 
 
 logger = logging.getLogger('completor')

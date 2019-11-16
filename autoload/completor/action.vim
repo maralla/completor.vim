@@ -58,20 +58,19 @@ function! s:trigger_complete(completions)
     endif
     return
   endif
-  let startcol = completor#utils#get_start_column()
-  let matches = completor#action#completefunc(0, '')
-  if startcol >= 0
+  try
     if completor#support_popup()
-      call completor#popup#show(startcol, matches.words)
+      call completor#popup#show(s:completions)
     else
+      let startcol = s:completions[0].offset
       try
-        call complete(startcol + 1, matches.words)
+        call complete(startcol + 1, s:completions)
       catch /E785\|E685/
       endtry
     endif
-  elseif completor#support_popup()
-    call completor#popup#hide()
-  endif
+  finally
+    let s:completions = []
+  endtry
 endfunction
 
 
@@ -242,25 +241,6 @@ endfunction
 
 function! completor#action#stream(name, msg)
   call completor#utils#on_stream(a:name, s:action, a:msg)
-endfunction
-
-
-function! completor#action#completefunc(findstart, base)
-  if a:findstart
-    if empty(s:completions)
-      return -2
-    endif
-    return completor#utils#get_start_column()
-  endif
-  try
-    let ret = {'words': s:completions}
-    if g:completor_refresh_always
-      let ret.refresh = 'always'
-    endif
-    return ret
-  finally
-    let s:completions = []
-  endtry
 endfunction
 
 

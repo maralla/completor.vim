@@ -13,6 +13,8 @@ from ._vim import vim_obj as vim
 from .compat import integer_types, to_bytes, to_unicode
 from ._log import config_logging
 
+LIMIT = 50
+
 # Cache for command arguments.
 _arg_cache = {}
 
@@ -211,12 +213,20 @@ class Completor(Base):
 
         common = get('common')
         if not common.is_common(self):
-            if not ret or self.ident == common.ident:
+            if ret and 'offset' not in ret[0]:
+                offset = self.start_column()
+                for item in ret:
+                    ret['offset'] = offset
+            if len(ret) < LIMIT/2:
                 common.ft = self.ft
                 common.input_data = self.input_data
                 ret.extend(common.parse(self.input_data))
         if not self.support_popup and ret:
-            pass
+            offset = ret[0]['offset']
+            for i, item in enumerate(ret):
+                if item['offset'] != offset:
+                    ret = ret[:i]
+                    break
         return ret
 
     def on_stream(self, action, msg):

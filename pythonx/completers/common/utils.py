@@ -2,7 +2,6 @@
 
 import re
 
-LIMIT = 50
 REGEX_MAP = {
     # Spec: http://www.w3.org/TR/CSS2/syndata.html#characters
     # Good summary: http://stackoverflow.com/a/449000/1672783

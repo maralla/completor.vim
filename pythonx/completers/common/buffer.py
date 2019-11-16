@@ -5,10 +5,10 @@ import itertools
 import re
 import logging
 
-from completor import Completor, vim
+from completor import Completor, vim, LIMIT
 from completor.compat import to_unicode
 
-from .utils import test_subseq, LIMIT
+from .utils import test_subseq
 
 logger = logging.getLogger('completor')
 word = re.compile(r'[^\W\d]\w*$', re.U)
