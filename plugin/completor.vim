@@ -9,7 +9,7 @@ function! s:restore_cpo()
 endfunction
 
 function! s:has_features()
-  return (has('python') || has('python3')) &&
+  return (has('pythonx') || has('python3') || has('python')) &&
         \ (has('job') && has('timers') || has('nvim')) &&
         \ has('lambda')
 endfunction
