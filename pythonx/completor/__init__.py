@@ -216,7 +216,7 @@ class Completor(Base):
             if ret and 'offset' not in ret[0]:
                 offset = self.start_column()
                 for item in ret:
-                    ret['offset'] = offset
+                    item['offset'] = offset
             if len(ret) < LIMIT/2:
                 common.ft = self.ft
                 common.input_data = self.input_data
