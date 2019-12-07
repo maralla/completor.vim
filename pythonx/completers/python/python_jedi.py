@@ -57,14 +57,26 @@ class JediProcessor(object):
                 return []
             return list(func())
 
+    def _statement(self, c):
+        if c.type == 'statement':
+            assignments = c.goto_assignments()
+            if assignments:
+                return assignments[-1]
+        return c
+
     def on_complete(self):
         for c in self.script.completions():
-            yield {
-                'word': c.name,
-                'abbr': c.name_with_symbols,
-                'menu': c.description,
-                'info': c.docstring(),
-            }
+            statement_c = self._statement(c)
+            try:
+                yield {
+                    'word': c.name,
+                    'abbr': c.name_with_symbols,
+                    'menu': statement_c.description,
+                    'info': statement_c.docstring(),
+                }
+            except Exception as e:
+                logger.exception(e)
+                continue
 
     def on_definition(self):
         for d in self.script.goto_assignments(follow_imports=True):
