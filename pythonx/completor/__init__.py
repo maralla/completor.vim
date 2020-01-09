@@ -14,6 +14,7 @@ from .compat import integer_types, to_bytes, to_unicode
 from ._log import config_logging
 
 LIMIT = 50
+COMMON_LIMIT = 10
 
 # Cache for command arguments.
 _arg_cache = {}
@@ -225,7 +226,7 @@ class Completor(Base):
                     item['offset'] = offset
             if len(ret) < LIMIT/2:
                 self.copy_to(common)
-                ret.extend(common.parse(self.input_data))
+                ret.extend(common.parse(self.input_data)[:COMMON_LIMIT])
         if not self.support_popup and ret:
             offset = ret[0]['offset']
             for i, item in enumerate(ret):
