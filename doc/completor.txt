@@ -235,7 +235,10 @@ Other                                                   *completor-other*
             vsplit: same as :vsplit.
             tab:    same as :tab split
 
+*g:completor_filename_completion_in_only_comment*
+        This option allows filename completion in only comment or strings.
 
+        Default: 1
 ==============================================================================
 5. Write a new completer                                *completor-writing*
 
