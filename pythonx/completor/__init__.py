@@ -93,6 +93,12 @@ class Completor(Base):
         self.ft_args = {}
         self.stream_buf = []
 
+    def copy_to(self, comp):
+        comp.ft = self.ft
+        comp.ft_orig = self.ft_orig
+        comp.ft_args = self.ft_args
+        comp.input_data = self.input_data
+
     @property
     def current_directory(self):
         """Return the directory of the file in current buffer
@@ -218,8 +224,7 @@ class Completor(Base):
                 for item in ret:
                     item['offset'] = offset
             if len(ret) < LIMIT/2:
-                common.ft = self.ft
-                common.input_data = self.input_data
+                self.copy_to(common)
                 ret.extend(common.parse(self.input_data))
         if not self.support_popup and ret:
             offset = ret[0]['offset']

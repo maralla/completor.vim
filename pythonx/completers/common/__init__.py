@@ -41,8 +41,7 @@ class Common(completor.Completor):
         com = completor.get(completer)
         if not com:
             return []
-        com.ft = self.ft
-        com.input_data = self.input_data
+        self.copy_to(com)
         if com.disabled:
             return []
         func = getattr(com, 'parse', None)
