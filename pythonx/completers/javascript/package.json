@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "dependencies": {
     "tern": "^0.24.1",
-    "yarn": "^1.19.0"
+    "yarn": "^1.22.0"
   }
 }
