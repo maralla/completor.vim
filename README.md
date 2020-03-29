@@ -99,7 +99,7 @@ let g:completor_racer_binary = '/path/to/racer'
 
 #### Javascript
 Use [tern](https://github.com/ternjs/tern) for completion. To install tern
-you must have node and either npm or yarn installed. Then run:
+you must have node and either npm or yarn installed. Then go to the `completor.vim` directory and run:
 
 ```bash
 make js
@@ -109,6 +109,13 @@ The node executable path can be specified using:
 
 ```vim
 let g:completor_node_binary = '/path/to/node'
+```
+
+If you're using vim-plug, you can just use post install hook to do this for you.
+
+```
+Plug 'ternjs/tern_for_vim', { 'do': 'npm install' }
+Plug 'maralla/completor.vim', { 'do': 'make js' }
 ```
 
 #### c/c++
