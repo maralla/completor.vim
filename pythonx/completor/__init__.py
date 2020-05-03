@@ -218,6 +218,11 @@ class Completor(Base):
         else:
             ret.extend(self.on_complete(data))
 
+        if ret and not isinstance(ret[0], (dict, vim.Dictionary)):
+            offset = self.start_column()
+            for i, e in enumerate(ret):
+                ret[i] = {'word': e, 'offset': offset}
+
         common = get('common')
         if not common.is_common(self):
             if ret and 'offset' not in ret[0]:

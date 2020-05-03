@@ -16,9 +16,9 @@ def test_parse():
     racer = completor.get('rust')
     racer.input_data = to_unicode('self.', 'utf-8')
     assert racer.on_data(b'complete', items) == [
-        {'dup': 0, 'menu': b'struct FrameHandler', 'word': b'FrameHandler'},
-        {'dup': 0, 'menu': b'Option<u16>', 'word': b'tcp_port'},
-        {'dup': 0, 'menu': b'fn run(&mut self)', 'word': b'run'}
+        {'offset': 5, 'dup': 0, 'menu': b'struct FrameHandler', 'word': b'FrameHandler'},  # noqa
+        {'offset': 5, 'dup': 0, 'menu': b'Option<u16>', 'word': b'tcp_port'},
+        {'offset': 5, 'dup': 0, 'menu': b'fn run(&mut self)', 'word': b'run'}
     ]
 
 

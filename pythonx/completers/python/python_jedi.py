@@ -59,7 +59,7 @@ class JediProcessor(object):
 
     def _statement(self, c):
         if c.type == 'statement':
-            assignments = c.goto_assignments()
+            assignments = c.goto()
             if assignments:
                 return assignments[-1]
         return c
@@ -79,7 +79,7 @@ class JediProcessor(object):
                 continue
 
     def on_definition(self):
-        for d in self.script.goto_assignments(follow_imports=True):
+        for d in self.script.goto(follow_imports=True):
             item = {'text': d.description}
             if d.in_builtin_module():
                 item['text'] = 'Builtin {}'.format(item['text'])
@@ -93,7 +93,7 @@ class JediProcessor(object):
             yield item
 
     def on_doc(self):
-        for d in self.script.goto_assignments(follow_imports=True):
+        for d in self.script.goto(follow_imports=True):
             yield d.docstring(fast=False).strip()
 
     def on_signature(self):

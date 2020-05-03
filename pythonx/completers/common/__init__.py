@@ -52,7 +52,7 @@ class Common(completor.Completor):
                     self._start_column = self.start_column()
                 items['offset'] = self._start_column
             return items
-        except AttributeError as e:
+        except AttributeError:
             return []
 
     def parse(self, base):

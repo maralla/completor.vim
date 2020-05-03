@@ -18,10 +18,10 @@ def test_parse(vim_mod):
     cpp = completor.get('cpp')
     cpp.input_data = to_unicode('b->', 'utf-8')
     assert cpp.on_data(b'complete', items) == [
-        {'dup': 1, 'menu': b'int pclose(FILE *)', 'word': b'pclose', 'abbr': b'pclose'},  # noqa
-        {'dup': 1, 'menu': b'int hello', 'word': b'hello', 'abbr': b'hello'},  # noqa
-        {'dup': 1, 'menu': b'int b', 'word': b'b', 'abbr': b'b'},  # noqa
-        {'dup': 1, 'menu': b'fake hello', 'word': b'fake', 'abbr': b'fake'}  # noqa
+        {'offset': 3, 'dup': 1, 'menu': b'int pclose(FILE *)', 'word': b'pclose', 'abbr': b'pclose'},  # noqa
+        {'offset': 3, 'dup': 1, 'menu': b'int hello', 'word': b'hello', 'abbr': b'hello'},  # noqa
+        {'offset': 3, 'dup': 1, 'menu': b'int b', 'word': b'b', 'abbr': b'b'},  # noqa
+        {'offset': 3, 'dup': 1, 'menu': b'fake hello', 'word': b'fake', 'abbr': b'fake'}  # noqa
     ]
 
 
