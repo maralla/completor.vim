@@ -27,6 +27,9 @@ endfunction
 
 
 function! completor#action#_on_insert_enter()
+  if completor#support_popup()
+    return
+  endif
   if !exists('s:cot')
     " Record cot.
     let s:cot = &cot
@@ -36,6 +39,10 @@ endfunction
 
 
 function! completor#action#_on_insert_leave()
+  if completor#support_popup()
+    call completor#popup#hide()
+    return
+  endif
   if exists('s:cot')
     " Restore cot.
     let &cot = s:cot
@@ -45,15 +52,25 @@ endfunction
 
 function! s:trigger_complete(completions)
   let s:completions = a:completions
-  if empty(s:completions) | return | endif
-  let startcol = completor#action#completefunc(1, '')
-  let matches = completor#action#completefunc(0, '')
-  if startcol >= 0
-    try
-      call complete(startcol + 1, matches.words)
-    catch /E785\|E685/
-    endtry
+  if empty(s:completions)
+    if completor#support_popup()
+      call completor#popup#hide()
+    endif
+    return
   endif
+  try
+    if completor#support_popup()
+      call completor#popup#show(s:completions)
+    else
+      let startcol = s:completions[0].offset
+      try
+        call complete(startcol + 1, s:completions)
+      catch /E785\|E685/
+      endtry
+    endif
+  finally
+    let s:completions = []
+  endtry
 endfunction
 
 
@@ -206,7 +223,7 @@ function! completor#action#trigger(items)
   endif
   if s:action ==# 'complete'
     call s:trigger_complete(a:items)
-  elseif s:action ==# 'definition'
+  elseif s:action ==# 'definition' || s:action ==# 'implementation'
     call s:goto_definition(a:items)
   elseif s:action ==# 'signature'
     call s:call_signatures(a:items)
@@ -222,27 +239,8 @@ function! completor#action#trigger(items)
 endfunction
 
 
-function! completor#action#stream(msg)
-  call completor#utils#on_stream(s:action, a:msg)
-endfunction
-
-
-function! completor#action#completefunc(findstart, base)
-  if a:findstart
-    if empty(s:completions)
-      return -2
-    endif
-    return completor#utils#get_start_column()
-  endif
-  try
-    let ret = {'words': s:completions}
-    if g:completor_refresh_always
-      let ret.refresh = 'always'
-    endif
-    return ret
-  finally
-    let s:completions = []
-  endtry
+function! completor#action#stream(name, msg)
+  call completor#utils#on_stream(a:name, s:action, a:msg)
 endfunction
 
 

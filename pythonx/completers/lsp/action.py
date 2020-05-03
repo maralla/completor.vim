@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import re
+import logging
 from .utils import parse_uri
 
 word_pat = re.compile(r'([\d\w]+)', re.U)
+
+logger = logging.getLogger("completor")
 
 
 # [
@@ -17,9 +20,14 @@ word_pat = re.compile(r'([\d\w]+)', re.U)
 # ]
 def gen_definition(ft, data):
     res = []
+
     if not data:
         return res
     items = data[0]
+
+    if items is None:
+        return res
+
     for item in items:
         uri = parse_uri(item['uri'])
         if ft == 'go':
@@ -72,9 +80,10 @@ def format_text(data):
 
 def get_completion_word(item):
     try:
-        return item['textEdit']['newText']
+        return item['textEdit']['newText'], \
+            item['textEdit']['range']['start']['character']
     except KeyError:
         pass
     label = item['label'].strip()
     match = word_pat.match(label)
-    return match.groups()[0] if match else ''
+    return match.groups()[0] if match else '', -1

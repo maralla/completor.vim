@@ -26,7 +26,12 @@ class Common(completor.Completor):
     filetype = 'common'
     sync = True
 
-    hooks = ['ultisnips', 'buffer']
+    # For extensions.
+    hooks = ['ultisnips', 'buffer', 'filename']
+
+    def __init__(self, *args, **kwargs):
+        completor.Completor.__init__(self, *args, **kwargs)
+        self._start_column = None
 
     @classmethod
     def is_common(cls, comp):
@@ -36,26 +41,25 @@ class Common(completor.Completor):
         com = completor.get(completer)
         if not com:
             return []
-        com.ft = self.ft
-        com.input_data = self.input_data
+        self.copy_to(com)
         if com.disabled:
             return []
         func = getattr(com, 'parse', None)
         try:
-            return (func or com.on_complete)(base)
-        except AttributeError as e:
+            items = (func or com.on_complete)(base)
+            if items and 'offset' not in items[0]:
+                if self._start_column is None:
+                    self._start_column = self.start_column()
+                items['offset'] = self._start_column
+            return items
+        except AttributeError:
             return []
 
     def parse(self, base):
         if not isinstance(base, text_type):
             return []
-        match = word.search(base)
-        if not match:
-            return []
-        base = match.group()
-
-        if len(base) < self.get_option('min_chars'):
-            return []
-
-        return list(itertools.chain(
-            *[self.completions(n, base) for n in self.hooks]))
+        try:
+            return list(itertools.chain(
+                *[self.completions(n, base) for n in self.hooks]))
+        finally:
+            self._start_column = None

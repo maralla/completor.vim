@@ -10,7 +10,7 @@ from completor.compat import to_unicode
 
 def test_has_omnifunc(vim_mod):
     vim_mod.vars = {
-        'completor_css_omni_trigger': b'([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$'
+        'completor_css_omni_trigger': br'([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$'
     }
     vim_mod.current.buffer.options['omnifunc'] = b''
 
@@ -37,7 +37,7 @@ def test_on_data(vim_mod):
     assert omni.on_data(b'complete', b'text') == []
 
     omni.trigger_cache = {
-        'css': re.compile('([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$', re.X | re.U)}
+        'css': re.compile(r'([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$', re.X | re.U)}
 
     omnifunc.side_effect = [1, [b'text-transform']]
     assert omni.on_data(b'complete', b'#') == []
@@ -45,7 +45,7 @@ def test_on_data(vim_mod):
     omnifunc.side_effect = [0, [b'text-transform']]
     vim_mod.current.window.cursor = (1, 2)
     omni.input_data = 'text'
-    assert omni.on_data(b'complete', b'text') == [b'text-transform']
+    assert omni.on_data(b'complete', b'text') == [ {'word': b'text-transform', 'offset': 0}]  # noqa
     omnifunc.assert_called_with(0, b'text')
 
     omnifunc.side_effect = [17, [b'text-transform']]

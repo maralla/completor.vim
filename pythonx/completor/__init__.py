@@ -13,6 +13,9 @@ from ._vim import vim_obj as vim
 from .compat import integer_types, to_bytes, to_unicode
 from ._log import config_logging
 
+LIMIT = 50
+COMMON_LIMIT = 10
+
 # Cache for command arguments.
 _arg_cache = {}
 
@@ -81,12 +84,21 @@ class Completor(Base):
     # Extra data come from vim.
     meta = None
 
+    # Flag used to indicate that the completer is exited.
+    _exited = False
+
     def __init__(self):
         self.input_data = ''
         self.ft = ''
         self.ft_orig = ''
         self.ft_args = {}
         self.stream_buf = []
+
+    def copy_to(self, comp):
+        comp.ft = self.ft
+        comp.ft_orig = self.ft_orig
+        comp.ft_args = self.ft_args
+        comp.input_data = self.input_data
 
     @property
     def current_directory(self):
@@ -103,6 +115,14 @@ class Completor(Base):
         :rtype: unicode
         """
         return to_unicode(vim.Function('completor#utils#tempname')(), 'utf-8')
+
+    @property
+    def support_popup(self):
+        """Test whether the popup window is supported
+
+        :rtype: bool
+        """
+        return vim.Function('completor#support_popup')() == 1
 
     @property
     def filename(self):
@@ -198,12 +218,26 @@ class Completor(Base):
         else:
             ret.extend(self.on_complete(data))
 
+        if ret and not isinstance(ret[0], (dict, vim.Dictionary)):
+            offset = self.start_column()
+            for i, e in enumerate(ret):
+                ret[i] = {'word': e, 'offset': offset}
+
         common = get('common')
         if not common.is_common(self):
-            if not ret or self.ident == common.ident:
-                common.ft = self.ft
-                common.input_data = self.input_data
-                ret.extend(common.parse(self.input_data))
+            if ret and 'offset' not in ret[0]:
+                offset = self.start_column()
+                for item in ret:
+                    item['offset'] = offset
+            if len(ret) < LIMIT/2:
+                self.copy_to(common)
+                ret.extend(common.parse(self.input_data)[:COMMON_LIMIT])
+        if not self.support_popup and ret:
+            offset = ret[0]['offset']
+            for i, item in enumerate(ret):
+                if item['offset'] != offset:
+                    ret = ret[:i]
+                    break
         return ret
 
     def on_stream(self, action, msg):
@@ -221,13 +255,18 @@ class Completor(Base):
                 self.stream_buf = []
                 return self.on_data(action, data)
 
-    def handle_stream(self, action, msg):
+    def handle_stream(self, name, action, msg):
         """Wrapper around on_stream.
 
         When `on_stream` returns non-empty action trigger is called.
         """
+        c = get_current_completer()
+        logger.info("%s %s", c.filetype, name)
+        if c and c.filetype != name:
+            self.stream_buf = []
+            return
         res = self.on_stream(action, msg)
-        if not res:
+        if res is None:
             return
         try:
             vim.Function('completor#action#trigger')(res)
@@ -284,13 +323,15 @@ class Completor(Base):
         if not self.input_data:
             return -1
 
+        data = self.input_data
         index = len(self.input_data)
         for i in range(index):
             text = self.input_data[i:]
             matched = pat.match(text)
             if matched and matched.end() == len(text):
-                return len(to_bytes(self.input_data[:i], get_encoding()))
-        return index
+                data = self.input_data[:i]
+                break
+        return len(to_bytes(data, get_encoding()))
 
     def start_column(self):
         if not self.ident:
@@ -352,6 +393,11 @@ class Completor(Base):
 
         This method is called after daemonized completer command spawned.
         """
+
+    def on_exit(self):
+        """Handle the completer daemon exit event.
+        """
+        self._exited = True
 
 
 def _resolve_ft(ft):
@@ -431,14 +477,11 @@ def load_completer(ft, input_data):
     if 'common' not in Meta.registry:
         import completers.common  # noqa
     neoinclude = get('neoinclude')
-    filename = get('filename')
 
     with _ft_context(ft, input_data) as f:
         if neoinclude.has_neoinclude() and neoinclude.match(f.input_data) \
                 and not neoinclude.disabled:
             f.c = neoinclude
-        elif filename.match(f.input_data) and not filename.disabled:
-            f.c = filename
         elif not f.origin:
             f.c = get('common')
         else:
@@ -448,7 +491,8 @@ def load_completer(ft, input_data):
                 f.c = omni
             if f.c is None:
                 f.c = _load(f.mapped)
-            if f.c is None or not f.c.match(f.input_data) or f.c.disabled:
+            if f.c is None or f.c._exited or not f.c.match(f.input_data) \
+                    or f.c.disabled:
                 f.c = get('common')
     return None if f.c.disabled else f.c
 

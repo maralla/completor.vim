@@ -19,6 +19,10 @@ class Jedi(Completor):
                r'^\s*from\s+[\w\.]*(?:\s+import\s+(?:\w*(?:,\s*)?)*)?|'
                r'^\s*import\s+(?:[\w\.]*(?:,\s*)?)*')
 
+    def __init__(self, *args, **kwargs):
+        Completor.__init__(self, *args, **kwargs)
+        self.use_black = bool(self.get_option('black_binary'))
+
     def _jedi_cmd(self, action):
         binary = self.get_option('python_binary') or 'python'
         cmd = [binary, os.path.join(DIRNAME, 'python_jedi.py')]
@@ -49,8 +53,23 @@ class Jedi(Completor):
             is_sync=False,
         )
 
+    def _black_cmd(self):
+        binary = self.get_option('black_binary')
+        if not binary:
+            return vim.Dictionary()
+        cmd = [binary, '--line-length', 79, '--quiet']
+        cmd.append(self.filename)
+        return vim.Dictionary(
+            cmd=cmd,
+            ftype=self.filetype,
+            is_daemon=False,
+            is_sync=False,
+        )
+
     def get_cmd_info(self, action):
         if action == b'format':
+            if self.use_black:
+                return self._black_cmd()
             return self._yapf_cmd()
         return self._jedi_cmd(action)
 

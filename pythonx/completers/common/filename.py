@@ -5,9 +5,9 @@ import re
 import logging
 import glob
 import itertools
-from completor import Completor
+from completor import Completor, LIMIT
 
-from .utils import test_subseq, LIMIT
+from .utils import test_subseq
 
 
 logger = logging.getLogger('completor')
@@ -15,7 +15,7 @@ PAT = re.compile(r'(\w{2,}:(//?[^\s]*)?)|(</[^\s>]*>?)|(//)')
 START_NO_DIRNAME = re.compile(r'^(\.{0,2}/|~/|[a-zA-Z]:/|\$)')
 
 
-def gen_entry(pat, dirname, basename):
+def gen_entry(pat, dirname, basename, offset):
     prefix = len(dirname)
     if os.path.dirname(dirname) != dirname:
         prefix += 1
@@ -34,11 +34,12 @@ def gen_entry(pat, dirname, basename):
             'word': entry,
             'abbr': abbr,
             'menu': '[F]',
+            'offset': offset,
         }
         yield entry, score
 
 
-def find(current_dir, input_data):
+def find(current_dir, input_data, offset):
     path_dir = os.path.expanduser(os.path.expandvars(input_data))
     if not path_dir:
         return []
@@ -53,8 +54,8 @@ def find(current_dir, input_data):
     def _pat(p):
         return os.path.join(dirname, p)
 
-    hidden = gen_entry(_pat('.*'), dirname, basename)
-    chain = gen_entry(_pat('*'), dirname, basename), hidden
+    hidden = gen_entry(_pat('.*'), dirname, basename, offset)
+    chain = gen_entry(_pat('*'), dirname, basename, offset), hidden
 
     entries = list(itertools.islice(itertools.chain(*chain), LIMIT))
     entries.sort(key=lambda x: x[1])
@@ -94,7 +95,7 @@ class Filename(Completor):
         )*$""", re.U | re.X)
 
     # Ingore whitespace.
-    ident = r"""[@a-zA-Z0-9(){}$+_~.'"\x80-\xff-\[\]]*"""
+    ident = r"""[@a-zA-Z0-9(){}$+_~.'"\x80-\xff\u4e00-\u9fff\[\]-]*"""
 
     def match(self, input_data):
         if Completor.get_option('filename_completion_in_only_comment'):
@@ -132,11 +133,12 @@ class Filename(Completor):
         if path is None:
             return []
 
+        offset = self.start_column()
         try:
             if START_NO_DIRNAME.search(path):
-                items = find(self.current_directory, path)
+                items = find(self.current_directory, path, offset)
             else:
-                items = find(self.current_directory, './' + path)
+                items = find(self.current_directory, './' + path, offset)
         except Exception as e:
             logger.exception(e)
             return []
