@@ -10,7 +10,7 @@ from completor.compat import to_unicode
 
 def test_has_omnifunc(vim_mod):
     vim_mod.vars = {
-        'completor_css_omni_trigger': rb'([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$'
+        'completor_css_omni_trigger': br'([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$'
     }
     vim_mod.current.buffer.options['omnifunc'] = b''
 

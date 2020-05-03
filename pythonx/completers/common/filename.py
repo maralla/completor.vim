@@ -95,7 +95,7 @@ class Filename(Completor):
         )*$""", re.U | re.X)
 
     # Ingore whitespace.
-    ident = r"""[@a-zA-Z0-9(){}$+_~.'"\x80-\xff\u4e00-\u9fff-\[\]]*"""
+    ident = r"""[@a-zA-Z0-9(){}$+_~.'"\x80-\xff\u4e00-\u9fff\[\]-]*"""
 
     def match(self, input_data):
         if Completor.get_option('filename_completion_in_only_comment'):
