@@ -223,7 +223,7 @@ function! completor#action#trigger(items)
   endif
   if s:action ==# 'complete'
     call s:trigger_complete(a:items)
-  elseif s:action ==# 'definition'
+  elseif s:action ==# 'definition' || s:action ==# 'implementation'
     call s:goto_definition(a:items)
   elseif s:action ==# 'signature'
     call s:call_signatures(a:items)

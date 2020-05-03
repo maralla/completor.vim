@@ -185,3 +185,7 @@ class Signature(Completion):
 
 class Hover(Completion):
     method = "textDocument/hover"
+
+
+class Implementation(Completion):
+    method = "textDocument/implementation"

@@ -10,7 +10,7 @@ from completor import Completor, vim, import_completer, get
 from completor.compat import to_unicode
 
 from .models import Initialize, DidOpen, Completion, DidChange, DidSave, \
-    Definition, Format, Rename, Hover, Initialized
+    Definition, Format, Rename, Hover, Initialized, Implementation
 from .action import gen_definition, get_completion_word
 from .utils import gen_uri
 
@@ -123,6 +123,8 @@ class Lsp(Completor):
                 items.append(self.position_request(Definition))
             elif action == b'format':
                 items.append(self.format_request())
+            elif action == b'implementation':
+                items.append(self.position_request(Implementation))
             elif action == b'rename':
                 if not args:
                     return ''
@@ -214,6 +216,10 @@ class Lsp(Completor):
     def on_rename(self, data):
         logger.info("rename -> %r", data)
         return []
+
+    def on_implementation(self, data):
+        logger.info("implementation -> %r", data)
+        return gen_definition(self.ft_orig, data)
 
     def on_hover(self, data):
         logger.info("hover -> %r", data)
