@@ -193,7 +193,7 @@ class Lsp(Completor):
         if not data:
             return []
         res = []
-        candidates = data[0]
+        candidates = data[0] or []
         items = []
         if isinstance(candidates, list):
             items = candidates
