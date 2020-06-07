@@ -11,7 +11,7 @@ from completor.compat import to_unicode
 
 from .models import Initialize, DidOpen, Completion, DidChange, DidSave, \
     Definition, Format, Rename, Hover, Initialized, Implementation
-from .action import gen_definition, get_completion_word
+from .action import gen_definition, get_completion_word, gen_hover_doc
 from .utils import gen_uri
 
 logger = logging.getLogger('completor')
@@ -229,7 +229,7 @@ class Lsp(Completor):
         value = item.get('contents', {}).get('value')
         if not value:
             return []
-        return [value]
+        return [gen_hover_doc(self.ft_orig, value)]
 
     def on_stream(self, action, data):
         logger.info('received %r', data)

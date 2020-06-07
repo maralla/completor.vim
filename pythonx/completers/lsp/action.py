@@ -87,3 +87,31 @@ def get_completion_word(item):
     label = item['label'].strip()
     match = word_pat.match(label)
     return match.groups()[0] if match else '', -1
+
+
+hiddenLines = ["on pkg.go.dev"]
+go_escape = re.compile(r'''\\([\\\x60*{}[\]()#+\-.!_>~|"$%&'\/:;<=?@^])''',
+                       re.UNICODE)
+
+
+def _shouldHidden(line):
+    for item in hiddenLines:
+        if item in line:
+            return True
+
+    return False
+
+
+def gen_hover_doc(ft, value):
+    if ft != "go":
+        return value
+
+    lines = []
+
+    for l in value.split("\n"):
+        if _shouldHidden(l):
+            continue
+
+        lines.append(go_escape.sub(r"\1", l))
+
+    return "\n".join(lines)

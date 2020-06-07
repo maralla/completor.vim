@@ -47,7 +47,11 @@ class Initialize(Base):
             'processId': self.ppid,
             'capabilities': {
                 'workspace': {},
-                'textDocument': {}
+                'textDocument': {
+                    'hover': {
+                        'contentFormat': ['markdown', 'plaintext']
+                    }
+                }
             },
             'rootUri': self.workspace[0]['uri'],
             # 'workspaceFolders': self.workspace,
