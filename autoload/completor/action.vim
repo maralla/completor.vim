@@ -74,7 +74,7 @@ function! s:trigger_complete(completions)
 endfunction
 
 
-function! s:jump(items)
+function! s:jump(items, action)
   let tmp = tempname()
   let name = ''
   let content = []
@@ -107,7 +107,13 @@ function! s:jump(items)
   call writefile(content, tmp)
   let tags = &tags
   let wildignore = &wildignore
-  let action = len(content) == 1 ? 'tjump' : 'tselect'
+
+  if len(content) == 1 && a:action ==# 'definition'
+    let action = 'tjump'
+  else
+    let action = 'tselect'
+  endif
+
   try
     set wildignore=
     let &tags = tmp
@@ -124,10 +130,10 @@ function! s:jump(items)
 endfunction
 
 
-function! s:goto_definition(items)
+function! s:goto_definition(items, action)
   if len(a:items) > 0
     try
-      call s:jump(a:items)
+      call s:jump(a:items, a:action)
     catch /E37/
       echohl ErrorMsg
       echomsg '`hidden` should be set (set hidden)'
@@ -223,8 +229,8 @@ function! completor#action#trigger(items)
   endif
   if s:action ==# 'complete'
     call s:trigger_complete(a:items)
-  elseif s:action ==# 'definition' || s:action ==# 'implementation'
-    call s:goto_definition(a:items)
+  elseif s:action ==# 'definition' || s:action ==# 'implementation' || s:action ==# 'references'
+    call s:goto_definition(a:items, s:action)
   elseif s:action ==# 'signature'
     call s:call_signatures(a:items)
   elseif s:action ==# 'doc'

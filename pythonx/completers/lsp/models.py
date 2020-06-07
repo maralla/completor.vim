@@ -193,3 +193,7 @@ class Hover(Completion):
 
 class Implementation(Completion):
     method = "textDocument/implementation"
+
+
+class References(Completion):
+    method = "textDocument/references"

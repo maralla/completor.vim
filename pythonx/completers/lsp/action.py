@@ -18,7 +18,7 @@ logger = logging.getLogger("completor")
 #       u'uri': u'file:///home/linuxbrew/.linuxbrew/Cellar/go/1.12.4/libexec/src/fmt/print.go'  # noqa
 #   }]
 # ]
-def gen_definition(ft, data):
+def gen_jump_list(ft, name, data):
     res = []
 
     if not data:
@@ -37,7 +37,7 @@ def gen_definition(ft, data):
             'filename': uri,
             'lnum': start['line'] + 1,
             'col': start['character'] + 1,
-            'name': 'definition'
+            'name': name,
         })
     return res
 

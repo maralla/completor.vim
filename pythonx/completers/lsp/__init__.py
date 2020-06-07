@@ -10,8 +10,8 @@ from completor import Completor, vim, import_completer, get
 from completor.compat import to_unicode
 
 from .models import Initialize, DidOpen, Completion, DidChange, DidSave, \
-    Definition, Format, Rename, Hover, Initialized, Implementation
-from .action import gen_definition, get_completion_word, gen_hover_doc
+    Definition, Format, Rename, Hover, Initialized, Implementation, References
+from .action import gen_jump_list, get_completion_word, gen_hover_doc
 from .utils import gen_uri
 
 logger = logging.getLogger('completor')
@@ -125,6 +125,8 @@ class Lsp(Completor):
                 items.append(self.format_request())
             elif action == b'implementation':
                 items.append(self.position_request(Implementation))
+            elif action == b'references':
+                items.append(self.position_request(References))
             elif action == b'rename':
                 if not args:
                     return ''
@@ -211,7 +213,7 @@ class Lsp(Completor):
         return vim.List(res)
 
     def on_definition(self, data):
-        return gen_definition(self.ft_orig, data)
+        return gen_jump_list(self.ft_orig, self.cursor_word, data)
 
     def on_rename(self, data):
         logger.info("rename -> %r", data)
@@ -219,7 +221,11 @@ class Lsp(Completor):
 
     def on_implementation(self, data):
         logger.info("implementation -> %r", data)
-        return gen_definition(self.ft_orig, data)
+        return gen_jump_list(self.ft_orig, self.cursor_word, data)
+
+    def on_references(self, data):
+        logger.info("references -> %r", data)
+        return gen_jump_list(self.ft_orig, self.cursor_word, data)
 
     def on_hover(self, data):
         logger.info("hover -> %r", data)
