@@ -29,6 +29,9 @@ class Lsp(Completor):
         self.open_file_map = {}
         self.buf = io.BytesIO()
 
+        self.initialize_id = None
+        self._pending = None
+
     def get_version(self, f):
         args = self.open_file_map.get(f)
         if args is None:
@@ -46,7 +49,8 @@ class Lsp(Completor):
             'uri': gen_uri(project_path),
             'name': project_name
         }])
-        _, req = i.to_request()
+        req_id, req = i.to_request()
+        self.initialize_id = req_id
         return req
 
     def initialized_request(self):
@@ -103,38 +107,55 @@ class Lsp(Completor):
         self.current_id = req_id
         return req
 
+    def _gen_action_args(self, action, args):
+        if action == b'complete':
+            return self.position_request(Completion)
+
+        if action == b'definition':
+            return self.position_request(Definition)
+
+        if action == b'format':
+            return self.format_request()
+
+        if action == b'implementation':
+            return self.position_request(Implementation)
+
+        if action == b'references':
+            return self.position_request(References)
+
+        if action == b'rename':
+            if not args:
+                return ''
+            return self.rename_request(args[0])
+
+        if action == b'hover':
+            return self.position_request(Hover)
+
+        return ''
+
     def gen_request(self, action, args):
         try:
             pwd = os.getcwd()
             project_name = os.path.basename(pwd)
             items = []
-            if not self.initialized:
-                items.append(self.initialize_request(project_name, pwd))
-                items.append(self.initialized_request())
-                self.initialized = True
-                return ''.join(items)
+
             req = self.open_request()
             if req:
                 items.append(req)
             items.append(self.change_request())
-            if action == b'complete':
-                items.append(self.position_request(Completion))
-            elif action == b'definition':
-                items.append(self.position_request(Definition))
-            elif action == b'format':
-                items.append(self.format_request())
-            elif action == b'implementation':
-                items.append(self.position_request(Implementation))
-            elif action == b'references':
-                items.append(self.position_request(References))
-            elif action == b'rename':
-                if not args:
-                    return ''
-                items.append(self.rename_request(args[0]))
-            elif action == b'hover':
-                items.append(self.position_request(Hover))
-            else:
-                return ''
+
+            action_args = self._gen_action_args(action, args)
+            if action_args:
+                items.append(action_args)
+
+            if not self.initialized:
+                self._pending = ''.join(items)
+
+                items = []
+                items.append(self.initialize_request(project_name, pwd))
+                items.append(self.initialized_request())
+                self.initialized = True
+
             logger.info('data: %r', items)
             return ''.join(items)
         except Exception as e:
@@ -232,18 +253,46 @@ class Lsp(Completor):
         if not data:
             return []
         item = data[0]
-        value = item.get('contents', {}).get('value')
-        if not value:
+
+        contents = item.get('contents')
+        if not contents:
             return []
-        return [gen_hover_doc(self.ft_orig, value)]
+
+        values = []
+
+        if isinstance(contents, list):
+            for content in contents:
+                if isinstance(content, dict):
+                    values.append(content.get('value', ''))
+                else:
+                    values.append(content)
+        else:
+            values.append(contents.get('value', ''))
+
+        if not values:
+            return []
+
+        return [gen_hover_doc(self.ft_orig, '\n\n'.join(values))]
 
     def on_stream(self, action, data):
         logger.info('received %r', data)
         self.buf.write(data)
         res = []
         for item in self.parse_data():
-            if item.get('id') == self.current_id:
+            req_id = item.get('id')
+            if not req_id:
+                continue
+
+            if req_id == self.initialize_id:
+                if self._pending:
+                    p = self._pending
+                    self._pending = None
+                    logger.info("send pending data -> %r", p)
+                    self.daemon_send(p)
+
+            if req_id == self.current_id:
                 res.append(item.get('result', {}))
+
         if res:
             return self.on_data(action, res)
 

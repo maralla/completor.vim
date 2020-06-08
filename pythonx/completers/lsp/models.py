@@ -197,3 +197,11 @@ class Implementation(Completion):
 
 class References(Completion):
     method = "textDocument/references"
+
+    def to_dict(self):
+        d = super(References, self).to_dict()
+        d['context'] = {
+            'includeDeclaration': True
+        }
+
+        return d

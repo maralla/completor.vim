@@ -10,6 +10,8 @@ import threading
 from os.path import expanduser
 
 from ._vim import vim_obj as vim
+from ._vim import vim_expand, vim_tempname, vim_support_popup, \
+    vim_action_trigger, vim_in_comment_or_string, vim_daemon_send
 from .compat import integer_types, to_bytes, to_unicode
 from ._log import config_logging
 
@@ -106,7 +108,7 @@ class Completor(Base):
 
         :rtype: unicode
         """
-        return to_unicode(vim.Function('expand')('%:p:h'), 'utf-8')
+        return to_unicode(vim_expand('%:p:h'), 'utf-8')
 
     @property
     def tempname(self):
@@ -114,7 +116,7 @@ class Completor(Base):
 
         :rtype: unicode
         """
-        return to_unicode(vim.Function('completor#utils#tempname')(), 'utf-8')
+        return to_unicode(vim_tempname(), 'utf-8')
 
     @property
     def support_popup(self):
@@ -122,7 +124,7 @@ class Completor(Base):
 
         :rtype: bool
         """
-        return vim.Function('completor#support_popup')() == 1
+        return vim_support_popup() == 1
 
     @property
     def filename(self):
@@ -139,8 +141,7 @@ class Completor(Base):
         :rtype: unicode
         """
         try:
-            return to_unicode(
-                vim.Function('expand')('<cword>'), get_encoding())
+            return to_unicode(vim_expand('<cword>'), get_encoding())
         except vim.error:
             pass
 
@@ -184,6 +185,12 @@ class Completor(Base):
             if isinstance(disable_types, (list, vim.List)):
                 return to_bytes(self.ft) in disable_types
             return False
+
+    @staticmethod
+    def daemon_send(data):
+        """Send data to the daemon.
+        """
+        return vim_daemon_send(data)
 
     # input_data: unicode
     def match(self, input_data):
@@ -269,7 +276,7 @@ class Completor(Base):
         if res is None:
             return
         try:
-            vim.Function('completor#action#trigger')(res)
+            vim_action_trigger(res)
         except vim.error as e:
             logger.exception(e)
 
@@ -386,7 +393,7 @@ class Completor(Base):
             2   in string
             3   in constant
         """
-        return vim.Function('completor#utils#in_comment_or_string')()
+        return vim_in_comment_or_string()
 
     def reset(self):
         """Reset completer status.

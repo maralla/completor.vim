@@ -107,16 +107,22 @@ function! completor#daemon#process(action, cmd, name, options, args)
   endif
 
   let req = completor#utils#gen_request(a:action, a:args)
-  if empty(req)
+
+  return completor#daemon#send(req)
+endfunction
+
+
+function! completor#daemon#send(req)
+  if empty(a:req)
     return v:false
   endif
 
-  if type(req) == v:t_list
-    for d in req
+  if type(a:req) == v:t_list
+    for d in a:req
       call s:daemon.write(d)
     endfor
   else
-    call s:daemon.write(req)
+    call s:daemon.write(a:req)
   endif
 
   let s:daemon.requested = v:true
