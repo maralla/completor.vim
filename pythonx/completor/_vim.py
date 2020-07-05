@@ -1,3 +1,4 @@
+import os
 import vim
 
 
@@ -63,11 +64,15 @@ if hasattr(vim, 'from_nvim'):
 
 
 def _cached(f):
+    if os.getenv('DISABLE_CACHE'):
+        def wrap(*args, **kwargs):
+            func = f()
+            return func(*args, **kwargs)
+    else:
+        func = f()
 
-    func = f()
-
-    def wrap(*args, **kwargs):
-        return func(*args, **kwargs)
+        def wrap(*args, **kwargs):
+            return func(*args, **kwargs)
 
     wrap.__name__ = f.__name__
     wrap.__doc__ = f.__doc__
