@@ -1,7 +1,6 @@
 Completor
 =========
 
-[![Build Status](https://travis-ci.org/maralla/completor.vim.svg?branch=master)](https://travis-ci.org/maralla/completor.vim)
 [![Test Status](https://github.com/maralla/completor.vim/workflows/unit%20test/badge.svg)](https://github.com/maralla/completor.vim/actions)
 
 Completor is an asynchronous code completion framework for vim8. New features
