@@ -109,3 +109,8 @@ def vim_in_comment_or_string():
 @_cached
 def vim_daemon_send():
     return vim_obj.Function('completor#daemon#send')
+
+
+@_cached
+def vim_exists():
+    return vim_obj.Function('exists')

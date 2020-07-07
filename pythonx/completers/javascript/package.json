@@ -2,7 +2,7 @@
   "name": "tern_wrapper",
   "version": "1.0.0",
   "dependencies": {
-    "tern": "^0.24.1",
+    "tern": "^0.24.3",
     "yarn": "^1.22.0"
   }
 }

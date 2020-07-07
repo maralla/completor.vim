@@ -89,3 +89,10 @@ endfunction
 function! completor#utils#on_exit()
   exe s:py 'completor_api.on_exit()'
 endfunction
+
+function! completor#utils#add_offset(items, offset)
+  for item in a:items
+    let item.offset = a:offset
+  endfor
+  return a:items
+endfunction
