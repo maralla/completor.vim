@@ -12,6 +12,7 @@ from os.path import expanduser
 from ._vim import vim_obj as vim
 from ._vim import vim_expand, vim_tempname, vim_support_popup, \
     vim_action_trigger, vim_in_comment_or_string, vim_daemon_send
+from ._vim import vim_exists  # noqa
 from .compat import integer_types, to_bytes, to_unicode
 from ._log import config_logging
 
