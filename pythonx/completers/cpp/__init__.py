@@ -13,10 +13,10 @@ word_patten = re.compile(r'\w+$')
 trigger = re.compile(r'(\.|->|#|::)\s*(\w*)$')
 logger = logging.getLogger('completor')
 ast_pat = re.compile(
-    b'.*?'
-    rb'<(.*?):(\d+):(\d+), (?:col|line):\d+(?::\d+)?>'
-    rb' (line|col):(\d+)(?::(\d+))? (.*)')
-tag_pattern = re.compile(rb'\s\((InBase|Hidden|Inaccessible|,)+\)')
+    br'.*?'
+    br'<(.*?):(\d+):(\d+), (?:col|line):\d+(?::\d+)?>'
+    br' (line|col):(\d+)(?::(\d+))? (.*)')
+tag_pattern = re.compile(br'\s\((InBase|Hidden|Inaccessible|,)+\)')
 
 VIM_FILES = ['placeholder.vim']
 
@@ -45,7 +45,7 @@ def sanitize(menu):
 
 
 def strip_optional(menu):
-    return re.sub(rb'{#.*#}|\[#.*#\]', b'', menu)
+    return re.sub(br'{#.*#}|\[#.*#\]', b'', menu)
 
 
 def strip_tag(word):
@@ -53,7 +53,7 @@ def strip_tag(word):
 
 
 def get_word(text):
-    parts = re.split(rb'[ (\[{<]', text, 1)
+    parts = re.split(br'[ (\[{<]', text, 1)
     if not parts:
         return text
     return parts[0]
