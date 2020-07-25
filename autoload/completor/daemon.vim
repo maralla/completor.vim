@@ -12,7 +12,9 @@ endfunction
 
 
 function! s:on_exit(name, job_id, status)
-  call completor#popup#safe_hide()
+  if completor#support_popup()
+    call completor#popup#hide()
+  endif
   call completor#utils#on_exit()
 endfunction
 
