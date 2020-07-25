@@ -16,7 +16,7 @@ ast_pat = re.compile(
     b'.*?'
     b'<(.*?):(\d+):(\d+), (?:col|line):\d+(?::\d+)?>'
     b' (line|col):(\d+)(?::(\d+))? (.*)')
-
+tag_pattern = re.compile(b'\s\((InBase|Hidden|Inaccessible|,)+\)')
 
 VIM_FILES = ['placeholder.vim']
 
@@ -47,6 +47,8 @@ def sanitize(menu):
 def strip_optional(menu):
     return re.sub(b'{#.*#}|\[#.*#\]', b'', menu)
 
+def strip_tag(word):
+    return tag_pattern.sub(b'', word)
 
 def get_word(text):
     parts = re.split(b'[ (\[{<]', text, 1)
@@ -235,6 +237,8 @@ class Clang(Completor):
             data['abbr'] = data['word']
             if self.disable_placeholders != 1 and data['menu']:
                 data['word'] = strip_optional(data['menu'])
+            else:
+                data['word'] = strip_tag(data['word'])
             data['menu'] = func_sig
 
             # Show function signature in the preview window
