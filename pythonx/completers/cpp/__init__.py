@@ -9,14 +9,14 @@ from completor.compat import to_bytes
 
 path = os.path.dirname(__file__)
 
-word_patten = re.compile('\w+$')
-trigger = re.compile('(\.|->|#|::)\s*(\w*)$')
+word_patten = re.compile(r'\w+$')
+trigger = re.compile(r'(\.|->|#|::)\s*(\w*)$')
 logger = logging.getLogger('completor')
 ast_pat = re.compile(
     b'.*?'
-    b'<(.*?):(\d+):(\d+), (?:col|line):\d+(?::\d+)?>'
-    b' (line|col):(\d+)(?::(\d+))? (.*)')
-tag_pattern = re.compile(b'\s\((InBase|Hidden|Inaccessible|,)+\)')
+    rb'<(.*?):(\d+):(\d+), (?:col|line):\d+(?::\d+)?>'
+    rb' (line|col):(\d+)(?::(\d+))? (.*)')
+tag_pattern = re.compile(rb'\s\((InBase|Hidden|Inaccessible|,)+\)')
 
 VIM_FILES = ['placeholder.vim']
 
@@ -45,13 +45,15 @@ def sanitize(menu):
 
 
 def strip_optional(menu):
-    return re.sub(b'{#.*#}|\[#.*#\]', b'', menu)
+    return re.sub(rb'{#.*#}|\[#.*#\]', b'', menu)
+
 
 def strip_tag(word):
     return tag_pattern.sub(b'', word)
 
+
 def get_word(text):
-    parts = re.split(b'[ (\[{<]', text, 1)
+    parts = re.split(rb'[ (\[{<]', text, 1)
     if not parts:
         return text
     return parts[0]
@@ -59,7 +61,7 @@ def get_word(text):
 
 def get_token_path(line, column, word):
     prefix = line[:column]
-    item = re.sub('[^\w\0]+', ' ', prefix.replace('::', '\0')).replace(
+    item = re.sub(r'[^\w\0]+', ' ', prefix.replace('::', '\0')).replace(
         '\0', '::').strip().split(' ')[-1]
     parts = item.split('::')
     parts[-1] = word
