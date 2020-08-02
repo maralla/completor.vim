@@ -10,8 +10,10 @@ from completor import Completor, vim, import_completer, get
 from completor.compat import to_unicode
 
 from .models import Initialize, DidOpen, Completion, DidChange, DidSave, \
-    Definition, Format, Rename, Hover, Initialized, Implementation, References
-from .action import gen_jump_list, get_completion_word, gen_hover_doc
+    Definition, Format, Rename, Hover, Initialized, Implementation, \
+    References, DidChangeConfiguration
+from .action import gen_jump_list, get_completion_word, gen_hover_doc, \
+    filter_items
 from .utils import gen_uri
 
 logger = logging.getLogger('completor')
@@ -153,7 +155,6 @@ class Lsp(Completor):
 
                 items = []
                 items.append(self.initialize_request(project_name, pwd))
-                items.append(self.initialized_request())
                 self.initialized = True
 
             logger.info('data: %r', items)
@@ -222,15 +223,25 @@ class Lsp(Completor):
             items = candidates
         elif 'items' in candidates:
             items = candidates['items']
+
+        completions = []
+
         for item in items:
             label = item['label'].strip()
-            word, offset = get_completion_word(item)
+            word, offset = get_completion_word(
+                item, self.ft_args.get(b'insertText'))
+            completions.append((label, word, offset, item.get('detail')))
+
+        completions = filter_items(completions, self.input_data)
+
+        for label, word, offset, detail in completions:
             d = vim.Dictionary(abbr=label, word=word, category='lsp')
-            if 'detail' in item:
-                d['menu'] = item['detail']
+            if detail:
+                d['menu'] = detail
             if offset != -1:
                 d['offset'] = offset
             res.append(d)
+
         return vim.List(res)
 
     def on_definition(self, data):
@@ -288,6 +299,8 @@ class Lsp(Completor):
                     p = self._pending
                     self._pending = None
                     logger.info("send pending data -> %r", p)
+                    self.daemon_send(self.initialized_request())
+                    self.send_config()
                     self.daemon_send(p)
 
             if req_id == self.current_id:
@@ -295,6 +308,15 @@ class Lsp(Completor):
 
         if res:
             return self.on_data(action, res)
+
+    def send_config(self):
+        conf = self.ft_args.get(b'config')
+        if not conf:
+            return
+
+        a = DidChangeConfiguration(conf)
+        _, req = a.to_request()
+        self.daemon_send(req)
 
 
 def content_length(header):

@@ -53,3 +53,25 @@ def echo(message, severity='info'):
     """
     with _highlight(severity):
         vim_obj.command('echo {!r}'.format(message))
+
+
+def check_subseq(src, target):
+    """Check if src is a subsequence of target.
+    """
+    if not src:
+        return 0
+
+    score = i = 0
+    src, target = src.lower(), target.lower()
+    src_len, target_len = len(src), len(target)
+    for index, e in enumerate(target):
+        if src_len - i > target_len - index:
+            return
+        if e != src[i]:
+            continue
+        if index == 0:
+            score = -999
+        score += index
+        i += 1
+        if i == src_len:
+            return score

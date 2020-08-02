@@ -2,9 +2,11 @@
 
 import re
 import logging
+from completor.utils import check_subseq
 from .utils import parse_uri
 
 word_pat = re.compile(r'([\d\w]+)', re.U)
+word_ends = re.compile(r'[\d\w]+$', re.U)
 
 logger = logging.getLogger("completor")
 
@@ -78,20 +80,23 @@ def format_text(data):
         pass
 
 
-def get_completion_word(item):
-    try:
-        return item['textEdit']['newText'], \
-            item['textEdit']['range']['start']['character']
-    except KeyError:
-        pass
+def get_completion_word(item, insert_text):
+    if insert_text != b'label':
+        try:
+            return item['textEdit']['newText'], \
+                item['textEdit']['range']['start']['character']
+        except KeyError:
+            pass
+
     label = item['label'].strip()
     match = word_pat.match(label)
     return match.groups()[0] if match else '', -1
 
 
 hiddenLines = ["on pkg.go.dev"]
-go_escape = re.compile(r'''\\([\\\x60*{}[\]()#+\-.!_>~|"$%&'\/:;<=?@^])''',
-                       re.UNICODE)
+escapes = re.compile(r'''\\([\\\x60*{}[\]()#+\-.!_>~|"$%&'\/:;<=?@^])''',
+                     re.UNICODE)
+escape_types = ['go', 'json']
 
 
 def _shouldHidden(line):
@@ -103,7 +108,7 @@ def _shouldHidden(line):
 
 
 def gen_hover_doc(ft, value):
-    if ft != "go":
+    if ft not in escape_types:
         return value
 
     lines = []
@@ -112,6 +117,26 @@ def gen_hover_doc(ft, value):
         if _shouldHidden(l):
             continue
 
-        lines.append(go_escape.sub(r"\1", l))
+        lines.append(escapes.sub(r"\1", l).replace('&nbsp;', ' '))
 
     return "\n".join(lines)
+
+
+def filter_items(items, input_data):
+    target = ''
+    match = word_ends.search(input_data)
+    if match:
+        target = match.group()
+
+    if not target:
+        return items
+
+    filtered = []
+    for item in items:
+        score = check_subseq(target, item[1])
+        if score is None:
+            continue
+        filtered.append((item, score))
+
+    filtered.sort(key=lambda x: x[1])
+    return [e for e, _ in filtered]
