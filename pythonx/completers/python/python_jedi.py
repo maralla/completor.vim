@@ -65,7 +65,7 @@ class JediProcessor(object):
         return c
 
     def on_complete(self, args):
-        for c in self.script.complete(args['line']+1, args['col']):
+        for c in self.script.complete(args['line']+1, args['col'], fuzzy=True):
             statement_c = self._statement(c, args)
             try:
                 yield {
