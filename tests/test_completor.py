@@ -40,7 +40,7 @@ def test_load(vim_mod, monkeypatch):
     vim_mod.current.buffer.options.update({
         'omnifunc': b'csscomplete#CompleteCSS'})
     vim_mod.vars = {
-        'completor_css_omni_trigger': rb'([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$'
+        'completor_css_omni_trigger': br'([\w-]+|@[\w-]*|[\w-]+:\s*[\w-]*)$'
     }
     assert load_completer(b'css', b'text') is get('omni')
 
