@@ -172,23 +172,6 @@ function! s:call_signatures(items)
 endfunction
 
 
-function! s:open_doc_window()
-  let n = bufnr('__doc__')
-  let direction = get(s:DOC_POSITION, g:completor_doc_position, s:DOC_POSITION.bottom)
-  if n > 0
-    let i = index(tabpagebuflist(tabpagenr()), n)
-    if i >= 0
-      " Just jump to the doc window
-      silent execute (i + 1).'wincmd w'
-    else
-      silent execute direction.' sbuffer '.n
-    endif
-  else
-    silent execute direction.' split __doc__'
-  endif
-endfunction
-
-
 function! s:show_doc(items)
   if empty(a:items)
     return
@@ -197,14 +180,21 @@ function! s:show_doc(items)
   if empty(doc)
     return
   endif
-  call s:open_doc_window()
 
-  setlocal modifiable noswapfile buftype=nofile
+  let direction = get(s:DOC_POSITION, g:completor_doc_position, s:DOC_POSITION.bottom)
+  let height = min([len(doc), &previewheight])
+  silent execute direction.' pedit +resize'.height.' __doc__'
+
+  wincmd P
+  setlocal modifiable noreadonly
   silent normal! ggdG
   silent $put=doc
   silent normal! 1Gdd
-  setlocal nomodifiable nomodified foldlevel=200
+  setlocal nomodifiable nomodified readonly
+  setlocal noswapfile buftype=nofile nobuflisted bufhidden=wipe
+  setlocal foldlevel=200
   nnoremap <buffer> q ZQ
+  wincmd p
 endfunction
 
 
