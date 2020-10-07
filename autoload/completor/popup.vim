@@ -285,3 +285,177 @@ func! completor#popup#show(words)
     :NoMatchParen
   endif
 endfunc
+
+
+let s:t_ve = &t_ve
+
+let s:selector = -1
+let s:selector_items = []
+func completor#popup#select(items)
+  if empty(a:items.options)
+    return
+  endif
+
+  if len(a:items.options) == 1
+    let item = a:items.options[0]
+    if get(item, 'enable_confirm', v:false)
+      call s:select_edit_file(item)
+      return
+    endif
+  endif
+
+  let s:selector_items = a:items
+
+  let max = 0
+
+  for item in a:items.options
+    if len(item.content) > max
+      let max = len(item.content)
+    endif
+  endfor
+
+  let text = map(copy(a:items.options), {i, v -> s:gen_select_item(i, v, max)})
+
+  set t_ve=
+
+  if s:selector == -1
+    hi default link CompletorSelect PmenuSel
+    call prop_type_add('selecthi', #{highlight: 'CompletorSelect'})
+    let s:selector = popup_create(text, #{
+          \ zindex: 99999,
+          \ mapping: v:false,
+          \ filter: function('s:select_filter'),
+          \ line: &lines,
+          \ maxheight: 5,
+          \ minheight: 5,
+          \ minwidth: &columns - 10,
+          \ maxwidth: &columns - 10,
+          \ padding: [1, 1, 1, 1],
+          \ border: [1, 1, 1, 1],
+          \ borderchars: ['─', '│', '─', '│', '╭', '┐', '┘', '└'],
+          \ scrollbar: 0,
+          \ cursorline: 1,
+          \ })
+  else
+    call popup_settext(s:selector, text)
+    call popup_show(s:selector)
+  endif
+
+  call win_execute(s:selector, "normal! gg")
+  let s:selector_current = 0
+
+  call timer_start(0, {t -> feedkeys('a')})
+
+  if has_key(s:selector_items, 'callback')
+    call s:selector_items.callback(s:selector, "select", a:items.options[0])
+  endif
+endfunc
+
+
+func s:gen_select_item(i, v, size)
+  let item = (a:i+1) .. "\t" .. a:v.content .. repeat(' ', a:size - len(a:v.content))
+  if has_key(a:v, 'file')
+    let item ..= "\t" .. a:v.file .. ":" .. a:v.line
+  endif
+  return item
+endfunc
+
+
+func s:select_filter(id, key)
+  if a:key == "\<DOWN>" || a:key == "\<C-j>"
+    call win_execute(a:id, "normal! j")
+    if s:selector_current + 1 < len(s:selector_items.options)
+      let s:selector_current += 1
+    endif
+
+    let item = s:selector_items.options[s:selector_current]
+
+    if has_key(s:selector_items, 'callback')
+      call s:selector_items.callback(a:id, "select", item)
+    endif
+  elseif a:key == "\<UP>" || a:key == "\<C-k>"
+    call win_execute(a:id, "normal! k")
+    if s:selector_current - 1 >= 0
+      let s:selector_current -= 1
+    endif
+
+    let item = s:selector_items.options[s:selector_current]
+
+    if has_key(s:selector_items, 'callback')
+      call s:selector_items.callback(a:id, "select", item)
+    endif
+  elseif a:key == "\<ESC>" || a:key == "q"
+    call popup_hide(a:id)
+
+    exe 'set t_ve='.s:t_ve
+
+    if has_key(s:selector_items, 'callback')
+      call s:selector_items.callback(a:id, "quit", {})
+    endif
+  elseif a:key == "\<CR>"
+    let item = s:selector_items.options[s:selector_current]
+    if has_key(s:selector_items, 'callback')
+      call s:selector_items.callback(a:id, "confirm", item)
+    endif
+  endif
+
+  return 1
+endfunc
+
+
+let s:selector_content = -1
+func completor#popup#select_callback(id, type, item)
+  if a:type == "select"
+    if s:selector_content == -1
+      let s:selector_content = popup_create('', #{
+            \ zindex: 99999,
+            \ mapping: 0,
+            \ scrollbar: 0,
+            \ line: 1,
+            \ maxheight: &lines - 15,
+            \ minheight: &lines - 15,
+            \ minwidth: &columns - 10,
+            \ maxwidth: &columns - 10,
+            \ padding: [1, 1, 1, 1],
+            \ border: [1, 1, 1, 1],
+            \ borderchars: ['─', '│', '─', '│', '╭', '┐', '┘', '└'],
+            \ })
+    else
+      call popup_show(s:selector_content)
+    endif
+
+    if has_key(a:item, 'file')
+      let content = readfile(a:item.file)
+      call popup_settext(s:selector_content, content)
+      call win_execute(s:selector_content, "normal! "..a:item.line .. "Gzz")
+      let nr = winbufnr(s:selector_content)
+
+      call prop_add(a:item.line, 1, #{
+            \ length: 99999, bufnr: nr, type: 'selecthi'})
+
+      if has_key(a:item, 'ftype')
+        call win_execute(s:selector_content, "set ft=" .. a:item.ftype)
+      endif
+    else
+      call popup_settext(s:selector_content, a:item.content)
+    endif
+  elseif a:type == "confirm"
+    if get(a:item, 'enable_confirm', v:false)
+      call s:select_filter(s:selector, 'q')
+      if has_key(a:item, 'file')
+        call s:select_edit_file(a:item)
+      endif
+    endif
+  elseif a:type == "quit"
+    call popup_hide(s:selector_content)
+  endif
+endfunc
+
+
+func s:select_edit_file(item)
+  exe ':edit ' .. a:item.file
+  if has_key(a:item, 'line')
+    exe ':' .. string(a:item.line)
+    exe 'normal! 0' .. string(a:item.col-1) .. 'lzz'
+  endif
+endfunc

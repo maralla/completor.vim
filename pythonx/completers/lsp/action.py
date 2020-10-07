@@ -44,6 +44,25 @@ def gen_jump_list(ft, name, data):
     return res
 
 
+def parse_symbols(ft, items):
+    res = []
+
+    for item in items:
+        uri = parse_uri(item['location']['uri'])
+        if ft == 'go':
+            uri = uri.replace('%21', '!')
+
+        start = item['location']['range']['start']
+        res.append({
+            'filename': uri,
+            'lnum': start['line'] + 1,
+            'col': start['character'] + 1,
+            'name': item['name'],
+        })
+
+    return res
+
+
 # [
 #     [
 #         {

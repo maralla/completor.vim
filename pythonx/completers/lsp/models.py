@@ -242,3 +242,15 @@ class DidChangeConfiguration(Base):
         return {
             "settings": self.conf
         }
+
+
+class Symbol(Base):
+    method = "workspace/symbol"
+
+    def __init__(self, query=""):
+        self.query = query
+
+    def to_dict(self):
+        return {
+            "query": self.query,
+        }

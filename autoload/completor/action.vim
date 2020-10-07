@@ -74,7 +74,25 @@ function! s:trigger_complete(completions)
 endfunction
 
 
-function! s:jump(items, action)
+function! s:popup_select(items)
+  let data = []
+
+  for item in a:items
+    let data = add(data, {
+          \ 'content': item.name,
+          \ 'file': item.filename,
+          \ 'line': item.lnum,
+          \ 'col': item.col,
+          \ 'enable_confirm': v:true,
+          \ 'ftype': &ft
+          \ })
+  endfor
+
+  call completor#popup#select({'options': data, 'callback': function('completor#popup#select_callback')})
+endfunction
+
+
+function! s:legacy_select(items, action)
   let tmp = tempname()
   let name = ''
   let content = []
@@ -130,10 +148,14 @@ function! s:jump(items, action)
 endfunction
 
 
-function! s:goto_definition(items, action)
+function! s:select(items, action)
   if len(a:items) > 0
     try
-      call s:jump(a:items, a:action)
+      if completor#support_popup()
+        call s:popup_select(a:items)
+      else
+        call s:legacy_select(a:items, a:action)
+      endif
     catch /E37/
       echohl ErrorMsg
       echomsg '`hidden` should be set (set hidden)'
@@ -217,20 +239,31 @@ function! completor#action#trigger(items)
     let s:completions = []
     return
   endif
-  if s:action ==# 'complete'
-    call s:trigger_complete(a:items)
-  elseif s:action ==# 'definition' || s:action ==# 'implementation' || s:action ==# 'references'
-    call s:goto_definition(a:items, s:action)
-  elseif s:action ==# 'signature'
-    call s:call_signatures(a:items)
-  elseif s:action ==# 'doc'
-    call s:show_doc(a:items)
-  elseif s:action ==# 'format'
+
+  let items = a:items
+  let action = s:action
+
+  if type(a:items) == v:t_dict
+    let items = a:items.data
+    let action = get(a:items, 'action', action)
+  endif
+
+  if action ==# 'complete'
+    call s:trigger_complete(items)
+  elseif action ==# 'select'
+    call s:select(items, action)
+  elseif action ==# 'definition' || action ==# 'implementation' || action ==# 'references'
+    call s:select(items, action)
+  elseif action ==# 'signature'
+    call s:call_signatures(items)
+  elseif action ==# 'doc'
+    call s:show_doc(items)
+  elseif action ==# 'format'
     silent edit!
-  elseif s:action ==# 'hover'
-    if !empty(a:items)
+  elseif action ==# 'hover'
+    if !empty(items)
       if completor#support_popup()
-        let p = popup_create(split(a:items[0], "\n"), #{
+        let p = popup_create(split(items[0], "\n"), #{
               \ moved: 'word',
               \ pos: 'botleft',
               \ line: 'cursor-1',
@@ -240,7 +273,7 @@ function! completor#action#trigger(items)
               \ })
         call win_execute(p, 'set ft=markdown')
       else
-        echo a:items[0]
+        echo items[0]
       endif
     endif
   endif

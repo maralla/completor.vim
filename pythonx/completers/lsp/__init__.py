@@ -11,9 +11,9 @@ from completor.compat import to_unicode
 
 from .models import Initialize, DidOpen, Completion, DidChange, DidSave, \
     Definition, Format, Rename, Hover, Initialized, Implementation, \
-    References, DidChangeConfiguration
+    References, DidChangeConfiguration, Symbol
 from .action import gen_jump_list, get_completion_word, gen_hover_doc, \
-    filter_items
+    filter_items, parse_symbols
 from .utils import gen_uri
 
 logger = logging.getLogger('completor')
@@ -89,6 +89,13 @@ class Lsp(Completor):
         offset = len(self.input_data)
         return category(gen_uri(self.filename), line - 1, offset)
 
+    def gen_symbol_request(self, word=None):
+        if word is None:
+            word = "'" + self.cursor_word
+        req_id, req = Symbol(word).to_request()
+        self.current_id = req_id
+        return req
+
     def position_request(self, category):
         c = self.gen_position_request(category)
         req_id, req = c.to_request()
@@ -124,6 +131,12 @@ class Lsp(Completor):
 
         if action == b'references':
             return self.position_request(References)
+
+        if action == b'symbol':
+            s = None
+            if args:
+                s = args[0]
+            return self.gen_symbol_request(s)
 
         if action == b'rename':
             if not args:
@@ -258,6 +271,15 @@ class Lsp(Completor):
     def on_references(self, data):
         logger.info("references -> %r", data)
         return gen_jump_list(self.ft_orig, self.cursor_word, data)
+
+    def on_symbol(self, data):
+        if not data:
+            return []
+        item = data[0]
+        if not item:
+            return []
+        items = parse_symbols(self.ft_orig, item)
+        return vim.Dictionary(data=items, action="select")
 
     def on_hover(self, data):
         logger.info("hover -> %r", data)
