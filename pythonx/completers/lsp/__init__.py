@@ -13,7 +13,7 @@ from .models import Initialize, DidOpen, Completion, DidChange, DidSave, \
     Definition, Format, Rename, Hover, Initialized, Implementation, \
     References, DidChangeConfiguration, Symbol
 from .action import gen_jump_list, get_completion_word, gen_hover_doc, \
-    filter_items, parse_symbols
+    filter_items, parse_symbols, rename
 from .utils import gen_uri
 
 logger = logging.getLogger('completor')
@@ -262,7 +262,9 @@ class Lsp(Completor):
 
     def on_rename(self, data):
         logger.info("rename -> %r", data)
-        return []
+        if data:
+            rename(self.ft_orig, data[0])
+        return vim.Dictionary(data=[], action='format')
 
     def on_implementation(self, data):
         logger.info("implementation -> %r", data)

@@ -4,6 +4,7 @@ import re
 import logging
 from completor.utils import check_subseq
 from .utils import parse_uri
+from .edit import edit
 
 word_pat = re.compile(r'([\d\w]+)', re.U)
 word_ends = re.compile(r'[\d\w]+$', re.U)
@@ -61,6 +62,31 @@ def parse_symbols(ft, items):
         })
 
     return res
+
+
+# {
+#     'documentChanges': [
+#         {
+#             'textDocument': {'version': 1, 'uri': 'file:///home/maralla/Workspace/projects/demo/main.go'},  # noqa
+#             'edits': [
+#                 {'range': {'start': {'line': 41, 'character': 7}, 'end': {'line': 41, 'character': 9}}, 'newText': 'aabb'},  # noqa
+#                 {'range': {'start': {'line': 43, 'character': 32}, 'end': {'line': 43, 'character': 34}}, 'newText': 'aabb'}  # noqa
+#             ]
+#         }
+#     ]
+# }
+def rename(ft, items):
+    for changes in items.get('documentChanges', []):
+        fname = parse_uri(changes['textDocument']['uri'])
+        if ft == 'go':
+            fname = fname.replace('%21', '!')
+
+        with open(fname, 'r') as f:
+            data = f.readlines()
+            out = edit(data, changes['edits'])
+
+        with open(fname, 'w') as f:
+            f.write(out)
 
 
 # [
