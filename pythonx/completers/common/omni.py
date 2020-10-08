@@ -65,7 +65,7 @@ class Omni(Completor):
                 return []
             res = omnifunc(0, to_bytes(base, get_encoding())[codepoint:])
             for i, e in enumerate(res):
-                if not isinstance(e, dict, vim.Dictionary):
+                if not isinstance(e, (dict, vim.Dictionary)):
                     res[i] = {'word': e}
                 res[i]['offset'] = codepoint
             return res
