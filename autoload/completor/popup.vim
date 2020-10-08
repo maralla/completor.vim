@@ -459,3 +459,46 @@ func s:select_edit_file(item)
     exe 'normal! 0' .. string(a:item.col-1) .. 'lzz'
   endif
 endfunc
+
+
+func completor#popup#markdown_preview(content)
+  let max = 0
+
+  for item in a:content
+    if len(item) > max
+      let max = len(item)
+    endif
+  endfor
+
+  let p = popup_create(a:content, #{
+        \ moved: 'word',
+        \ mapping: v:false,
+        \ minwidth: max,
+        \ maxwidth: max,
+        \ pos: 'botleft',
+        \ line: 'cursor-1',
+        \ col: 'cursor',
+        \ zindex: 9999,
+        \ filter: function('s:scroll_filter'),
+        \ padding: [1, 2, 1, 2],
+        \ })
+  call win_execute(p, 'set ft=markdown')
+
+  call timer_start(0, {t -> feedkeys("\<C-j>")})
+endfunc
+
+
+func s:scroll_filter(id, key)
+  if a:key == "\<DOWN>" || a:key == "\<C-j>"
+    call win_execute(a:id, "normal! \<C-d>")
+    return 1
+  elseif a:key == "\<UP>" || a:key == "\<C-k>"
+    call win_execute(a:id, "normal! \<C-u>")
+    return 1
+  elseif a:key == "\<ESC>"
+    call popup_close(a:id)
+    return 1
+  endif
+
+  return 0
+endfunc

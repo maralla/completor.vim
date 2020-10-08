@@ -263,15 +263,7 @@ function! completor#action#trigger(items)
   elseif action ==# 'hover'
     if !empty(items)
       if completor#support_popup()
-        let p = popup_create(split(items[0], "\n"), #{
-              \ moved: 'word',
-              \ pos: 'botleft',
-              \ line: 'cursor-1',
-              \ col: 'cursor',
-              \ zindex: 9999,
-              \ padding: [1, 2, 1, 2],
-              \ })
-        call win_execute(p, 'set ft=markdown')
+        call completor#popup#markdown_preview(split(items[0], "\n"))
       else
         echo items[0]
       endif
