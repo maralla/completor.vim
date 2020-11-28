@@ -70,6 +70,12 @@ func! s:filter(id, key)
 endfunc
 
 
+func! s:callback(word)
+  let b:completor_current_complete_word = a:word
+  doautocmd <nomodeline> completor_event User
+endfunc
+
+
 func! s:reset()
   call setline('.', s:current_completions.orig)
   call cursor(line('.'), s:current_completions.pos + 1)
@@ -91,6 +97,8 @@ func! s:insert_word(id)
   call setline('.', new)
   let idx = startcol + strlen(item.word)
   call cursor(line('.'), idx + 1)
+
+  call s:callback(item.word)
 endfunc
 
 

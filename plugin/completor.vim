@@ -54,6 +54,9 @@ let g:completor_use_popup_window = get(g:, 'completor_use_popup_window', 0)
 func s:init()
   call completor#enable_autocomplete()
   call completor#action#_on_insert_enter()
+
+  augroup completor_event
+  augroup END
 endfunc
 
 
