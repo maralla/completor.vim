@@ -320,7 +320,7 @@ func completor#popup#select(items)
 
   if s:selector == -1
     hi default link CompletorSelect PmenuSel
-    call prop_type_add('selecthi', #{highlight: 'CompletorSelect'})
+    call prop_type_add('completor_selecthi', #{highlight: 'CompletorSelect'})
     let s:selector = popup_create(text, #{
           \ zindex: 99999,
           \ mapping: v:false,
@@ -431,7 +431,7 @@ func completor#popup#select_callback(id, type, item)
       let nr = winbufnr(s:selector_content)
 
       call prop_add(a:item.line, 1, #{
-            \ length: 99999, bufnr: nr, type: 'selecthi'})
+            \ length: 99999, bufnr: nr, type: 'completor_selecthi'})
 
       if has_key(a:item, 'ftype')
         call win_execute(s:selector_content, "set ft=" .. a:item.ftype)
