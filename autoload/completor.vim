@@ -88,6 +88,20 @@ function! completor#disable_autocomplete()
 endfunction
 
 
+func! completor#disable_text_change()
+  if completor#support_popup()
+    call completor#popup#disable_popup_hide()
+  endif
+endfunc
+
+
+func! completor#enable_text_change()
+  if completor#support_popup()
+    call completor#popup#enable_popup_hide()
+  endif
+endfunc
+
+
 function! completor#enable_autocomplete()
   if &diff
     return

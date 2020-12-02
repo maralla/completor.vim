@@ -8,6 +8,7 @@ let s:current_completions = #{
       \ index: -1,
       \ }
 let s:visible = v:false
+let s:disable_hide = v:false
 let s:max_width = 80
 
 
@@ -137,8 +138,18 @@ func! s:on_text_change()
 endfunc
 
 
+func! completor#popup#disable_popup_hide()
+  let s:disable_hide = v:true
+endfunc
+
+
+func! completor#popup#enable_popup_hide()
+  let s:disable_hide = v:false
+endfunc
+
+
 func! completor#popup#hide()
-  if !s:visible
+  if !s:visible || s:disable_hide
     return
   endif
   if exists(':DoMatchParen')
