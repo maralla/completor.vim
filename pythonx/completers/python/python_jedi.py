@@ -3,11 +3,12 @@
 from __future__ import print_function
 
 import argparse
-import json
 import contextlib
+import json
 import logging
 import os.path
 import sys
+from pathlib import Path
 
 log_file = os.path.join(os.path.dirname(__file__), 'completor_python.log')
 logger = logging.getLogger('python-jedi')
@@ -135,6 +136,10 @@ def run(jedi):
         except Exception as e:
             logger.exception(e)
             ret = []
+        for idx, line in enumerate(ret):
+            for key, value in line.items():
+                if isinstance(value, Path):
+                    line[key] = str(line[key])
         write(json.dumps(ret))
 
 
