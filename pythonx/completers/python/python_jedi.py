@@ -3,12 +3,11 @@
 from __future__ import print_function
 
 import argparse
-import contextlib
 import json
+import contextlib
 import logging
 import os.path
 import sys
-from pathlib import Path
 
 log_file = os.path.join(os.path.dirname(__file__), 'completor_python.log')
 logger = logging.getLogger('python-jedi')
@@ -87,7 +86,7 @@ class JediProcessor(object):
                 item['text'] = 'Builtin {}'.format(item['text'])
             else:
                 item.update({
-                    'filename': d.module_path,
+                    'filename': str(d.module_path),
                     'lnum': d.line,
                     'col': d.column + 1,
                     'name': d.name,
@@ -136,10 +135,6 @@ def run(jedi):
         except Exception as e:
             logger.exception(e)
             ret = []
-        for idx, line in enumerate(ret):
-            for key, value in line.items():
-                if isinstance(value, Path):
-                    line[key] = str(line[key])
         write(json.dumps(ret))
 
 
