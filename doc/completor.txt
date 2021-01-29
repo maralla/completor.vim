@@ -168,7 +168,7 @@ Other                                                   *completor-other*
 
 *g:completor_enable_{filetype}*
         Used to explicitly allow {filetype} completions. If this
-        option is set, only file types in this list can be allowd for
+        option is set, only file types in this list can be allowed for
         {filetype} completion.
 
         For example enable neosnippet completion for only vim:
