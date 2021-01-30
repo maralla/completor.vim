@@ -86,7 +86,7 @@ class JediProcessor(object):
                 item['text'] = 'Builtin {}'.format(item['text'])
             else:
                 item.update({
-                    'filename': d.module_path,
+                    'filename': str(d.module_path),
                     'lnum': d.line,
                     'col': d.column + 1,
                     'name': d.name,
