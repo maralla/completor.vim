@@ -88,7 +88,7 @@ function! s:popup_select(items)
           \ })
   endfor
 
-  call completor#popup#select({'options': data, 'callback': function('completor#popup#select_callback')})
+  call completor#popup#select({'options': data})
 endfunction
 
 
@@ -277,6 +277,8 @@ function! completor#action#stream(name, msg)
 endfunction
 
 
+let s:popup_init = v:false
+
 " :param info: must contain keys: 'cmd', 'ftype', 'is_sync', 'is_daemon'
 function! completor#action#do(action, info, status, args)
   let s:freezed_status = a:status
@@ -289,6 +291,10 @@ function! completor#action#do(action, info, status, args)
   let s:action = a:action
   let options = get(a:info, 'options', {})
   let input_content = get(a:info, 'input_content', '')
+
+  if !s:popup_init && completor#support_popup()
+    call completor#popup#init()
+  endif
 
   if a:info.is_sync
     call completor#action#callback(a:status.input)

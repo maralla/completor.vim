@@ -122,11 +122,21 @@ func! s:init_popup()
 endfunc
 
 
+let s:popup_init = v:false
+
+
 func! completor#popup#init()
+  if s:popup_init
+    return
+  endif
+
+  let s:popup_init = v:true
+
   call s:init_popup()
   augroup completor_popup
     autocmd!
     autocmd TextChangedI * call s:on_text_change()
+    autocmd VimResized * call s:on_vim_resize()
   augroup END
   hi default CompletionWord gui=bold cterm=bold term=bold
   call prop_type_add('compword', #{highlight: 'CompletionWord'})
@@ -135,6 +145,11 @@ endfunc
 
 func! s:on_text_change()
   call completor#popup#hide()
+endfunc
+
+
+func! s:on_vim_resize()
+  call s:select_resize()
 endfunc
 
 
@@ -346,8 +361,28 @@ func completor#popup#select(items)
 
   call timer_start(0, {t -> feedkeys('a')})
 
-  if has_key(s:selector_items, 'callback')
-    call s:selector_items.callback(s:selector, "select", a:items.options[0])
+  call s:select_preview(s:selector, "select", a:items.options[0])
+endfunc
+
+
+func s:select_resize()
+  if s:selector == -1
+    return
+  endif
+
+  call popup_setoptions(s:selector, #{
+        \ minwidth: &columns - 10,
+        \ maxwidth: &columns - 10,
+        \ line: &lines,
+        \ })
+
+  if s:selector_content != -1
+    call popup_setoptions(s:selector_content, #{
+          \ maxheight: &lines - 15,
+          \ minheight: &lines - 15,
+          \ minwidth: &columns - 10,
+          \ maxwidth: &columns - 10,
+          \ })
   endif
 endfunc
 
@@ -369,10 +404,7 @@ func s:select_filter(id, key)
     endif
 
     let item = s:selector_items.options[s:selector_current]
-
-    if has_key(s:selector_items, 'callback')
-      call s:selector_items.callback(a:id, "select", item)
-    endif
+    call s:select_preview(a:id, "select", item)
   elseif a:key == "\<UP>" || a:key == "\<C-k>"
     call win_execute(a:id, "normal! k")
     if s:selector_current - 1 >= 0
@@ -380,23 +412,16 @@ func s:select_filter(id, key)
     endif
 
     let item = s:selector_items.options[s:selector_current]
-
-    if has_key(s:selector_items, 'callback')
-      call s:selector_items.callback(a:id, "select", item)
-    endif
+    call s:select_preview(a:id, "select", item)
   elseif a:key == "\<ESC>" || a:key == "q"
     call popup_hide(a:id)
 
     exe 'set t_ve='.s:t_ve
 
-    if has_key(s:selector_items, 'callback')
-      call s:selector_items.callback(a:id, "quit", {})
-    endif
+    call s:select_preview(a:id, "quit", {})
   elseif a:key == "\<CR>"
     let item = s:selector_items.options[s:selector_current]
-    if has_key(s:selector_items, 'callback')
-      call s:selector_items.callback(a:id, "confirm", item)
-    endif
+    call s:select_preview(a:id, "confirm", item)
   endif
 
   return 1
@@ -404,7 +429,7 @@ endfunc
 
 
 let s:selector_content = -1
-func completor#popup#select_callback(id, type, item)
+func s:select_preview(id, type, item)
   if a:type == "select"
     if s:selector_content == -1
       let s:selector_content = popup_create('', #{

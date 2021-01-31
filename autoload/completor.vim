@@ -106,9 +106,6 @@ function! completor#enable_autocomplete()
   if &diff
     return
   endif
-  if completor#support_popup()
-    call completor#popup#init()
-  endif
   call s:set_events()
 endfunction
 
