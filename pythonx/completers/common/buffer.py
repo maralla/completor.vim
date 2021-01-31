@@ -5,8 +5,8 @@ import itertools
 import re
 import logging
 
-from completor import Completor, vim, LIMIT
-from completor.compat import to_unicode
+from completor import Completor, vim, LIMIT, get_encoding as get_current_buffer_encoding
+from completor.compat import to_unicode, to_bytes
 
 from .utils import test_subseq
 
@@ -105,7 +105,12 @@ class Buffer(Completor):
             if len(res) >= LIMIT:
                 break
 
-        offset = len(base) - len(identifier)
+        # NOTE: base class Completor expects the offset in nr of bytes in the
+        # buffer's encoding (Completor.start_column will also be in nr of bytes)
+        current_buf_encoding = get_current_buffer_encoding()
+        offset = (len(to_bytes(base, current_buf_encoding)) -
+                  len(to_bytes(identifier, current_buf_encoding)))
+
         res = list(res)
         res.sort(key=lambda x: (x[1], x[0]))
         return [{'word': token, 'menu': '[ID]', 'offset': offset}
