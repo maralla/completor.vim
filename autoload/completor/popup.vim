@@ -10,6 +10,8 @@ let s:current_completions = #{
 let s:visible = v:false
 let s:disable_hide = v:false
 let s:max_width = 80
+let s:min_supported_height = 9
+let s:min_select_content_height = 13
 
 
 func! s:next()
@@ -304,10 +306,11 @@ endfunc
 
 let s:t_ve = &t_ve
 
+let s:is_selector_shown = v:false
 let s:selector = -1
 let s:selector_items = []
 func completor#popup#select(items)
-  if empty(a:items.options)
+  if empty(a:items.options) || &lines < s:min_supported_height
     return
   endif
 
@@ -336,13 +339,16 @@ func completor#popup#select(items)
   if s:selector == -1
     hi default link CompletorSelect PmenuSel
     call prop_type_add('completor_selecthi', #{highlight: 'CompletorSelect'})
+
+    let height = &lines >= 27 ? 5 : 2
+
     let s:selector = popup_create(text, #{
           \ zindex: 99999,
           \ mapping: v:false,
           \ filter: function('s:select_filter'),
           \ line: &lines,
-          \ maxheight: 5,
-          \ minheight: 5,
+          \ maxheight: height,
+          \ minheight: height,
           \ minwidth: &columns - 10,
           \ maxwidth: &columns - 10,
           \ padding: [1, 1, 1, 1],
@@ -355,6 +361,8 @@ func completor#popup#select(items)
     call popup_settext(s:selector, text)
     call popup_show(s:selector)
   endif
+
+  let s:is_selector_shown = v:true
 
   call win_execute(s:selector, "normal! gg")
   let s:selector_current = 0
@@ -370,16 +378,40 @@ func s:select_resize()
     return
   endif
 
-  call popup_setoptions(s:selector, #{
-        \ minwidth: &columns - 10,
-        \ maxwidth: &columns - 10,
-        \ line: &lines,
-        \ })
+  if &lines < s:min_supported_height
+    call popup_hide(s:selector)
+  else
+    if s:is_selector_shown
+      call popup_show(s:selector)
+    endif
+
+    let height = &lines >= 27 ? 5 : 2
+
+    call popup_setoptions(s:selector, #{
+          \ minwidth: &columns - 10,
+          \ maxwidth: &columns - 10,
+          \ minheight: height,
+          \ maxheight: height,
+          \ line: &lines,
+          \ })
+  endif
+
 
   if s:selector_content != -1
+    if &lines < s:min_select_content_height
+      call popup_hide(s:selector_content)
+      return
+    endif
+
+    if s:is_selector_content_shown
+      call popup_show(s:selector_content)
+    endif
+
+    let content_height = &lines - height - 10
+
     call popup_setoptions(s:selector_content, #{
-          \ maxheight: &lines - 15,
-          \ minheight: &lines - 15,
+          \ maxheight: content_height,
+          \ minheight: content_height,
           \ minwidth: &columns - 10,
           \ maxwidth: &columns - 10,
           \ })
@@ -414,6 +446,7 @@ func s:select_filter(id, key)
     let item = s:selector_items.options[s:selector_current]
     call s:select_preview(a:id, "select", item)
   elseif a:key == "\<ESC>" || a:key == "q"
+    let s:is_selector_shown = v:false
     call popup_hide(a:id)
 
     exe 'set t_ve='.s:t_ve
@@ -428,17 +461,20 @@ func s:select_filter(id, key)
 endfunc
 
 
+let s:is_selector_content_shown = v:false
 let s:selector_content = -1
 func s:select_preview(id, type, item)
   if a:type == "select"
     if s:selector_content == -1
+      let height = &lines - (&lines >= 27 ? 5 : 2) - 10
+
       let s:selector_content = popup_create('', #{
             \ zindex: 99999,
             \ mapping: 0,
             \ scrollbar: 0,
             \ line: 1,
-            \ maxheight: &lines - 15,
-            \ minheight: &lines - 15,
+            \ maxheight: height,
+            \ minheight: height,
             \ minwidth: &columns - 10,
             \ maxwidth: &columns - 10,
             \ padding: [1, 1, 1, 1],
@@ -447,6 +483,12 @@ func s:select_preview(id, type, item)
             \ })
     else
       call popup_show(s:selector_content)
+    endif
+
+    let s:is_selector_content_shown = v:true
+
+    if &lines < s:min_select_content_height
+      call popup_hide(s:selector_content)
     endif
 
     if has_key(a:item, 'file')
@@ -472,6 +514,7 @@ func s:select_preview(id, type, item)
       endif
     endif
   elseif a:type == "quit"
+    let s:is_selector_content_shown = v:false
     call popup_hide(s:selector_content)
   endif
 endfunc
