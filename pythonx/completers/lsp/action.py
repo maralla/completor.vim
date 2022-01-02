@@ -6,6 +6,11 @@ from completor.utils import check_subseq
 from .utils import parse_uri
 from .edit import edit
 
+try:
+    from urlparse import unquote
+except ImportError:
+    from urllib.parse import unquote
+
 word_pat = re.compile(r'([\d\w]+)', re.U)
 word_ends = re.compile(r'[\d\w]+$', re.U)
 
@@ -21,7 +26,7 @@ logger = logging.getLogger("completor")
 #       u'uri': u'file:///home/linuxbrew/.linuxbrew/Cellar/go/1.12.4/libexec/src/fmt/print.go'  # noqa
 #   }]
 # ]
-def gen_jump_list(ft, name, data):
+def gen_jump_list(name, data):
     res = []
 
     if not data:
@@ -32,9 +37,7 @@ def gen_jump_list(ft, name, data):
         return res
 
     for item in items:
-        uri = parse_uri(item['uri'])
-        if ft == 'go':
-            uri = uri.replace('%21', '!')
+        uri = unquote(parse_uri(item['uri']))
         start = item['range']['start']
         res.append({
             'filename': uri,
@@ -45,13 +48,11 @@ def gen_jump_list(ft, name, data):
     return res
 
 
-def parse_symbols(ft, items):
+def parse_symbols(items):
     res = []
 
     for item in items:
-        uri = parse_uri(item['location']['uri'])
-        if ft == 'go':
-            uri = uri.replace('%21', '!')
+        uri = unquote(parse_uri(item['location']['uri']))
 
         start = item['location']['range']['start']
         res.append({

@@ -217,7 +217,10 @@ class Lsp(Completor):
                 data = body[:length]
                 remain = body[length:]
                 logger.info("parsing %r", data)
-                yield json.loads(to_unicode(data, 'utf-8'))
+                try:
+                    yield json.loads(to_unicode(data, 'utf-8'))
+                except json.JSONDecodeError:
+                    break
             except Exception as e:
                 logger.exception(e)
                 raise
@@ -258,7 +261,7 @@ class Lsp(Completor):
         return vim.List(res)
 
     def on_definition(self, data):
-        return gen_jump_list(self.ft_orig, self.cursor_word, data)
+        return gen_jump_list(self.cursor_word, data)
 
     def on_rename(self, data):
         logger.info("rename -> %r", data)
@@ -268,11 +271,11 @@ class Lsp(Completor):
 
     def on_implementation(self, data):
         logger.info("implementation -> %r", data)
-        return gen_jump_list(self.ft_orig, self.cursor_word, data)
+        return gen_jump_list(self.cursor_word, data)
 
     def on_references(self, data):
         logger.info("references -> %r", data)
-        return gen_jump_list(self.ft_orig, self.cursor_word, data)
+        return gen_jump_list(self.cursor_word, data)
 
     def on_symbol(self, data):
         if not data:
@@ -280,7 +283,7 @@ class Lsp(Completor):
         item = data[0]
         if not item:
             return []
-        items = parse_symbols(self.ft_orig, item)
+        items = parse_symbols(item)
         return vim.Dictionary(data=items, action="select")
 
     def on_hover(self, data):
