@@ -26,3 +26,10 @@ def to_unicode(x, charset):
     if not isinstance(x, bytes):
         return text_type(x)
     return x.decode(charset)
+
+
+def is_bytes(s):
+    if isinstance(s, text_type):
+        return False
+    else:
+        return True
