@@ -13,7 +13,7 @@ from ._vim import vim_obj as vim
 from ._vim import vim_expand, vim_tempname, vim_support_popup, \
     vim_action_trigger, vim_in_comment_or_string, vim_daemon_send
 from ._vim import vim_exists  # noqa
-from .compat import integer_types, to_bytes, to_unicode
+from .compat import integer_types, to_bytes, to_unicode, is_bytes
 from ._log import config_logging
 
 LIMIT = 50
@@ -292,7 +292,27 @@ class Completor(Base):
         if not isinstance(data, (list, vim.List)):
             data = _unicode(data)
         if action == 'complete':
-            return self._do_complete(data)
+            items = self._do_complete(data)
+            if not items:
+                return items
+            # avoid to complete the characters which are already exists.
+            if self.end_column() > 0:
+                backward_start = len(to_bytes(data, get_encoding()))
+                backward_end = self.end_column()
+                current_line = to_bytes(self.cursor_line, get_encoding())
+                backward_bytes = current_line[backward_start:backward_end]
+                backward_str = to_unicode(backward_bytes, 'utf-8')
+
+                for item in items:
+                    if not is_bytes(item['word']):
+                        backward = backward_str
+                    else:
+                        backward = backward_bytes
+                    if backward and item['word'].endswith(backward):
+                        if 'abbr' not in item:
+                            item['abbr'] = item['word']
+                        item['word'] = item['word'][:-len(backward)]
+            return items
         try:
             return getattr(self, 'on_' + action)(data)
         except AttributeError:
@@ -341,12 +361,35 @@ class Completor(Base):
                 break
         return len(to_bytes(data, get_encoding()))
 
+    def ident_rmatch(self, pat):
+        if not self.input_data:
+            return -1
+
+        if not self.cursor_line[len(self.input_data):]:
+            return -1
+
+        start = len(to_bytes(self.input_data, get_encoding()))
+        data = self.cursor_line[len(self.input_data):]
+        matched = pat.match(data)
+        if matched and matched.start() == 0:
+            data = data[:matched.end()]
+            return start + len(to_bytes(data, get_encoding()))
+        else:
+            return -1
+
     def start_column(self):
         if not self.ident:
             return -1
         if isinstance(self.ident, str):
             self.ident = re.compile(self.ident, re.U | re.X)
         return self.ident_match(self.ident)
+
+    def end_column(self):
+        if not self.ident:
+            return -1
+        if isinstance(self.ident, str):
+            self.ident = re.compile(self.ident, re.U | re.X)
+        return self.ident_rmatch(self.ident)
 
     # Deprecated, use `prepare_request` instead.
     def request(self):
