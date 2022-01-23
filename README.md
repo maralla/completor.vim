@@ -74,6 +74,11 @@ You can add some complete functions with shell command by [completor-shell](http
 
 Completion from words in tmux panes is supported by [completor-tmux](https://github.com/ferreum/completor-tmux).
 
+#### syntax
+
+Completion from syntax file is supported by [completor-necosyntax](https://github.com/kyouryuukunn/completor-necosyntax).
+
+
 #### Python
 Use [jedi](https://github.com/davidhalter/jedi) for completion. jedi should be
 installed for semantic completion.  Install jedi to global environment or in virtualenv:
