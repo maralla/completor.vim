@@ -76,11 +76,9 @@ def parse_symbols(items):
 #         }
 #     ]
 # }
-def rename(ft, items):
+def rename(items):
     for changes in items.get('documentChanges', []):
-        fname = parse_uri(changes['textDocument']['uri'])
-        if ft == 'go':
-            fname = fname.replace('%21', '!')
+        fname = unquote(parse_uri(changes['textDocument']['uri']))
 
         with open(fname, 'r') as f:
             data = f.readlines()

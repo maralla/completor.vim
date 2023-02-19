@@ -187,8 +187,34 @@ class Format(Base):
         return {
             'textDocument': {
                 'uri': self.uri
-            }
+            },
+            'options': {}
         }
+
+
+class CodeAction(Base):
+    method = 'textDocument/codeAction'
+
+    def __init__(self, uri, action=None):
+        self.uri = uri
+        self.action = action
+
+    def to_dict(self):
+        r = {
+            'textDocument': {
+                'uri': self.uri
+            },
+            'context': {}
+        }
+
+        if self.action is not None:
+            r['context']['only'] = self.action
+
+        return r
+
+
+class DocumentSymbol(Format):
+    method = 'textDocument/documentSymbol'
 
 
 class Rename(Completion):

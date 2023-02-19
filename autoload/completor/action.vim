@@ -228,6 +228,87 @@ function! s:is_status_consistent()
 endfunction
 
 
+
+function! s:format(items)
+  if empty(a:items) || empty(a:items[0]) || mode() != 'n'
+    return
+  endif
+
+  pyx << EOF
+END = 999999
+
+lines = {}
+
+items = vim.bindeval('a:items')[0]
+
+chunks = []
+
+l = 0
+c = 0
+for item in items:
+  chunks.extend([{
+    'start': (l, c),
+    'end': (item['range']['start']['line'], item['range']['start']['character']),
+    'insert': False
+  }, {
+    'start': (item['range']['start']['line'], item['range']['start']['character']),
+    'end': (item['range']['end']['line'], item['range']['end']['character']),
+    'insert': True
+  }])
+
+  l = item['range']['end']['line']
+  c = item['range']['end']['character']
+
+chunks.append({
+  'start': (l, c),
+  'end': (END, END),
+  'insert': False
+})
+
+data = []
+
+i = 0
+
+for chunk in chunks:
+  if chunk['insert']:
+    data.append(items[i]['newText'].decode())
+    i += 1
+    continue
+
+  lines = vim.current.buffer[chunk['start'][0]:chunk['end'][0]+1]
+  if len(lines) == 1:
+    line = lines[0][chunk['start'][1]:chunk['end'][1]]
+  elif not lines:
+    line = ''
+  else:
+    if len(lines) < chunk['end'][0] - chunk['start'][0] + 1:
+      e = END
+      last = ''
+    else:
+      e = -1
+      last = '\n' + lines[-1][:chunk['end'][1]]
+
+    between = lines[1:e]
+    if between:
+      between = '\n' + '\n'.join(between)
+    else:
+      between = ''
+      # between = '\n'
+
+    line = lines[0][chunk['start'][1]:] + between + last
+    # if chunk['end'][1] == END:
+    #   line += '\n'
+  data.append(line)
+
+pos = vim.current.window.cursor
+vim.current.buffer[:] = ''.join(data).split('\n')
+vim.current.window.cursor = pos
+EOF
+
+  :write
+endfunction
+
+
 function! completor#action#callback(msg)
   let items = completor#utils#on_data(s:action, a:msg)
   call completor#action#trigger(items)
@@ -258,8 +339,10 @@ function! completor#action#trigger(items)
     call s:call_signatures(items)
   elseif action ==# 'doc'
     call s:show_doc(items)
-  elseif action ==# 'format'
+  elseif action ==# 'rename'
     silent edit!
+  elseif action ==# 'format'
+    call s:format(items)
   elseif action ==# 'hover'
     if !empty(items)
       if completor#support_popup()
@@ -268,6 +351,11 @@ function! completor#action#trigger(items)
         echo items[0]
       endif
     endif
+  endif
+
+  let opt = get(a:items, 'opt', {})
+  if !empty(opt) && has_key(opt, "after") && !empty(opt.after)
+    call completor#do(opt.after)
   endif
 endfunction
 

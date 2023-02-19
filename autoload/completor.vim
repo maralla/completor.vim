@@ -128,10 +128,23 @@ function! completor#do(action, ...) range
   if exists('s:timer') && !empty(timer_info(s:timer))
     call timer_stop(s:timer)
   endif
+
+  if type(a:action) == v:t_list
+    if empty(a:action)
+      return
+    endif
+
+    let action = a:action[0]
+    let args = a:action[1:]
+  else
+    let action = a:action
+    let args = a:000
+  endif
+
   let meta = {'range': [a:firstline, a:lastline]}
   let status = completor#action#current_status()
-  let args = a:000
-  let s:timer = timer_start(g:completor_completion_delay, {t->s:do_action(a:action, meta, status, args)})
+
+  let s:timer = timer_start(g:completor_completion_delay, {t->s:do_action(action, meta, status, args)})
   return ''
 endfunction
 

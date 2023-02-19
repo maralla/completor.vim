@@ -521,7 +521,12 @@ endfunc
 
 
 func s:select_edit_file(item)
-  exe ':edit ' .. a:item.file
+  " try
+  "   exe ':buffer ' .. a:item.file
+  " catch /E94/
+    exe ':edit ' .. a:item.file
+  " endtry
+
   if has_key(a:item, 'line')
     exe ':' .. string(a:item.line)
     exe 'normal! 0' .. string(a:item.col-1) .. 'lzz'
