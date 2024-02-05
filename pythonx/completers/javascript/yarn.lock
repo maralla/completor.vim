@@ -161,10 +161,10 @@ tapable@^0.2.3:
   version "0.2.6"
   resolved "https://registry.yarnpkg.com/tapable/-/tapable-0.2.6.tgz#206be8e188860b514425375e6f1ae89bfb01fd8d"
 
-tern@^0.24.1:
-  version "0.24.1"
-  resolved "https://registry.yarnpkg.com/tern/-/tern-0.24.1.tgz#4f30ecc67346b146c39a0c479ab817ff8c647697"
-  integrity sha512-6jK0DcgziZ0NAitZNncg+do/fKGh8hQJShcVU7dHoAljdckr7qr2oozd4l4kTIA7M+0FoKXy6gvRBLO8oWpTEw==
+tern@^0.24.3:
+  version "0.24.3"
+  resolved "https://registry.yarnpkg.com/tern/-/tern-0.24.3.tgz#da0d9118490c15af4b1c94553d5f0fafc77a0977"
+  integrity sha512-Z8uvtdWIlFn1GWy0HW5FhZ8VDryZwoJUdnjZU25C7/PBOltLIn1uv+WF3rVq6S1761YbsmbZYRP/l0ZJBCkvrw==
   dependencies:
     acorn "^6.0.0"
     acorn-loose "^6.0.0"
@@ -183,7 +183,7 @@ wrappy@1:
   resolved "https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
   integrity sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=
 
-yarn@^1.22.0:
-  version "1.22.0"
-  resolved "https://registry.yarnpkg.com/yarn/-/yarn-1.22.0.tgz#acf82906e36bcccd1ccab1cfb73b87509667c881"
-  integrity sha512-KMHP/Jq53jZKTY9iTUt3dIVl/be6UPs2INo96+BnZHLKxYNTfwMmlgHTaMWyGZoO74RI4AIFvnWhYrXq2USJkg==
+yarn@^1.22.13:
+  version "1.22.13"
+  resolved "https://registry.yarnpkg.com/yarn/-/yarn-1.22.13.tgz#8789ef23b630fe99b819b044f4b7b93ab1bc1b8f"
+  integrity sha512-G8qG4t7Ef5cLVpzbM3HWWsow4hpfeSCfKtMnjfERmp9V5qSCOKz0uGAIQCM/x3gWfCzH8Bvb4hl3ZfhG/XD1Jg==
