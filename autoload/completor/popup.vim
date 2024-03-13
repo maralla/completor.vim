@@ -10,6 +10,8 @@ let s:current_completions = #{
 let s:visible = v:false
 let s:disable_hide = v:false
 let s:max_width = 80
+let s:min_supported_height = 9
+let s:min_select_content_height = 13
 
 
 func! s:next()
@@ -122,11 +124,21 @@ func! s:init_popup()
 endfunc
 
 
+let s:popup_init = v:false
+
+
 func! completor#popup#init()
+  if s:popup_init
+    return
+  endif
+
+  let s:popup_init = v:true
+
   call s:init_popup()
   augroup completor_popup
     autocmd!
     autocmd TextChangedI * call s:on_text_change()
+    autocmd VimResized * call s:on_vim_resize()
   augroup END
   hi default CompletionWord gui=bold cterm=bold term=bold
   call prop_type_add('compword', #{highlight: 'CompletionWord'})
@@ -135,6 +147,11 @@ endfunc
 
 func! s:on_text_change()
   call completor#popup#hide()
+endfunc
+
+
+func! s:on_vim_resize()
+  call s:select_resize()
 endfunc
 
 
@@ -284,4 +301,277 @@ func! completor#popup#show(words)
   if exists(':NoMatchParen')
     :NoMatchParen
   endif
+endfunc
+
+
+let s:t_ve = &t_ve
+
+let s:is_selector_shown = v:false
+let s:selector = -1
+let s:selector_items = []
+func completor#popup#select(items)
+  if empty(a:items.options) || &lines < s:min_supported_height
+    return
+  endif
+
+  if len(a:items.options) == 1
+    let item = a:items.options[0]
+    if get(item, 'enable_confirm', v:false)
+      call s:select_edit_file(item)
+      return
+    endif
+  endif
+
+  let s:selector_items = a:items
+
+  let max = 0
+
+  for item in a:items.options
+    if len(item.content) > max
+      let max = len(item.content)
+    endif
+  endfor
+
+  let text = map(copy(a:items.options), {i, v -> s:gen_select_item(i, v, max)})
+
+  set t_ve=
+
+  if s:selector == -1
+    hi default link CompletorSelect PmenuSel
+    call prop_type_add('completor_selecthi', #{highlight: 'CompletorSelect'})
+
+    let height = &lines >= 27 ? 5 : 2
+
+    let s:selector = popup_create(text, #{
+          \ zindex: 99999,
+          \ mapping: v:false,
+          \ filter: function('s:select_filter'),
+          \ line: &lines,
+          \ maxheight: height,
+          \ minheight: height,
+          \ minwidth: &columns - 10,
+          \ maxwidth: &columns - 10,
+          \ padding: [1, 1, 1, 1],
+          \ border: [1, 1, 1, 1],
+          \ borderchars: ['─', '│', '─', '│', '╭', '┐', '┘', '└'],
+          \ scrollbar: 0,
+          \ cursorline: 1,
+          \ })
+  else
+    call popup_settext(s:selector, text)
+    call popup_show(s:selector)
+  endif
+
+  let s:is_selector_shown = v:true
+
+  call win_execute(s:selector, "normal! gg")
+  let s:selector_current = 0
+
+  call timer_start(0, {t -> feedkeys('a')})
+
+  call s:select_preview(s:selector, "select", a:items.options[0])
+endfunc
+
+
+func s:select_resize()
+  if s:selector == -1
+    return
+  endif
+
+  if &lines < s:min_supported_height
+    call popup_hide(s:selector)
+  else
+    if s:is_selector_shown
+      call popup_show(s:selector)
+    endif
+
+    let height = &lines >= 27 ? 5 : 2
+
+    call popup_setoptions(s:selector, #{
+          \ minwidth: &columns - 10,
+          \ maxwidth: &columns - 10,
+          \ minheight: height,
+          \ maxheight: height,
+          \ line: &lines,
+          \ })
+  endif
+
+
+  if s:selector_content != -1
+    if &lines < s:min_select_content_height
+      call popup_hide(s:selector_content)
+      return
+    endif
+
+    if s:is_selector_content_shown
+      call popup_show(s:selector_content)
+    endif
+
+    let content_height = &lines - height - 10
+
+    call popup_setoptions(s:selector_content, #{
+          \ maxheight: content_height,
+          \ minheight: content_height,
+          \ minwidth: &columns - 10,
+          \ maxwidth: &columns - 10,
+          \ })
+  endif
+endfunc
+
+
+func s:gen_select_item(i, v, size)
+  let item = (a:i+1) .. "\t" .. a:v.content .. repeat(' ', a:size - len(a:v.content))
+  if has_key(a:v, 'file')
+    let item ..= "\t" .. a:v.file .. ":" .. a:v.line
+  endif
+  return item
+endfunc
+
+
+func s:select_filter(id, key)
+  if a:key == "\<DOWN>" || a:key == "\<C-j>"
+    call win_execute(a:id, "normal! j")
+    if s:selector_current + 1 < len(s:selector_items.options)
+      let s:selector_current += 1
+    endif
+
+    let item = s:selector_items.options[s:selector_current]
+    call s:select_preview(a:id, "select", item)
+  elseif a:key == "\<UP>" || a:key == "\<C-k>"
+    call win_execute(a:id, "normal! k")
+    if s:selector_current - 1 >= 0
+      let s:selector_current -= 1
+    endif
+
+    let item = s:selector_items.options[s:selector_current]
+    call s:select_preview(a:id, "select", item)
+  elseif a:key == "\<ESC>" || a:key == "q"
+    let s:is_selector_shown = v:false
+    call popup_hide(a:id)
+
+    exe 'set t_ve='.s:t_ve
+
+    call s:select_preview(a:id, "quit", {})
+  elseif a:key == "\<CR>"
+    let item = s:selector_items.options[s:selector_current]
+    call s:select_preview(a:id, "confirm", item)
+  endif
+
+  return 1
+endfunc
+
+
+let s:is_selector_content_shown = v:false
+let s:selector_content = -1
+func s:select_preview(id, type, item)
+  if a:type == "select"
+    if s:selector_content == -1
+      let height = &lines - (&lines >= 27 ? 5 : 2) - 10
+
+      let s:selector_content = popup_create('', #{
+            \ zindex: 99999,
+            \ mapping: 0,
+            \ scrollbar: 0,
+            \ line: 1,
+            \ maxheight: height,
+            \ minheight: height,
+            \ minwidth: &columns - 10,
+            \ maxwidth: &columns - 10,
+            \ padding: [1, 1, 1, 1],
+            \ border: [1, 1, 1, 1],
+            \ borderchars: ['─', '│', '─', '│', '╭', '┐', '┘', '└'],
+            \ })
+    else
+      call popup_show(s:selector_content)
+    endif
+
+    let s:is_selector_content_shown = v:true
+
+    if &lines < s:min_select_content_height
+      call popup_hide(s:selector_content)
+    endif
+
+    if has_key(a:item, 'file')
+      let content = readfile(a:item.file)
+      call popup_settext(s:selector_content, content)
+      call win_execute(s:selector_content, "normal! "..a:item.line .. "Gzz")
+      let nr = winbufnr(s:selector_content)
+
+      call prop_add(a:item.line, 1, #{
+            \ length: 99999, bufnr: nr, type: 'completor_selecthi'})
+
+      if has_key(a:item, 'ftype')
+        call win_execute(s:selector_content, "set ft=" .. a:item.ftype)
+      endif
+    else
+      call popup_settext(s:selector_content, a:item.content)
+    endif
+  elseif a:type == "confirm"
+    if get(a:item, 'enable_confirm', v:false)
+      call s:select_filter(s:selector, 'q')
+      if has_key(a:item, 'file')
+        call s:select_edit_file(a:item)
+      endif
+    endif
+  elseif a:type == "quit"
+    let s:is_selector_content_shown = v:false
+    call popup_hide(s:selector_content)
+  endif
+endfunc
+
+
+func s:select_edit_file(item)
+  " try
+  "   exe ':buffer ' .. a:item.file
+  " catch /E94/
+    exe ':edit ' .. a:item.file
+  " endtry
+
+  if has_key(a:item, 'line')
+    exe ':' .. string(a:item.line)
+    exe 'normal! 0' .. string(a:item.col-1) .. 'lzz'
+  endif
+endfunc
+
+
+func completor#popup#markdown_preview(content)
+  let max = 0
+
+  for item in a:content
+    if len(item) > max
+      let max = len(item)
+    endif
+  endfor
+
+  let p = popup_create(a:content, #{
+        \ moved: 'word',
+        \ mapping: v:false,
+        \ minwidth: max,
+        \ maxwidth: max,
+        \ pos: 'botleft',
+        \ line: 'cursor-1',
+        \ col: 'cursor',
+        \ zindex: 9999,
+        \ filter: function('s:scroll_filter'),
+        \ padding: [1, 2, 1, 2],
+        \ })
+  call win_execute(p, 'set ft=markdown')
+
+  call timer_start(0, {t -> feedkeys("\<C-j>")})
+endfunc
+
+
+func s:scroll_filter(id, key)
+  if a:key == "\<DOWN>" || a:key == "\<C-j>"
+    call win_execute(a:id, "normal! \<C-d>")
+    return 1
+  elseif a:key == "\<UP>" || a:key == "\<C-k>"
+    call win_execute(a:id, "normal! \<C-u>")
+    return 1
+  elseif a:key == "\<ESC>"
+    call popup_close(a:id)
+    return 1
+  endif
+
+  return 0
 endfunc

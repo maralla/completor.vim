@@ -64,7 +64,9 @@ class Initialize(Base):
         return {
             'processId': self.ppid,
             'capabilities': {
-                'workspace': {},
+                'workspace': {
+                    'workspaceFolders': True,
+                },
                 'textDocument': {
                     'hover': {
                         'contentFormat': ['markdown', 'plaintext']
@@ -78,7 +80,7 @@ class Initialize(Base):
                 }
             },
             'rootUri': self.workspace[0]['uri'],
-            # 'workspaceFolders': self.workspace,
+            'workspaceFolders': self.workspace,
         }
 
 
@@ -187,8 +189,34 @@ class Format(Base):
         return {
             'textDocument': {
                 'uri': self.uri
-            }
+            },
+            'options': {}
         }
+
+
+class CodeAction(Base):
+    method = 'textDocument/codeAction'
+
+    def __init__(self, uri, action=None):
+        self.uri = uri
+        self.action = action
+
+    def to_dict(self):
+        r = {
+            'textDocument': {
+                'uri': self.uri
+            },
+            'context': {}
+        }
+
+        if self.action is not None:
+            r['context']['only'] = self.action
+
+        return r
+
+
+class DocumentSymbol(Format):
+    method = 'textDocument/documentSymbol'
 
 
 class Rename(Completion):
@@ -241,4 +269,16 @@ class DidChangeConfiguration(Base):
     def to_dict(self):
         return {
             "settings": self.conf
+        }
+
+
+class Symbol(Base):
+    method = "workspace/symbol"
+
+    def __init__(self, query=""):
+        self.query = query
+
+    def to_dict(self):
+        return {
+            "query": self.query,
         }

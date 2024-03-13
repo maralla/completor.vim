@@ -4,6 +4,12 @@ import re
 import logging
 from completor.utils import check_subseq
 from .utils import parse_uri
+from .edit import edit
+
+try:
+    from urlparse import unquote
+except ImportError:
+    from urllib.parse import unquote
 
 word_pat = re.compile(r'([\d\w]+)', re.U)
 word_ends = re.compile(r'[\d\w]+$', re.U)
@@ -20,7 +26,7 @@ logger = logging.getLogger("completor")
 #       u'uri': u'file:///home/linuxbrew/.linuxbrew/Cellar/go/1.12.4/libexec/src/fmt/print.go'  # noqa
 #   }]
 # ]
-def gen_jump_list(ft, name, data):
+def gen_jump_list(name, data):
     res = []
 
     if not data:
@@ -31,9 +37,7 @@ def gen_jump_list(ft, name, data):
         return res
 
     for item in items:
-        uri = parse_uri(item['uri'])
-        if ft == 'go':
-            uri = uri.replace('%21', '!')
+        uri = unquote(parse_uri(item['uri']))
         start = item['range']['start']
         res.append({
             'filename': uri,
@@ -42,6 +46,46 @@ def gen_jump_list(ft, name, data):
             'name': name,
         })
     return res
+
+
+def parse_symbols(items):
+    res = []
+
+    for item in items:
+        uri = unquote(parse_uri(item['location']['uri']))
+
+        start = item['location']['range']['start']
+        res.append({
+            'filename': uri,
+            'lnum': start['line'] + 1,
+            'col': start['character'] + 1,
+            'name': item['name'],
+        })
+
+    return res
+
+
+# {
+#     'documentChanges': [
+#         {
+#             'textDocument': {'version': 1, 'uri': 'file:///home/maralla/Workspace/projects/demo/main.go'},  # noqa
+#             'edits': [
+#                 {'range': {'start': {'line': 41, 'character': 7}, 'end': {'line': 41, 'character': 9}}, 'newText': 'aabb'},  # noqa
+#                 {'range': {'start': {'line': 43, 'character': 32}, 'end': {'line': 43, 'character': 34}}, 'newText': 'aabb'}  # noqa
+#             ]
+#         }
+#     ]
+# }
+def rename(items):
+    for changes in items.get('documentChanges', []):
+        fname = unquote(parse_uri(changes['textDocument']['uri']))
+
+        with open(fname, 'r') as f:
+            data = f.readlines()
+            out = edit(data, changes['edits'])
+
+        with open(fname, 'w') as f:
+            f.write(out)
 
 
 # [

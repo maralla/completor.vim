@@ -11,9 +11,10 @@ from completor.compat import to_unicode
 
 from .models import Initialize, DidOpen, Completion, DidChange, DidSave, \
     Definition, Format, Rename, Hover, Initialized, Implementation, \
-    References, DidChangeConfiguration
+    References, DidChangeConfiguration, Symbol, Signature, DocumentSymbol, \
+    CodeAction
 from .action import gen_jump_list, get_completion_word, gen_hover_doc, \
-    filter_items
+    filter_items, parse_symbols, rename
 from .utils import gen_uri
 
 logger = logging.getLogger('completor')
@@ -28,6 +29,7 @@ class Lsp(Completor):
         self.server_cmd = None
         self.initialized = False
         self.current_id = None
+        self.current_options = None
         self.open_file_map = {}
         self.buf = io.BytesIO()
 
@@ -61,7 +63,10 @@ class Lsp(Completor):
 
     @property
     def file_content(self):
-        return '\n'.join(vim.current.buffer[:])
+        content = '\n'.join(vim.current.buffer[:])
+        if content:
+            content += '\n'
+        return content
 
     def open_request(self):
         f = gen_uri(self.filename)
@@ -89,15 +94,22 @@ class Lsp(Completor):
         offset = len(self.input_data)
         return category(gen_uri(self.filename), line - 1, offset)
 
+    def gen_symbol_request(self, word=None):
+        if word is None:
+            word = "'" + self.cursor_word
+        req_id, req = Symbol(word).to_request()
+        self.current_id = req_id
+        return req
+
     def position_request(self, category):
         c = self.gen_position_request(category)
         req_id, req = c.to_request()
         self.current_id = req_id
         return req
 
-    def format_request(self):
+    def text_document_request(self, category):
         f = gen_uri(self.filename)
-        c = Format(f)
+        c = category(f)
         req_id, req = c.to_request()
         self.current_id = req_id
         return req
@@ -109,6 +121,13 @@ class Lsp(Completor):
         self.current_id = req_id
         return req
 
+    def code_action(self, action):
+        uri = gen_uri(self.filename)
+        c = CodeAction(uri, action)
+        req_id, req = c.to_request()
+        self.current_id = req_id
+        return req
+
     def _gen_action_args(self, action, args):
         if action == b'complete':
             return self.position_request(Completion)
@@ -116,8 +135,14 @@ class Lsp(Completor):
         if action == b'definition':
             return self.position_request(Definition)
 
+        if action == b'signature':
+            return self.position_request(Signature)
+
         if action == b'format':
-            return self.format_request()
+            return self.text_document_request(Format)
+
+        if action == b'document_symbol':
+            return self.text_document_request(DocumentSymbol)
 
         if action == b'implementation':
             return self.position_request(Implementation)
@@ -125,10 +150,21 @@ class Lsp(Completor):
         if action == b'references':
             return self.position_request(References)
 
+        if action == b'symbol':
+            s = None
+            if args:
+                s = args[0]
+            return self.gen_symbol_request(s)
+
         if action == b'rename':
             if not args:
                 return ''
             return self.rename_request(args[0])
+
+        if action == b'code_action':
+            if not args:
+                return ''
+            return self.code_action([args[0]])
 
         if action == b'hover':
             return self.position_request(Hover)
@@ -136,6 +172,13 @@ class Lsp(Completor):
         return ''
 
     def gen_request(self, action, args):
+        self.current_options = None
+        if args:
+            last = args[-1]
+            if isinstance(last, (dict, vim.Dictionary)):
+                self.current_options = last
+                args = args[:-1]
+
         try:
             pwd = os.getcwd()
             project_name = os.path.basename(pwd)
@@ -169,12 +212,12 @@ class Lsp(Completor):
         lsp_cmd = args.get(b'cmd')
         if not lsp_cmd:
             return vim.Dictionary()
-        if action == b'format' and ft != self.ft:
-            import_completer(ft)
-            c = get(ft, ft, self.input_data)
-            if not c:
-                return ''
-            return c.get_cmd_info(action)
+        # if action == b'format' and ft != self.ft:
+        #     import_completer(ft)
+        #     c = get(ft, ft, self.input_data)
+        #     if not c:
+        #         return ''
+        #     return c.get_cmd_info(action)
         return vim.Dictionary(cmd=lsp_cmd.split(),
                               is_daemon=True,
                               ftype=self.filetype + ':' + ft,
@@ -204,7 +247,10 @@ class Lsp(Completor):
                 data = body[:length]
                 remain = body[length:]
                 logger.info("parsing %r", data)
-                yield json.loads(to_unicode(data, 'utf-8'))
+                try:
+                    yield json.loads(to_unicode(data, 'utf-8'))
+                except json.JSONDecodeError:
+                    break
             except Exception as e:
                 logger.exception(e)
                 raise
@@ -245,19 +291,58 @@ class Lsp(Completor):
         return vim.List(res)
 
     def on_definition(self, data):
-        return gen_jump_list(self.ft_orig, self.cursor_word, data)
+        return gen_jump_list(self.cursor_word, data)
 
     def on_rename(self, data):
         logger.info("rename -> %r", data)
-        return []
+        if data:
+            rename(data[0])
+        return vim.Dictionary(data=[], action='rename')
+
+    def on_format(self, data):
+        logger.info("foramt -> %r", data)
+        return vim.Dictionary(data=data, action='format')
 
     def on_implementation(self, data):
         logger.info("implementation -> %r", data)
-        return gen_jump_list(self.ft_orig, self.cursor_word, data)
+        return gen_jump_list(self.cursor_word, data)
 
     def on_references(self, data):
         logger.info("references -> %r", data)
-        return gen_jump_list(self.ft_orig, self.cursor_word, data)
+        return gen_jump_list(self.cursor_word, data)
+
+    def on_symbol(self, data):
+        if not data:
+            return []
+        item = data[0]
+        if not item:
+            return []
+        items = parse_symbols(item)
+        return vim.Dictionary(data=items, action="select")
+
+    def on_signature(self, data):
+        logger.info("signature -> %r", data)
+        return []
+
+    def on_document_symbol(self, data):
+        logger.info("document_symbol -> %r", data)
+        return []
+
+    def on_code_action(self, data):
+        logger.info("code_action -> %r", data)
+        if not data:
+            return []
+
+        item = data[0]
+        if not item:
+            return []
+
+        item = item[0]
+        if not item or 'edit' not in item:
+            return []
+
+        rename(item['edit'])
+        return vim.Dictionary(data=[], action='rename')
 
     def on_hover(self, data):
         logger.info("hover -> %r", data)
@@ -307,7 +392,14 @@ class Lsp(Completor):
                 res.append(item.get('result', {}))
 
         if res:
-            return self.on_data(action, res)
+            ret = self.on_data(action, res)
+            if not isinstance(ret, (dict, vim.Dictionary)):
+                ret = vim.Dictionary(data=ret)
+
+            if self.current_options:
+                ret['opt'] = self.current_options
+
+            return ret
 
     def send_config(self):
         conf = self.ft_args.get(b'config')
