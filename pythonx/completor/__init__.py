@@ -133,7 +133,7 @@ class Completor(Base):
 
         :rtype: unicode
         """
-        return vim.current.buffer.name
+        return to_unicode(vim_expand('%:p'), 'utf-8')
 
     @property
     def cursor_word(self):
