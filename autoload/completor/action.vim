@@ -74,7 +74,25 @@ function! s:trigger_complete(completions)
 endfunction
 
 
-function! s:jump(items, action)
+function! s:popup_select(items)
+  let data = []
+
+  for item in a:items
+    let data = add(data, {
+          \ 'content': item.name,
+          \ 'file': item.filename,
+          \ 'line': item.lnum,
+          \ 'col': item.col,
+          \ 'enable_confirm': v:true,
+          \ 'ftype': &ft
+          \ })
+  endfor
+
+  call completor#popup#select({'options': data})
+endfunction
+
+
+function! s:legacy_select(items, action)
   let tmp = tempname()
   let name = ''
   let content = []
@@ -130,10 +148,14 @@ function! s:jump(items, action)
 endfunction
 
 
-function! s:goto_definition(items, action)
+function! s:select(items, action)
   if len(a:items) > 0
     try
-      call s:jump(a:items, a:action)
+      if completor#support_popup()
+        call s:popup_select(a:items)
+      else
+        call s:legacy_select(a:items, a:action)
+      endif
     catch /E37/
       echohl ErrorMsg
       echomsg '`hidden` should be set (set hidden)'
@@ -206,6 +228,87 @@ function! s:is_status_consistent()
 endfunction
 
 
+
+function! s:format(items)
+  if empty(a:items) || empty(a:items[0]) || mode() != 'n'
+    return
+  endif
+
+  pyx << EOF
+END = 999999
+
+lines = {}
+
+items = vim.bindeval('a:items')[0]
+
+chunks = []
+
+l = 0
+c = 0
+for item in items:
+  chunks.extend([{
+    'start': (l, c),
+    'end': (item['range']['start']['line'], item['range']['start']['character']),
+    'insert': False
+  }, {
+    'start': (item['range']['start']['line'], item['range']['start']['character']),
+    'end': (item['range']['end']['line'], item['range']['end']['character']),
+    'insert': True
+  }])
+
+  l = item['range']['end']['line']
+  c = item['range']['end']['character']
+
+chunks.append({
+  'start': (l, c),
+  'end': (END, END),
+  'insert': False
+})
+
+data = []
+
+i = 0
+
+for chunk in chunks:
+  if chunk['insert']:
+    data.append(items[i]['newText'].decode())
+    i += 1
+    continue
+
+  lines = vim.current.buffer[chunk['start'][0]:chunk['end'][0]+1]
+  if len(lines) == 1:
+    line = lines[0][chunk['start'][1]:chunk['end'][1]]
+  elif not lines:
+    line = ''
+  else:
+    if len(lines) < chunk['end'][0] - chunk['start'][0] + 1:
+      e = END
+      last = ''
+    else:
+      e = -1
+      last = '\n' + lines[-1][:chunk['end'][1]]
+
+    between = lines[1:e]
+    if between:
+      between = '\n' + '\n'.join(between)
+    else:
+      between = ''
+      # between = '\n'
+
+    line = lines[0][chunk['start'][1]:] + between + last
+    # if chunk['end'][1] == END:
+    #   line += '\n'
+  data.append(line)
+
+pos = vim.current.window.cursor
+vim.current.buffer[:] = ''.join(data).split('\n')
+vim.current.window.cursor = pos
+EOF
+
+  :write
+endfunction
+
+
 function! completor#action#callback(msg)
   let items = completor#utils#on_data(s:action, a:msg)
   call completor#action#trigger(items)
@@ -217,32 +320,42 @@ function! completor#action#trigger(items)
     let s:completions = []
     return
   endif
-  if s:action ==# 'complete'
-    call s:trigger_complete(a:items)
-  elseif s:action ==# 'definition' || s:action ==# 'implementation' || s:action ==# 'references'
-    call s:goto_definition(a:items, s:action)
-  elseif s:action ==# 'signature'
-    call s:call_signatures(a:items)
-  elseif s:action ==# 'doc'
-    call s:show_doc(a:items)
-  elseif s:action ==# 'format'
+
+  let items = a:items
+  let action = s:action
+
+  if type(a:items) == v:t_dict
+    let items = a:items.data
+    let action = get(a:items, 'action', action)
+  endif
+
+  if action ==# 'complete'
+    call s:trigger_complete(items)
+  elseif action ==# 'select'
+    call s:select(items, action)
+  elseif action ==# 'definition' || action ==# 'implementation' || action ==# 'references'
+    call s:select(items, action)
+  elseif action ==# 'signature'
+    call s:call_signatures(items)
+  elseif action ==# 'doc'
+    call s:show_doc(items)
+  elseif action ==# 'rename'
     silent edit!
-  elseif s:action ==# 'hover'
-    if !empty(a:items)
+  elseif action ==# 'format'
+    call s:format(items)
+  elseif action ==# 'hover'
+    if !empty(items)
       if completor#support_popup()
-        let p = popup_create(split(a:items[0], "\n"), #{
-              \ moved: 'word',
-              \ pos: 'botleft',
-              \ line: 'cursor-1',
-              \ col: 'cursor',
-              \ zindex: 9999,
-              \ padding: [1, 2, 1, 2],
-              \ })
-        call win_execute(p, 'set ft=markdown')
+        call completor#popup#markdown_preview(split(items[0], "\n"))
       else
-        echo a:items[0]
+        echo items[0]
       endif
     endif
+  endif
+
+  let opt = get(a:items, 'opt', {})
+  if !empty(opt) && has_key(opt, "after") && !empty(opt.after)
+    call completor#do(opt.after)
   endif
 endfunction
 
@@ -251,6 +364,8 @@ function! completor#action#stream(name, msg)
   call completor#utils#on_stream(a:name, s:action, a:msg)
 endfunction
 
+
+let s:popup_init = v:false
 
 " :param info: must contain keys: 'cmd', 'ftype', 'is_sync', 'is_daemon'
 function! completor#action#do(action, info, status, args)
@@ -264,6 +379,10 @@ function! completor#action#do(action, info, status, args)
   let s:action = a:action
   let options = get(a:info, 'options', {})
   let input_content = get(a:info, 'input_content', '')
+
+  if !s:popup_init && completor#support_popup()
+    call completor#popup#init()
+  endif
 
   if a:info.is_sync
     call completor#action#callback(a:status.input)
