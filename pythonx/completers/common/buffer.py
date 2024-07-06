@@ -101,6 +101,10 @@ class Buffer(Completor):
         for token, factor in token_store.search(identifier):
             if token == identifier:
                 continue
+            line = self.cursor_line
+            column = len(self.input_data)
+            if (identifier + line[column:])[:len(token)] == token:
+                continue
             res.add((token, factor))
             if len(res) >= LIMIT:
                 break
