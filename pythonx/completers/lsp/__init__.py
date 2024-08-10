@@ -109,7 +109,10 @@ class Lsp(Completor):
 
     def text_document_request(self, category):
         f = gen_uri(self.filename)
-        c = category(f)
+        name = category.__name__.lower()
+        conf = (self.ft_args.get(b'options') or {})
+        options = conf.get(name)
+        c = category(f, options=options)
         req_id, req = c.to_request()
         self.current_id = req_id
         return req

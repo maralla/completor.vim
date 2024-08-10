@@ -182,15 +182,16 @@ class Definition(Completion):
 class Format(Base):
     method = 'textDocument/formatting'
 
-    def __init__(self, uri):
+    def __init__(self, uri, options=None):
         self.uri = uri
+        self.options = options or {}
 
     def to_dict(self):
         return {
             'textDocument': {
                 'uri': self.uri
             },
-            'options': {}
+            'options': self.options
         }
 
 
