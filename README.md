@@ -328,3 +328,17 @@ let g:completor_filetype_map.rust = {'ft': 'lsp', 'cmd': 'rls'}
 " Enable lsp for c by using clangd
 let g:completor_filetype_map.c = {'ft': 'lsp', 'cmd': 'clangd-7'}
 ```
+
+To set format options:
+```vim
+let g:completor_filetype_map.rust = {
+      \   'ft': 'lsp',
+      \   'cmd': 'rust-analyzer',
+      \   'options': {
+      \     'format': {
+      \       'tabSize': 4,
+      \       'insertSpaces': v:true
+      \     }
+      \   }
+      \ }
+```
