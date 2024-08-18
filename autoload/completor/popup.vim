@@ -469,7 +469,7 @@ func s:select_preview(id, type, item)
       let height = &lines - (&lines >= 27 ? 5 : 2) - 10
 
       let s:selector_content = popup_create('', #{
-            \ zindex: 99999,
+            \ zindex: 32000,
             \ mapping: 0,
             \ scrollbar: 0,
             \ line: 1,
@@ -549,19 +549,21 @@ func completor#popup#view(content, ft)
   endfor
 
   let p = popup_create(a:content, #{
-        \ moved: 'word',
+        \ moved: 'any',
         \ mapping: v:false,
         \ minwidth: max,
         \ maxwidth: max,
         \ pos: 'botleft',
         \ line: 'cursor-1',
         \ col: 'cursor',
-        \ zindex: 9999,
+        \ zindex: 32000,
         \ filter: function('s:scroll_filter'),
-        \ padding: [1, 2, 1, 2],
+        \ filtermode: 'n',
+        \ padding: [1, 1, 1, 1],
+        \ border: [1, 1, 1, 1],
+        \ borderchars: ['─', '│', '─', '│', '╭', '┐', '┘', '└'],
         \ })
-  call win_execute(p, 'syntax enable')
-  call win_execute(p, 'set ft=' .. ft)
+  call win_execute(p, 'set ft=' .. a:ft)
 
   call timer_start(0, {t -> feedkeys("\<C-j>")})
 endfunc
@@ -574,7 +576,7 @@ func s:scroll_filter(id, key)
   elseif a:key == "\<UP>" || a:key == "\<C-k>"
     call win_execute(a:id, "normal! \<C-u>")
     return 1
-  elseif a:key == "\<ESC>"
+  elseif a:key == "\<ESC>" || a:key == "q"
     call popup_close(a:id)
     return 1
   endif
