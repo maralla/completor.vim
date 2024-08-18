@@ -25,8 +25,10 @@ class Go(Completor):
         if not vim.current.buffer.options['modified']:
             return ''
         content = '\n'.join(vim.current.buffer[:])
-        n = len(to_bytes(content, get_encoding()))
-        return '\n'.join([self.filename, str(n), content])
+        encoding = get_encoding()
+        n = len(to_bytes(content, encoding))
+        return '\n'.join([
+            self.filename, str(n), to_unicode(content, encoding)])
 
     def _complete_cmd(self):
         binary = self.get_option('gocode_binary') or 'gocode'
