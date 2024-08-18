@@ -4,6 +4,7 @@ import mock
 import pytest
 import completor
 from completers.go import Go  # noqa
+from completor.compat import to_unicode
 
 
 class TestGetCmdInfo(object):
@@ -24,8 +25,8 @@ class TestGetCmdInfo(object):
                     '/home/vagrant/bench.vim:#24'],
             'ftype': 'go',
             'is_daemon': False,
-            'input_content': ('/home/vagrant/bench.vim\n26\n'
-                              'package main\nvar _ = "哦"')
+            'input_content': ('/home/vagrant/bench.vim\n26\n' +
+                              to_unicode('package main\nvar _ = "哦"', 'utf-8'))
         }
     }
 

@@ -7,12 +7,15 @@ from completor.compat import to_unicode
 from completers.rust import Racer  # noqa
 
 
-def test_parse():
+def test_parse(vim_mod):
     items = [
         b'MATCH FrameHandler,155,7,./src/event.rs,Struct,struct FrameHandler',
         b'MATCH tcp_port,1075,4,./src/event.rs,StructField,Option<u16>',
         b'MATCH run,1092,11,./src/event.rs,Function,pub fn run(&mut self)'
     ]
+
+    vim_mod.current.window.cursor = (1, 2)
+
     racer = completor.get('rust')
     racer.input_data = to_unicode('self.', 'utf-8')
     assert racer.on_data(b'complete', items) == [

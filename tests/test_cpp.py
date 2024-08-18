@@ -15,6 +15,8 @@ def test_parse(vim_mod):
         b'COMPLETION: Pattern: fake hello',
     ]
 
+    vim_mod.current.window.cursor = (1, 5)
+
     cpp = completor.get('cpp')
     cpp.input_data = to_unicode('b->', 'utf-8')
     assert cpp.on_data(b'complete', items) == [
