@@ -323,10 +323,12 @@ function! completor#action#trigger(items)
 
   let items = a:items
   let action = s:action
+  let ft = 'markdown'
 
   if type(a:items) == v:t_dict
     let items = a:items.data
     let action = get(a:items, 'action', action)
+    let ft = get(a:items, 'ft', ft)
   endif
 
   if action ==# 'complete'
@@ -343,6 +345,14 @@ function! completor#action#trigger(items)
     silent edit!
   elseif action ==# 'format'
     call s:format(items)
+  elseif action ==# 'view'
+    if !empty(items)
+      if completor#support_popup()
+        call completor#popup#view(split(items[0], "\n"), ft)
+      else
+        echo "popup window not supported"
+      endif
+    endif
   elseif action ==# 'hover'
     if !empty(items)
       if completor#support_popup()

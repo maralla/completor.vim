@@ -535,6 +535,11 @@ endfunc
 
 
 func completor#popup#markdown_preview(content)
+  call completor#popup#view(a:content, 'markdown')
+endfunc
+
+
+func completor#popup#view(content, ft)
   let max = 0
 
   for item in a:content
@@ -555,7 +560,8 @@ func completor#popup#markdown_preview(content)
         \ filter: function('s:scroll_filter'),
         \ padding: [1, 2, 1, 2],
         \ })
-  call win_execute(p, 'set ft=markdown')
+  call win_execute(p, 'syntax enable')
+  call win_execute(p, 'set ft=' .. ft)
 
   call timer_start(0, {t -> feedkeys("\<C-j>")})
 endfunc

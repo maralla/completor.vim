@@ -9,6 +9,7 @@ import io
 from completor import Completor, vim, import_completer, get
 from completor.compat import to_unicode
 
+from . import ext
 from .models import Initialize, DidOpen, Completion, DidChange, DidSave, \
     Definition, Format, Rename, Hover, Initialized, Implementation, \
     References, DidChangeConfiguration, Symbol, Signature, DocumentSymbol, \
@@ -30,6 +31,7 @@ class Lsp(Completor):
         self.initialized = False
         self.current_id = None
         self.current_options = None
+        self.is_ext = False
         self.open_file_map = {}
         self.buf = io.BytesIO()
 
@@ -132,6 +134,8 @@ class Lsp(Completor):
         return req
 
     def _gen_action_args(self, action, args):
+        self.is_ext = False
+
         if action == b'complete':
             return self.position_request(Completion)
 
@@ -171,6 +175,12 @@ class Lsp(Completor):
 
         if action == b'hover':
             return self.position_request(Hover)
+
+        handler = ext.get_action_handler(action, self.ft_orig)
+        if handler:
+            self.is_ext = True
+            # Currently only position request is supported.
+            return self.position_request(handler)
 
         return ''
 
@@ -373,6 +383,12 @@ class Lsp(Completor):
 
         return [gen_hover_doc(self.ft_orig, '\n\n'.join(values))]
 
+    def on_lsp_ext(self, data):
+        if not data or len(data) < 3:
+            return []
+
+        return ext.on_data(data[-2], data[-1], data[:-2])
+
     def on_stream(self, action, data):
         logger.info('received %r', data)
         self.buf.write(data)
@@ -395,6 +411,11 @@ class Lsp(Completor):
                 res.append(item.get('result', {}))
 
         if res:
+            if self.is_ext:
+                res.append(action)
+                res.append(self.ft_orig)
+                action = b'lsp_ext'
+
             ret = self.on_data(action, res)
             if not isinstance(ret, (dict, vim.Dictionary)):
                 ret = vim.Dictionary(data=ret)
