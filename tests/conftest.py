@@ -42,13 +42,13 @@ class Vim(object):
         self._vars = {}
         self.var_map = {}
         self.eval_map = {'&encoding': b'utf-8'}
-        self.current = mock.Mock()
+        self.current = mock.MagicMock()
         self.current.buffer.options = {'fileencoding': b'utf-8'}
         self.funcs = {
             'getbufvar': lambda nr, var: b'',
             'completor#utils#in_comment_or_string': lambda: 0,
             'completor#support_popup': lambda: 0,
-            'expand': lambda x: x,
+            'expand': lambda x: self.current.buffer.name,
             'completor#utils#tempname': lambda: '/tmp/xxx-vim',
         }
 
