@@ -141,8 +141,36 @@ function! completor#do(action, ...) range
     let args = a:000
   endif
 
-  let meta = {'range': [a:firstline, a:lastline]}
+  let start_col = 0
+  let end_col = 0
+
+  if mode() ==# 'v'
+    let start_col = col("'<")
+    let end_col = col("'>")
+  endif
+
+  if start_col == 0
+    let start_col = col('.')
+  endif
+
+  if end_col == 0
+    let end_col = col('.')
+  endif
+
+  let meta = {
+        \ 'range': [a:firstline, a:lastline],
+        \ 'text_range': {
+        \    'start': {'line': a:firstline-1, 'col': start_col-1},
+        \    'end':   {'line': a:lastline-1,  'col': end_col-1}
+        \  }
+        \ }
   let status = completor#action#current_status()
+
+  if !empty(args) && type(args[-1]) == v:t_dict
+    let args[-1]['meta'] = meta
+  else
+    let args = args + [{'meta': meta}]
+  endif
 
   let s:timer = timer_start(g:completor_completion_delay, {t->s:do_action(action, meta, status, args)})
   return ''

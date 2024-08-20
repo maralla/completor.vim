@@ -76,7 +76,17 @@ class Initialize(Base):
                             'snippetSupport': False,
                             'commitCharactersSupport': False,
                         }
-                    }
+                    },
+                    'codeAction': {
+                        'codeActionLiteralSupport': {
+                            'codeActionKind': {
+                                'valueSet': ['quickfix'],
+                            }
+                        },
+                        'resolveSupport': {
+                            'properties': ['edit'],
+                        }
+                    },
                 }
             },
             'rootUri': self.workspace[0]['uri'],
@@ -198,22 +208,43 @@ class Format(Base):
 class CodeAction(Base):
     method = 'textDocument/codeAction'
 
-    def __init__(self, uri, action=None):
+    def __init__(self, uri, action=None, text_range=None):
         self.uri = uri
         self.action = action
+        self.text_range = text_range
 
     def to_dict(self):
         r = {
             'textDocument': {
                 'uri': self.uri
             },
-            'context': {}
+            'context': {
+                'diagnostics': []
+            }
         }
 
         if self.action is not None:
             r['context']['only'] = self.action
 
+        if self.text_range:
+            start = self.text_range[b'start']
+            end = self.text_range[b'end']
+            r['range'] = {
+                'start': {'line': start[b'line'], 'character': start[b'col']},
+                'end': {'line': end[b'line'], 'character': end[b'col']}
+            }
+
         return r
+
+
+class CodeResolve(Base):
+    method = 'codeAction/resolve'
+
+    def __init__(self, params):
+        self.params = params
+
+    def to_dict(self):
+        return self.params
 
 
 class DocumentSymbol(Format):

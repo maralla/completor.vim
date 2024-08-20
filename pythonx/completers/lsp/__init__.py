@@ -6,14 +6,14 @@ import logging
 import os
 import json
 import io
-from completor import Completor, vim, import_completer, get
+from completor import Completor, vim, get
 from completor.compat import to_unicode
 
 from . import ext
 from .models import Initialize, DidOpen, Completion, DidChange, DidSave, \
     Definition, Format, Rename, Hover, Initialized, Implementation, \
     References, DidChangeConfiguration, Symbol, Signature, DocumentSymbol, \
-    CodeAction
+    CodeAction, CodeResolve
 from .action import gen_jump_list, get_completion_word, gen_hover_doc, \
     filter_items, parse_symbols, rename
 from .utils import gen_uri
@@ -128,7 +128,46 @@ class Lsp(Completor):
 
     def code_action(self, action):
         uri = gen_uri(self.filename)
-        c = CodeAction(uri, action)
+        meta = (self.current_options or {}).get(b'meta', {})
+        c = CodeAction(uri, action, text_range=meta.get('text_range'))
+        req_id, req = c.to_request()
+        self.current_id = req_id
+        return req
+
+    def code_action_callback(self, data):
+        if not data:
+            return ''
+
+        try:
+            data = json.loads(data[0])
+        except Exception as e:
+            logger.exception(e)
+            return ''
+
+        edit = data.get('edit')
+        if edit:
+            uri = gen_uri(self.filename)
+            changes = edit.get('changes')
+            edits = None
+            if changes:
+                edits = changes.get(uri)
+            else:
+                changes = edit.get('documentChanges')
+                if not changes:
+                    return
+                for change in changes:
+                    if change['textDocument']['uri'] == uri:
+                        edits = change['edits']
+                        break
+
+            if not edits:
+                return ''
+
+            res = vim.Dictionary(data=[edits], action='format')
+            self.trigger_action(res)
+            return ''
+
+        c = CodeResolve(params=data)
         req_id, req = c.to_request()
         self.current_id = req_id
         return req
@@ -173,6 +212,11 @@ class Lsp(Completor):
                 return ''
             return self.code_action([args[0]])
 
+        if action == b'code_action_callback':
+            if not args:
+                return ''
+            return self.code_action_callback([args[0]])
+
         if action == b'hover':
             return self.position_request(Hover)
 
@@ -185,7 +229,7 @@ class Lsp(Completor):
         return ''
 
     def gen_request(self, action, args):
-        self.current_options = None
+        self.current_options = {}
         if args:
             last = args[-1]
             if isinstance(last, (dict, vim.Dictionary)):
@@ -350,12 +394,38 @@ class Lsp(Completor):
         if not item:
             return []
 
-        item = item[0]
-        if not item or 'edit' not in item:
+        items = []
+        try:
+            for v in item:
+                data = json.dumps(v)
+                items.append({'title': v['title'], 'data': json.dumps(v)})
+        except Exception as e:
+            logger.exception(e)
             return []
 
-        rename(item['edit'])
-        return vim.Dictionary(data=[], action='rename')
+        return vim.Dictionary(data=items, action='menu')
+
+        # item = item[0]
+        # if not item or 'edit' not in item:
+        #     return []
+        #
+        # rename(item['edit'])
+        # return vim.Dictionary(data=[], action='rename')
+
+    def on_code_action_callback(self, data):
+        logger.info("code_action_callback -> %r", data)
+        if not data:
+            return []
+
+        try:
+            changes = data[0]['edit']['documentChanges']
+            if len(changes) != 1:
+                return []
+        except Exception as e:
+            logger.exception(e)
+            return []
+
+        return vim.Dictionary(data=[changes[0]['edits']], action='format')
 
     def on_hover(self, data):
         logger.info("hover -> %r", data)
