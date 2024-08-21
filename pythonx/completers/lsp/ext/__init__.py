@@ -15,4 +15,8 @@ def on_data(action, ft, data):
     if not data:
         return []
 
+    if ft == 'rust':
+        from .rust import on_data
+        return on_data(action, data)
+
     return vim.Dictionary(data=data, action='view', ft=ft)

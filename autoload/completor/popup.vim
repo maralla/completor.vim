@@ -561,7 +561,7 @@ func completor#popup#view(content, ft)
         \ zindex: 32000,
         \ filter: function('s:scroll_filter'),
         \ filtermode: 'n',
-        \ padding: [1, 1, 1, 1],
+        \ padding: [0, 1, 0, 1],
         \ border: [1, 1, 1, 1],
         \ borderchars: ['─', '│', '─', '│', '╭', '┐', '┘', '└'],
         \ })
