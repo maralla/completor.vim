@@ -324,11 +324,13 @@ function! completor#action#trigger(items)
   let items = a:items
   let action = s:action
   let ft = 'markdown'
+  let do_method = ''
 
   if type(a:items) == v:t_dict
     let items = a:items.data
     let action = get(a:items, 'action', action)
     let ft = get(a:items, 'ft', ft)
+    let do_method = get(a:items, 'method', '')
   endif
 
   if action ==# 'complete'
@@ -361,6 +363,15 @@ function! completor#action#trigger(items)
         echo "popup window not supported"
       endif
     endif
+  elseif action ==# 'do'
+    if empty(do_method)
+      return
+    endif
+    let arg = ''
+    if !empty(items)
+      let arg = items[0]
+    endif
+    call completor#do(do_method, arg)
   elseif action ==# 'hover'
     if !empty(items)
       if completor#support_popup()

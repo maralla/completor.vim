@@ -461,6 +461,19 @@ func s:select_filter(id, key)
 endfunc
 
 
+func s:select_preview_filter(id, key)
+  if a:key == "j"
+    call win_execute(a:id, "normal! \<C-d>")
+    return 1
+  elseif a:key == "k"
+    call win_execute(a:id, "normal! \<C-u>")
+    return 1
+  endif
+
+  return 0
+endfunc
+
+
 let s:is_selector_content_shown = v:false
 let s:selector_content = -1
 func s:select_preview(id, type, item)
@@ -473,6 +486,7 @@ func s:select_preview(id, type, item)
             \ mapping: 0,
             \ scrollbar: 0,
             \ line: 1,
+            \ filter: function('s:select_preview_filter'),
             \ maxheight: height,
             \ minheight: height,
             \ minwidth: &columns - 10,

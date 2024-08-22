@@ -314,3 +314,23 @@ class Symbol(Base):
         return {
             "query": self.query,
         }
+
+
+class PrepareCallHierarchy(Completion):
+    method = "textDocument/prepareCallHierarchy"
+
+
+class IncomingCalls(Base):
+    method = "callHierarchy/incomingCalls"
+
+    def __init__(self, item):
+        self.item = item
+
+    def to_dict(self):
+        return {
+            "item": self.item
+        }
+
+
+class OutgoingCalls(IncomingCalls):
+    method = "callHierarchy/outgoingCalls"
