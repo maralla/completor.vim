@@ -77,15 +77,25 @@ def parse_symbols(items):
 #     ]
 # }
 def rename(items):
-    for changes in items.get('documentChanges', []):
-        fname = unquote(parse_uri(changes['textDocument']['uri']))
+    documentChanges = items.get('documentChanges')
+    if documentChanges is None:
+        items = items.get('changes', {})
+        for key, value in items.items():
+            print(key)
+            _do_rename(unquote(parse_uri(key)), value)
+    else:
+        for changes in documentChanges:
+            fname = unquote(parse_uri(changes['textDocument']['uri']))
+            _do_rename(fname, changes['edits'])
 
-        with open(fname, 'r') as f:
-            data = f.readlines()
-            out = edit(data, changes['edits'])
 
-        with open(fname, 'w') as f:
-            f.write(out)
+def _do_rename(fname, edits):
+    with open(fname, 'r') as f:
+        data = f.readlines()
+        out = edit(data, edits)
+
+    with open(fname, 'w') as f:
+        f.write(out)
 
 
 # [
