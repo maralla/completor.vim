@@ -521,15 +521,17 @@ endfunc
 
 
 func s:select_edit_file(item)
-  " try
-  "   exe ':buffer ' .. a:item.file
-  " catch /E94/
+  exe "normal! m'"
+
+  if bufexists(a:item.file)
+    exe ':buffer ' .. a:item.file
+  else
     exe ':edit ' .. a:item.file
-  " endtry
+  endif
 
   if has_key(a:item, 'line')
-    exe ':' .. string(a:item.line)
-    exe 'normal! 0' .. string(a:item.col-1) .. 'lzz'
+    call setpos('.', [0, a:item.line, a:item.col])
+    exe "normal! m'\<C-o>"
   endif
 endfunc
 
