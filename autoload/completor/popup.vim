@@ -561,13 +561,59 @@ func completor#popup#view(content, ft)
         \ zindex: 32000,
         \ filter: function('s:scroll_filter'),
         \ filtermode: 'n',
-        \ padding: [1, 1, 1, 1],
+        \ padding: [0, 1, 0, 1],
         \ border: [1, 1, 1, 1],
         \ borderchars: ['─', '│', '─', '│', '╭', '┐', '┘', '└'],
         \ })
   call win_execute(p, 'set ft=' .. a:ft)
 
   call timer_start(0, {t -> feedkeys("\<C-j>")})
+endfunc
+
+
+" content: [{'title': 'xxx', 'data': 'json-string'}, ...]
+func completor#popup#menu(action, content)
+  let items = []
+  for item in a:content
+    call add(items, item['title'])
+  endfor
+
+  call popup_menu(items, #{
+        \ moved: 'any',
+        \ pos: 'botleft',
+        \ line: 'cursor-1',
+        \ col: 'cursor',
+        \ zindex: 32000,
+        \ padding: [0, 0, 0, 0],
+        \ border: [1, 1, 1, 1],
+        \ borderchars: ['─', '│', '─', '│', '╭', '┐', '┘', '└'],
+        \ callback: {id, result -> s:menu_callback(result, a:action, a:content)},
+        \ filter: function('s:menu_filter')
+        \ })
+endfunc
+
+
+func s:menu_filter(id, key)
+  let k = a:key
+  if a:key == "\<C-j>"
+    let k = "\<DOWN>"
+  elseif a:key == "\<C-k>"
+    let k = "\<UP>"
+  elseif a:key == "q"
+    let k = "\<ESC>"
+  endif
+
+  return popup_filter_menu(a:id, k)
+endfunc
+
+
+func s:menu_callback(result, action, content)
+  if a:result < 0
+    return
+  endif
+
+  let data = a:content[a:result-1].data
+  call completor#do(a:action .. '_callback', data)
 endfunc
 
 

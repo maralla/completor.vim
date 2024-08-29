@@ -345,6 +345,14 @@ function! completor#action#trigger(items)
     silent edit!
   elseif action ==# 'format'
     call s:format(items)
+  elseif action ==# 'menu'
+    if !empty(items)
+      if completor#support_popup()
+        call completor#popup#menu(s:action, items)
+      else
+        echo "popup window not supported"
+      endif
+    endif
   elseif action ==# 'view'
     if !empty(items)
       if completor#support_popup()

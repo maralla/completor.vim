@@ -276,8 +276,12 @@ class Completor(Base):
         res = self.on_stream(action, msg)
         if res is None:
             return
+
+        self.trigger_action(res)
+
+    def trigger_action(self, data):
         try:
-            vim_action_trigger(res)
+            vim_action_trigger(data)
         except vim.error as e:
             logger.exception(e)
 
