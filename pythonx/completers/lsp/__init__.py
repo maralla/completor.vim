@@ -6,17 +6,18 @@ import logging
 import os
 import json
 import io
-from completor import Completor, vim, get
+from completor import Completor, vim
 from completor.compat import to_unicode
 
 from . import ext
 from .models import Initialize, DidOpen, Completion, DidChange, DidSave, \
     Definition, Format, Rename, Hover, Initialized, Implementation, \
     References, DidChangeConfiguration, Symbol, Signature, DocumentSymbol, \
-    CodeAction, CodeResolve
+    CodeAction, CodeResolve, PrepareCallHierarchy, IncomingCalls, \
+    OutgoingCalls
 from .action import gen_jump_list, get_completion_word, gen_hover_doc, \
     filter_items, parse_symbols, rename
-from .utils import gen_uri
+from .utils import gen_uri, to_filename
 
 logger = logging.getLogger('completor')
 
@@ -30,6 +31,7 @@ class Lsp(Completor):
         self.server_cmd = None
         self.initialized = False
         self.current_id = None
+        self.current_request_args = None
         self.current_options = None
         self.is_ext = False
         self.open_file_map = {}
@@ -134,6 +136,25 @@ class Lsp(Completor):
         self.current_id = req_id
         return req
 
+    def prepare_call_hierarchy(self, args):
+        if not args:
+            return ''
+        req = self.position_request(PrepareCallHierarchy)
+        self.current_request_args = args
+        return req
+
+    def call_hierarchy(self, data, call):
+        try:
+            item = json.loads(data)
+        except Exception as e:
+            logger.exception(e)
+            return ''
+
+        c = call(item)
+        req_id, req = c.to_request()
+        self.current_id = req_id
+        return req
+
     def code_action_callback(self, data):
         if not data:
             return ''
@@ -220,6 +241,19 @@ class Lsp(Completor):
         if action == b'hover':
             return self.position_request(Hover)
 
+        if action == b'prepare_call_hierarchy':
+            return self.prepare_call_hierarchy(args)
+
+        if action == b'incoming_calls':
+            if not args:
+                return ''
+            return self.call_hierarchy(args[0], IncomingCalls)
+
+        if action == b'outgoing_calls':
+            if not args:
+                return ''
+            return self.call_hierarchy(args[0], OutgoingCalls)
+
         handler = ext.get_action_handler(action, self.ft_orig)
         if handler:
             self.is_ext = True
@@ -229,6 +263,7 @@ class Lsp(Completor):
         return ''
 
     def gen_request(self, action, args):
+        self.current_request_args = None
         self.current_options = {}
         if args:
             last = args[-1]
@@ -452,6 +487,54 @@ class Lsp(Completor):
             return []
 
         return [gen_hover_doc(self.ft_orig, '\n\n'.join(values))]
+
+    def on_prepare_call_hierarchy(self, data):
+        logger.info("prepare_call_hierarchy -> %r", data)
+        if not data:
+            return []
+
+        if not self.current_request_args:
+            return []
+
+        method = self.current_request_args[0]
+
+        items = data[0]
+        if not items:
+            return []
+
+        item = items[0]
+
+        try:
+            data = json.dumps(item)
+        except Exception as e:
+            logger.exception(e)
+            return []
+
+        return vim.Dictionary(data=[data], action='do', method=method)
+
+    def on_incoming_calls(self, data, direction='from'):
+        logger.info("incoming_calls -> %r", data)
+        if not data:
+            return []
+
+        res = []
+        for item in data[0]:
+            data = item[direction]
+            if direction == 'from':
+                start = item['fromRanges'][0]['start']
+            else:
+                start = data['selectionRange']['start']
+            res.append({
+                'filename': to_filename(data['uri']),
+                'lnum': start['line'] + 1,
+                'col': start['character'] + 1,
+                'name': data['name'],
+            })
+
+        return vim.Dictionary(data=res, action='references')
+
+    def on_outgoing_calls(self, data):
+        return self.on_incoming_calls(data, direction='to')
 
     def on_lsp_ext(self, data):
         if not data or len(data) < 3:
