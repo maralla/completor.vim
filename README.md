@@ -50,12 +50,14 @@ completed.
 This is the fallback completer. When no semantic completer found the buffer
 completer will be used and will complete based on the current buffers.
 
-#### Ultisnips and neosnippet
+#### Snippets
 
-Ultisnips is supported by default. If [ultisnips](https://github.com/SirVer/ultisnips) is installed,
+Ultisnips: is supported by default. If [ultisnips](https://github.com/SirVer/ultisnips) is installed,
 the snips candidates will show on the completion popup menu.
 
-Use this plugin [completor-neosnippet](https://github.com/maralla/completor-neosnippet) for neosnippet support.
+neosnippet: Need to install [completor-neosnippet](https://github.com/maralla/completor-neosnippet) for neosnippet support.
+
+vim-vsnip: Need to install [completor-vsnip](https://github.com/phongnh/completor-vsnip) for vim-vsnip support.
 
 #### Neoinclude
 
