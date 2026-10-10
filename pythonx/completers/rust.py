@@ -74,7 +74,7 @@ class Racer(Completor):
             if len(parts) < 8:
                 continue
             doc = parts[-1].replace(b'\\n', b'\n').replace(b"\\'", b"'").\
-                replace(b'\;', b';').replace(b'\\"', b'"').strip(b'"')
+                replace(rb'\;', b';').replace(b'\\"', b'"').strip(b'"')
             if doc:
                 ret.append(doc)
         return ret
